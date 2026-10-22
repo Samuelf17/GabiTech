@@ -7,7 +7,7 @@ Aplicativo educativo Android com hub e minijogos independentes, conforme definid
 ## Ambiente e restrições técnicas
 
 - O projeto contém `project.godot` com `config_version=4` e renderer GLES2.
-- O README menciona `Godot_v3.6.3-stable_x11.64`, mas não confirma a versão efetivamente usada para abrir ou exportar o projeto.
+- O README documenta o objetivo, o estado inicial do projeto, como abri-lo no Godot, a estrutura de pastas e as limitações ainda não validadas. Não confirma a versão efetivamente usada para abrir ou exportar o projeto.
 - Dispositivo de referência: TV Box MXQ-4K com Android 5.1; compatibilidade e desempenho ainda não foram validados.
 
 ## Arquitetura e decisões vigentes
@@ -26,7 +26,7 @@ Aplicativo educativo Android com hub e minijogos independentes, conforme definid
 - `ideias/README.md` explica o uso da pasta para guardar referências visuais.
 - `CHANGELOG.md` registra as mudanças importantes em formato conciso.
 - Ainda não há cenas de jogo, scripts de gameplay ou testes.
-- O README contém apenas o título `app-jogos`, uma nota sobre agente de IA e uma referência a Godot 3.6.3.
+- O README está em português e segue uma estrutura voltada ao GitHub, com objetivo, estado, requisitos conhecidos, instruções para abrir o projeto, estrutura e limitações. A cena principal ainda não foi criada, então o projeto não é jogável.
 
 ## Testes executados e resultados
 

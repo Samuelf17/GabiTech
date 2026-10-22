@@ -151,6 +151,7 @@ Esses padrões são ferramentas, não obrigações para todos os scripts.
 9. Não introduza bibliotecas, padrões ou camadas adicionais sem justificar o benefício.
 10. Ao finalizar uma tarefa, informe resumidamente o que foi alterado, quais testes foram executados e quaisquer limitações relevantes.
 11. Antes de criar ou alterar designs visuais no Godot, consulte as imagens da pasta `ideias/` e use-as como referência para a interface e os elementos visuais do app e dos minijogos.
+12. Mantenha `README.md` em formato claro e adequado ao GitHub, com objetivo, estado atual, requisitos confirmados, instruções de abertura/execução e estrutura do projeto. Atualize-o quando essas informações mudarem e identifique explicitamente o que ainda não foi validado; não invente funcionalidades, comandos ou requisitos.
 
 ## Persistência e dados
 
