@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Recolocado `ideias/mascote.png` como sprite da tela inicial, com proporção preservada. Mantida a tipografia adaptativa por viewport e espaço do controle; os testes cobrem escalas em retrato e paisagem e o sprite, mas aguardam ambiente com display para execução.
+- Desfeitos na tela principal o aumento tipográfico de 2×/1,5× e a substituição do robô pelo sprite; os papéis de fonte adaptativos retornaram a fatores menores, e o robô responsivo foi recriado em desenho vetorial. A suíte adicionou verificações de regressão, mas continua sem execução por falta de display X11.
+- Corrigida a hierarquia tipográfica da saudação em paisagem: o título ganhou área maior e a mensagem é limitada a 88% da escala do título; testes agora comparam os tamanhos e o encaixe em 1280×720 e 960×540. A execução automatizada continua bloqueada pela ausência de display X11.
+- Refatorados os textos da tela inicial para papéis tipográficos adaptativos calculados pelo viewport e pelo espaço disponível em cada controle; adicionada ao `AGENTS.md` a exigência de avaliar retrato em celular e paisagem em TV.
+- Ampliada a suíte responsiva com testes de retrato compacto, limites do conteúdo, feedback e redução de escala tipográfica conforme viewport menor. A execução segue pendente pela ausência de display X11; as verificações estáticas e de diff passaram.
 - Adicionada ao `AGENTS.md` a regra de testar funções alteradas e áreas relacionadas; falhas devem ser revertidas ao último estado funcional, registradas e comunicadas.
 - Corrigido o desaparecimento dos títulos nos atalhos: o botão de fundo escalava novamente os rótulos filhos. O contêiner agora não aplica escala extra; adicionada uma suíte de regressão para layouts retrato, paisagem e estreito, texto centralizado, áreas da tela e feedback.
 - O teste automatizado ainda não pôde ser executado: Godot 3.6.3 está instalado, mas o ambiente não fornece display X11 e esta build não inicializa sem ele.

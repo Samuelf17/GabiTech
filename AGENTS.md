@@ -154,6 +154,7 @@ Esses padrões são ferramentas, não obrigações para todos os scripts.
 12. Mantenha `README.md` em formato claro e adequado ao GitHub, com objetivo, estado atual, requisitos confirmados, instruções de abertura/execução e estrutura do projeto. Atualize-o quando essas informações mudarem e identifique explicitamente o que ainda não foi validado; não invente funcionalidades, comandos ou requisitos.
 13. Após cada mudança de código, execute testes direcionados às funções alteradas e verificações de regressão nas funções e fluxos relacionados. Cubra os modos de tela e entradas afetados e confira erros de execução; não declare sucesso para verificações que não puderam ser executadas.
 14. Se algum teste falhar após uma mudança, reverta o código funcional afetado ao último estado anterior à mudança, registre e descreva a falha e qualquer alteração indesejada, e informe o usuário. Preserve mudanças independentes e não esconda a falha.
+15. Não defina tamanhos absolutos de fonte por objeto. Use papéis tipográficos com escala calculada pelo tamanho do viewport e pelo espaço disponível no controle. Ao alterar uma interface, analise sempre primeiro a resolução e o posicionamento em retrato para celular e também a composição em paisagem para TV; inclua resoluções menores nos testes responsivos.
 
 ## Persistência e dados
 

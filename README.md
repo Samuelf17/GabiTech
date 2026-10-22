@@ -2,14 +2,14 @@
 
 Aplicativo educativo 2D para Android, planejado como um hub que reúne minijogos independentes e sistemas compartilhados.
 
-> **Estado atual:** primeira tela do hub implementada como cena principal: “Guardiões da Cidade Digital”. O layout reorganiza os elementos em retrato e paisagem; telas de missão, mini games, aprendizado e perfil ainda não foram implementadas.
+> **Estado atual:** primeira tela do hub implementada como cena principal: “Guardiões da Cidade Digital”, com o sprite do mascote. O layout reorganiza os elementos em retrato e paisagem, e as fontes se adaptam ao viewport e ao espaço disponível; telas de missão, mini games, aprendizado e perfil ainda não foram implementadas.
 
 ## Tecnologias e plataforma
 
 - Engine e linguagem planejadas: Godot Engine e GDScript.
 - Renderer configurado em `project.godot`: GLES2.
 - Plataforma-alvo: Android, com a TV Box MXQ-4K com Android 5.1 como referência mínima de hardware.
-- A interface se adapta a retrato (celulares) e paisagem (TVs), usando margens proporcionais e redimensionando textos e controles. A apresentação ainda não foi validada em dispositivos reais e não consulta recortes de câmera/notch do sistema operacional.
+- A interface se adapta a retrato (celulares) e paisagem (TVs), usando margens proporcionais e dimensionando textos por papel tipográfico, viewport e espaço disponível nos controles. A apresentação ainda não foi validada em dispositivos reais e não consulta recortes de câmera/notch do sistema operacional.
 - A versão do editor Godot, a exportação para Android 5.1 e o desempenho no hardware de referência ainda não foram validados.
 
 # Configuração do Ambiente de Desenvolvimento
@@ -308,7 +308,7 @@ shared/                      # Sistemas e componentes compartilhados
   progress/
   ui/
 data/                        # Catálogo e conteúdo pedagógico
-ideias/                      # Referências visuais e sprite transparente do mascote
+ideias/                      # Referências visuais e sprite do mascote usado na tela
 tests/                       # Testes de regressão da tela principal
 ```
 
