@@ -2,13 +2,14 @@
 
 Aplicativo educativo 2D para Android, planejado como um hub que reúne minijogos independentes e sistemas compartilhados.
 
-> **Estado atual:** estrutura inicial do projeto Godot. Ainda não há cena principal, menus ou minijogos implementados.
+> **Estado atual:** primeira tela do hub implementada como cena principal: “Guardiões da Cidade Digital”. O layout reorganiza os elementos em retrato e paisagem; telas de missão, mini games, aprendizado e perfil ainda não foram implementadas.
 
 ## Tecnologias e plataforma
 
 - Engine e linguagem planejadas: Godot Engine e GDScript.
 - Renderer configurado em `project.godot`: GLES2.
 - Plataforma-alvo: Android, com a TV Box MXQ-4K com Android 5.1 como referência mínima de hardware.
+- A interface se adapta a retrato (celulares) e paisagem (TVs), usando margens proporcionais e redimensionando textos e controles. A apresentação ainda não foi validada em dispositivos reais e não consulta recortes de câmera/notch do sistema operacional.
 - A versão do editor Godot, a exportação para Android 5.1 e o desempenho no hardware de referência ainda não foram validados.
 
 # Configuração do Ambiente de Desenvolvimento
@@ -282,17 +283,20 @@ Configure a exportação Android e gere um APK de teste.
 - A Debug Keystore não deve ser utilizada como chave definitiva de publicação.
 
 
-## Como abrir
+## Como abrir e executar
 
 1. Abra o Godot Project Manager.
 2. Importe a pasta deste repositório, que contém `project.godot`, e abra o projeto no editor.
 
-O projeto ainda não tem uma cena principal configurada; por isso, não há um jogo executável para iniciar neste estágio.
+Ao executar o projeto no Godot, a cena inicial abre a tela principal do hub. A composição se ajusta à orientação do viewport: retrato em celulares e paisagem em telas horizontais, como TVs. Os botões respondem ao toque/clique e ao foco por teclado/controle; as opções sem telas implementadas mostram uma mensagem de disponibilidade futura.
 
 ## Estrutura
 
 ```text
 app/                         # Hub, menus e navegação
+  menus/
+    home_screen.tscn         # Tela principal e ponto de entrada do app
+    home_screen.gd
 games/                       # Minijogos independentes
   quiz/
   puzzle/
@@ -304,8 +308,8 @@ shared/                      # Sistemas e componentes compartilhados
   progress/
   ui/
 data/                        # Catálogo e conteúdo pedagógico
-ideias/                      # Imagens de referência visual
-tests/                       # Testes do projeto
+ideias/                      # Referências visuais e sprite transparente do mascote
+tests/                       # Testes de regressão da tela principal
 ```
 
 Os designs criados no Godot devem consultar as imagens disponíveis em `ideias/`. As regras permanentes de desenvolvimento e as decisões de arquitetura estão em [AGENTS.md](AGENTS.md); o estado de implementação está em [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md).
