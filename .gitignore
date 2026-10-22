@@ -1,0 +1,11 @@
+#Pasta de ideias
+ideias/
+
+#Godot: arquivos temporários e importados
+.import/
+export.cfg
+export_presets.cfg
+
+#Cache e metadados gerados pelo editor
+.mono/
+data_*/
