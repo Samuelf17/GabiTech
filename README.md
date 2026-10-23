@@ -289,7 +289,9 @@ Configure a exportação Android e gere um APK de teste.
 1. Abra o Godot Project Manager.
 2. Importe a pasta deste repositório, que contém `project.godot`, e abra o projeto no editor.
 
-Ao executar o projeto no Godot, a cena inicial abre a tela principal do hub. A composição se ajusta à orientação do viewport: retrato em celulares e paisagem em telas horizontais, como TVs. Os botões respondem ao toque/clique e ao foco por teclado/controle; as opções sem telas implementadas mostram uma mensagem de disponibilidade futura.
+Ao executar o projeto no Godot, a cena inicial abre a tela principal do hub. A composição se ajusta à orientação do viewport: retrato em celulares e paisagem em telas horizontais, como TVs. A barra inferior oferece Início, Mapa, Missões e Perfil; Mapa e Missões abrem o mapa, e Perfil mostra uma mensagem provisória. O botão “Começar missão” também abre o mapa. A navegação responde ao toque/clique e ao foco por teclado/controle.
+
+Todas as telas devem reutilizar `shared/ui/bottom_navigation.tscn` para a barra inferior. Antes de adicionar o componente à tela, defina `active_item` com `home`, `map`, `missions` ou `profile`; conecte o sinal `item_selected` para tratar a navegação. O componente centraliza ícones, cores, foco e escala tipográfica responsiva.
 
 ## Estrutura
 
@@ -298,19 +300,25 @@ app/                         # Hub, menus e navegação
   menus/
     home_screen.tscn         # Tela principal e ponto de entrada do app
     home_screen.gd
+    map_screen.tscn         # Mapa ilustrado com bairros interativos
+    map_screen.gd
 games/                       # Minijogos independentes
   quiz/
   puzzle/
   simulation/
 shared/                      # Sistemas e componentes compartilhados
+  ui/
+    bottom_navigation.tscn   # Menu inferior reutilizável e tipografia padronizada
+    bottom_navigation.gd
   accessibility/
   audio/
   mascot/
+  map/
+    assets/                  # Ilustração da cidade usada no mapa
   progress/
-  ui/
 data/                        # Catálogo e conteúdo pedagógico
 ideias/                      # Referências visuais para telas e minijogos
-tests/                       # Testes de regressão da tela principal
+tests/                       # Testes responsivos da navegação e das telas
 ```
 
 Os designs criados no Godot devem consultar as imagens disponíveis em `ideias/`. As regras permanentes de desenvolvimento e as decisões de arquitetura estão em [AGENTS.md](AGENTS.md); o estado de implementação está em [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md).

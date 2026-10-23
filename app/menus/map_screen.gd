@@ -1,9 +1,9 @@
 extends Control
 
+const BOTTOM_NAVIGATION = preload("res://shared/ui/bottom_navigation.tscn")
 const NAVY = Color("#071126")
 const PANEL = Color("#0b1735")
 const WHITE = Color("#f3f7ff")
-const MUTED = Color("#bac8e8")
 const CYAN = Color("#55f4e9")
 const DISTRICTS = [
 	{"id": "privacy", "name": "BAIRRO DA\nPRIVACIDADE", "progress": "3/5 MISSÕES", "color": Color("#a95aff"), "center": Vector2(0.25, 0.325), "size": Vector2(0.26, 0.12), "points": [Vector2(0.04, 0.265), Vector2(0.25, 0.215), Vector2(0.48, 0.285), Vector2(0.43, 0.405), Vector2(0.25, 0.455), Vector2(0.055, 0.39)]},
@@ -66,12 +66,12 @@ func _build_screen() -> void:
 		ui[district["id"] + "_title"] = title
 		ui[district["id"] + "_progress"] = progress
 
-	var nav_background := _new_panel("BottomNavigationBackground", NAVY, Color("#33466e"), 16)
-	ui["nav_background"] = nav_background
-	_add_nav_item("Inicio", "⌂", 0, "res://app/menus/home_screen.tscn")
-	_add_nav_item("Mapa", "●", 1, "")
-	_add_nav_item("Missões", "⚑", 2, "")
-	_add_nav_item("Perfil", "♟", 3, "")
+	var navigation = BOTTOM_NAVIGATION.instance()
+	navigation.name = "BottomNavigation"
+	navigation.active_item = "map"
+	navigation.connect("item_selected", self, "_on_nav_pressed")
+	add_child(navigation)
+	ui["navigation"] = navigation
 	ui["areas"].grab_focus()
 
 
@@ -126,25 +126,6 @@ func _hex_region(center: Vector2, size: Vector2) -> Dictionary:
 	return {"points": points, "center": center}
 
 
-func _add_nav_item(title: String, icon_text: String, index: int, scene_path: String) -> void:
-	var button := Button.new()
-	button.name = "Nav" + title.replace("ó", "o")
-	button.text = icon_text + "\n" + title
-	button.align = Button.ALIGN_CENTER
-	button.focus_mode = Control.FOCUS_ALL
-	button.add_stylebox_override("normal", _stylebox(NAVY, NAVY, 12, 1))
-	button.add_stylebox_override("hover", _stylebox(Color("#132345"), CYAN, 12, 2))
-	button.add_stylebox_override("focus", _stylebox(Color("#132345"), CYAN, 12, 2))
-	button.add_color_override("font_color", CYAN if title == "Mapa" else MUTED)
-	button.add_color_override("font_color_hover", WHITE)
-	button.add_color_override("font_color_focus", WHITE)
-	button.set_meta("nav_index", index)
-	button.set_meta("font_role", "nav")
-	button.connect("pressed", self, "_on_nav_pressed", [title, scene_path])
-	add_child(button)
-	ui["nav_" + str(index)] = button
-
-
 func _layout_screen(viewport_size: Vector2) -> void:
 	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
 		return
@@ -158,13 +139,8 @@ func _layout_screen(viewport_size: Vector2) -> void:
 	_place(ui["screen_title"], safe * 1.4, safe * 0.65, width - safe * 2.8, height * 0.055, font_basis)
 	_place(ui["prompt_panel"], safe, height * 0.105, width - safe * 2.0, height * 0.078)
 	_place(ui["prompt"], safe * 1.6, height * 0.115, width - safe * 3.2, height * 0.055, font_basis)
-	var nav_height: float = height * (0.105 if landscape else 0.11)
-	var nav_y: float = height - nav_height - safe * 0.5
-	_place(ui["nav_background"], safe * 0.5, nav_y, width - safe, nav_height)
-	var nav_width: float = (width - safe * 2.0) / 4.0
-	for index in range(4):
-		_place(ui["nav_" + str(index)], safe + nav_width * index, nav_y + nav_height * 0.06, nav_width, nav_height * 0.88, font_basis)
-	_place(ui["status"], safe, nav_y - height * 0.038, width - safe * 2.0, height * 0.035, font_basis)
+	var navigation_top: float = ui["navigation"].get_bar_top(viewport_size)
+	_place(ui["status"], safe, navigation_top - height * 0.043, width - safe * 2.0, height * 0.035, font_basis)
 	var regions: Array = _district_layout(viewport_size, landscape)
 	for index in range(DISTRICTS.size()):
 		var region: Dictionary = regions[index]
@@ -184,7 +160,7 @@ func _place(control: Control, x: float, y: float, width: float, height: float, f
 	var scale: float = 1.0
 	if control.has_meta("font_role"):
 		var font: Font = control.get_font("font")
-		var ratio: float = {"title": 0.038, "prompt": 0.031, "district": 0.021, "progress": 0.016, "status": 0.018, "nav": 0.020}[control.get_meta("font_role")]
+		var ratio: float = {"title": 0.038, "prompt": 0.031, "district": 0.021, "progress": 0.016, "status": 0.018}[control.get_meta("font_role")]
 		if font != null:
 			scale = min(font_basis * ratio / font.get_height(), _fit_text_scale(control, font, width, height))
 	control.anchor_left = 0.0
@@ -283,13 +259,16 @@ func _select_district(index: int) -> void:
 	ui["status"].text = DISTRICTS[index]["name"].replace("\n", " ") + " selecionado."
 
 
-func _on_nav_pressed(title: String, scene_path: String) -> void:
-	if not scene_path.empty():
-		get_tree().change_scene(scene_path)
-	elif title == "Missões":
+
+func _on_nav_pressed(item_id: String) -> void:
+	if item_id == "home":
+		get_tree().change_scene("res://app/menus/home_screen.tscn")
+	elif item_id == "missions":
 		ui["status"].text = "Escolha um bairro para aceitar a missão!"
-	else:
+	elif item_id == "profile":
 		ui["status"].text = "A tela de Perfil estará disponível em breve."
+	else:
+		ui["status"].text = ""
 
 
 func _on_viewport_size_changed() -> void:

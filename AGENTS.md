@@ -156,6 +156,12 @@ Esses padrões são ferramentas, não obrigações para todos os scripts.
 14. Se algum teste falhar após uma mudança, reverta o código funcional afetado ao último estado anterior à mudança, registre e descreva a falha e qualquer alteração indesejada, e informe o usuário. Preserve mudanças independentes e não esconda a falha.
 15. Não defina tamanhos absolutos de fonte por objeto. Use papéis tipográficos com escala calculada pelo tamanho do viewport e pelo espaço disponível no controle. Ao alterar uma interface, analise sempre primeiro a resolução e o posicionamento em retrato para celular e também a composição em paisagem para TV; inclua resoluções menores nos testes responsivos.
 
+### Navegação inferior compartilhada
+
+- Todas as telas com navegação inferior devem instanciar `shared/ui/bottom_navigation.tscn`; não recrie os itens nem calcule outra escala tipográfica no script da tela.
+- Antes de adicionar a cena à árvore, defina `active_item` como `home`, `map`, `missions` ou `profile`, e conecte o sinal `item_selected` para que a tela decida o destino.
+- O componente compartilhado é a fonte única de rótulos, ícones, cores, foco e escala tipográfica do menu. Atualize-o se o padrão visual mudar, e valide todas as telas que o usam.
+
 ## Persistência e dados
 
 - Separar o estado temporário da partida do progresso persistente.

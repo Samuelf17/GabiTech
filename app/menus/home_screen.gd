@@ -1,5 +1,6 @@
 extends Control
 
+const BOTTOM_NAVIGATION = preload("res://shared/ui/bottom_navigation.tscn")
 const NAVY = Color("#071126")
 const PANEL = Color("#101d3c")
 const PANEL_LIGHT = Color("#17284c")
@@ -15,7 +16,6 @@ const FONT_ROLE_RATIOS = {
 	"body": 0.035995,
 	"button": 0.0367,
 	"caption": 0.0247,
-	"nav_caption": 0.02717,
 	"display_number": 0.0593,
 	"progress_value": 0.0347,
 	"progress_caption": 0.026
@@ -63,10 +63,6 @@ func _build_screen() -> void:
 	start_button.connect("pressed", self, "_open_map_screen")
 	ui["start"] = start_button
 
-	ui["nav_missions"] = _new_nav_button("NavMissions", "nav_missions", "MISSÕES", Color("#19c9c9"), "Missões")
-	ui["nav_games"] = _new_nav_button("NavMiniGames", "nav_games", "MINI GAMES", Color("#7565f6"), "Mini games")
-	ui["nav_profile"] = _new_nav_button("NavProfile", "nav_profile", "PERFIL", Color("#3187ec"), "Perfil")
-
 	ui["progress_panel"] = _new_panel("ProgressPanel", PANEL, Color("#26385e"), 18)
 	ui["level_badge"] = _new_panel("LevelBadge", Color("#132345"), Color("#16c7d0"), 56)
 	ui["level_caption"] = _new_label("NÍVEL", MUTED, "caption", Label.ALIGN_CENTER)
@@ -79,7 +75,13 @@ func _build_screen() -> void:
 
 	status_label = _new_label("", CYAN, "caption", Label.ALIGN_CENTER)
 	ui["status"] = status_label
-	ui["nav_missions"].grab_focus()
+	var navigation = BOTTOM_NAVIGATION.instance()
+	navigation.name = "BottomNavigation"
+	navigation.active_item = "home"
+	navigation.connect("item_selected", self, "_on_home_nav_pressed")
+	add_child(navigation)
+	ui["navigation"] = navigation
+	navigation.buttons["home"].grab_focus()
 
 
 func _layout_screen(viewport_size: Vector2) -> void:
@@ -117,21 +119,12 @@ func _layout_portrait(width: float, height: float, safe_x: float, safe_y: float,
 	_place(ui["greeting_text"], greeting_x + 18, greeting_y + 52, greeting_width - 36, greeting_height - 62, font_basis)
 
 	_place(ui["start"], width * 0.06, height * 0.595, width * 0.88, height * 0.068, font_basis)
-	var nav_left := width * 0.05
-	var nav_gap := width * 0.018
-	var nav_width := (width * 0.90 - nav_gap * 2.0) / 3.0
-	var nav_y := height * 0.69
-	var nav_height := height * 0.112
-	_place_nav("nav_missions", nav_left, nav_y, nav_width, nav_height, font_basis)
-	_place_nav("nav_games", nav_left + nav_width + nav_gap, nav_y, nav_width, nav_height, font_basis)
-	_place_nav("nav_profile", nav_left + (nav_width + nav_gap) * 2.0, nav_y, nav_width, nav_height, font_basis)
-
 	var progress_x := width * 0.05
-	var progress_y := height * 0.81
+	var progress_y := height * 0.69
 	var progress_width := width * 0.90
 	var progress_height := height * 0.13
 	_place_progress(progress_x, progress_y, progress_width, progress_height, font_basis)
-	_place(ui["status"], safe_x, height - safe_y - 36.0, width - safe_x * 2.0, 34, font_basis)
+	_place_status_above_navigation(safe_x, width - safe_x * 2.0, width, height, font_basis)
 
 
 func _layout_landscape(width: float, height: float, safe_x: float, safe_y: float, font_basis: float) -> void:
@@ -161,16 +154,8 @@ func _layout_landscape(width: float, height: float, safe_x: float, safe_y: float
 	var content_x := width * 0.405
 	var content_width := width * 0.555
 	_place(ui["start"], content_x, height * 0.20, content_width, height * 0.12, font_basis)
-	var nav_gap := content_width * 0.025
-	var nav_width := (content_width - nav_gap * 2.0) / 3.0
-	var nav_y := height * 0.385
-	var nav_height := height * 0.30
-	_place_nav("nav_missions", content_x, nav_y, nav_width, nav_height, font_basis)
-	_place_nav("nav_games", content_x + nav_width + nav_gap, nav_y, nav_width, nav_height, font_basis)
-	_place_nav("nav_profile", content_x + (nav_width + nav_gap) * 2.0, nav_y, nav_width, nav_height, font_basis)
-
-	_place_progress(content_x, height * 0.735, content_width, height * 0.205, font_basis)
-	_place(ui["status"], content_x, height - safe_y - 36.0, content_width, 34, font_basis)
+	_place_progress(content_x, height * 0.49, content_width, height * 0.23, font_basis)
+	_place_status_above_navigation(content_x, content_width, width, height, font_basis)
 
 
 func _place_progress(x: float, y: float, width: float, height: float, font_basis: float) -> void:
@@ -197,14 +182,10 @@ func _place_mascot(x: float, y: float, width: float, height: float) -> void:
 	_place(ui["mascot"], x, y, width, height)
 
 
-func _place_nav(key: String, x: float, y: float, width: float, height: float, font_basis: float) -> void:
-	var button: Button = ui[key]
-	var title_label: Label = ui[key + "_title"]
-	var button_height: float = height * 0.70
-	var label_y: float = y + height * 0.74
-	var label_height: float = height * 0.26
-	_place(button, x, y, width, button_height)
-	_place(title_label, x, label_y, width, label_height, font_basis)
+func _place_status_above_navigation(x: float, width: float, viewport_width: float, height: float, font_basis: float) -> void:
+	var viewport_size := Vector2(viewport_width, height)
+	var navigation_top: float = ui["navigation"].get_bar_top(viewport_size)
+	_place(ui["status"], x, navigation_top - height * 0.04, width, height * 0.03, font_basis)
 
 
 func _place(control: Control, x: float, y: float, width: float, height: float, font_basis: float = 720.0, extra_scale: float = 1.0) -> void:
@@ -290,25 +271,6 @@ func _new_button(node_name: String, text: String, fill: Color, text_color: Color
 	return button
 
 
-func _new_nav_button(node_name: String, key: String, title: String, color: Color, action: String) -> Button:
-	var button := _new_button(node_name, "", color, WHITE, "button")
-	# Keep each colored button ready for a centered icon without a text placeholder.
-	button.remove_meta("font_role")
-	button.icon_align = Button.ALIGN_CENTER
-	button.expand_icon = true
-	button.add_stylebox_override("normal", _stylebox(color, color, 16, 2))
-	button.add_stylebox_override("hover", _stylebox(color, color, 16, 3))
-	button.add_stylebox_override("focus", _stylebox(color, WHITE, 16, 4))
-	var title_label := _new_label(title, WHITE, "nav_caption", Label.ALIGN_CENTER)
-	title_label.name = node_name + "Title"
-	ui[key + "_title"] = title_label
-	if key == "nav_missions":
-		button.connect("pressed", self, "_open_map_screen")
-	else:
-		button.connect("pressed", self, "_on_action_pressed", [action + " estará disponível em breve."])
-	return button
-
-
 func _stylebox(fill: Color, border: Color, radius: int, border_width: int) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = fill
@@ -329,3 +291,12 @@ func _on_action_pressed(message: String) -> void:
 
 func _open_map_screen() -> void:
 	get_tree().change_scene("res://app/menus/map_screen.tscn")
+
+
+func _on_home_nav_pressed(item_id: String) -> void:
+	if item_id == "map" or item_id == "missions":
+		_open_map_screen()
+	elif item_id == "profile":
+		_on_action_pressed("A tela de Perfil estará disponível em breve.")
+	else:
+		status_label.text = ""
