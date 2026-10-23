@@ -2,7 +2,7 @@
 
 Aplicativo educativo 2D para Android, planejado como um hub que reúne minijogos independentes e sistemas compartilhados.
 
-> **Estado atual:** o hub “Guardiões da Cidade Digital” e a tela do mapa estão implementados. O mapa combina a ilustração da cidade com cinco bairros interativos; “Começar missão” e “Missões” abrem essa tela. A navegação inferior oferece Início, Mapa, Missões e Perfil. Perfil e os fluxos de missão ainda não possuem telas de destino completas.
+> **Estado atual:** o hub, o mapa e a tela de Perfil/Recompensas estão implementados. O mapa combina a ilustração da cidade com cinco bairros interativos em octógonos responsivos ao viewport. O Perfil mostra pontos, nível, XP, distintivos provisórios e desafio semanal; esses valores são demonstrativos e os distintivos usam temporariamente o ícone de escudo.
 
 ## Tecnologias e plataforma
 
@@ -10,7 +10,8 @@ Aplicativo educativo 2D para Android, planejado como um hub que reúne minijogos
 - Renderer configurado em `project.godot`: GLES2.
 - Plataforma-alvo: Android, com a TV Box MXQ-4K com Android 5.1 como referência mínima de hardware.
 - A interface se adapta a retrato (celulares) e paisagem (TVs), usando margens proporcionais e dimensionando textos por papel tipográfico, viewport e espaço disponível nos controles. A apresentação ainda não foi validada em dispositivos reais e não consulta recortes de câmera/notch do sistema operacional.
-- A tela do mapa usa `shared/map/assets/mapa.png` como fundo ilustrado e desenha no Godot as áreas de Privacidade, Comunicação, Segurança, Conhecimento e Respeito. As áreas aceitam toque e mouse, e podem ser selecionadas por teclado/controle.
+- A tela do mapa usa `shared/map/assets/mapa.png` em retrato e `shared/map/assets/mapa_horizontal.png` quando o viewport está em paisagem. As duas artes ficam em `shared/map/assets/`; o Godot desenha as áreas de Privacidade, Comunicação, Segurança, Conhecimento e Respeito, que aceitam toque e mouse e podem ser selecionadas por teclado/controle.
+- A tela `app/menus/profile_screen.tscn` segue a referência `ideias/tela_perfil.png` e exibe resumo de recompensas, progresso de nível, seis distintivos e desafio semanal. Os distintivos usam `shared/ui/assets/icons/shield_icon.svg` temporariamente; as abas Conquistas e Coleção ainda mostram aviso de disponibilidade futura.
 - A versão do editor Godot, a exportação para Android 5.1 e o desempenho no hardware de referência ainda não foram validados.
 
 # Configuração do Ambiente de Desenvolvimento
@@ -289,9 +290,11 @@ Configure a exportação Android e gere um APK de teste.
 1. Abra o Godot Project Manager.
 2. Importe a pasta deste repositório, que contém `project.godot`, e abra o projeto no editor.
 
-Ao executar o projeto no Godot, a cena inicial abre a tela principal do hub. A composição se ajusta à orientação do viewport: retrato em celulares e paisagem em telas horizontais, como TVs. A barra inferior oferece Início, Mapa, Missões e Perfil; Mapa e Missões abrem o mapa, e Perfil mostra uma mensagem provisória. O botão “Começar missão” também abre o mapa. A navegação responde ao toque/clique e ao foco por teclado/controle.
+Ao executar o projeto no Godot, a cena inicial abre a tela principal do hub. A composição se ajusta à orientação do viewport: retrato em celulares e paisagem em telas horizontais, como TVs. A barra inferior oferece Início, Mapa, Missões e Perfil; Mapa abre o mapa, Perfil abre as recompensas, e Missões mostra um aviso provisório. O botão “Começar missão” também abre o mapa. A navegação responde ao toque/clique e ao foco por teclado/controle.
 
 Todas as telas devem reutilizar `shared/ui/bottom_navigation.tscn` para a barra inferior. Antes de adicionar o componente à tela, defina `active_item` com `home`, `map`, `missions` ou `profile`; conecte o sinal `item_selected` para tratar a navegação. O componente centraliza ícones, cores, foco e escala tipográfica responsiva.
+
+Os ícones SVG de interface ficam em `shared/ui/assets/icons/`. A barra inferior usa casa, mapa, missão e perfil; os bairros do mapa usam os símbolos disponíveis de privacidade, comunicação, segurança e respeito. O botão “Começar missão” não exibe ícone. O ícone de controle foi copiado para uso futuro. `ideias/` mantém os arquivos de referência originais.
 
 ## Estrutura
 
@@ -302,6 +305,8 @@ app/                         # Hub, menus e navegação
     home_screen.gd
     map_screen.tscn         # Mapa ilustrado com bairros interativos
     map_screen.gd
+    profile_screen.tscn     # Perfil e recompensas com distintivos temporários
+    profile_screen.gd
 games/                       # Minijogos independentes
   quiz/
   puzzle/
@@ -310,6 +315,8 @@ shared/                      # Sistemas e componentes compartilhados
   ui/
     bottom_navigation.tscn   # Menu inferior reutilizável e tipografia padronizada
     bottom_navigation.gd
+    assets/
+      icons/                 # Símbolos SVG reutilizáveis da interface
   accessibility/
   audio/
   mascot/

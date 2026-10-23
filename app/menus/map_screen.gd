@@ -1,16 +1,24 @@
 extends Control
 
 const BOTTOM_NAVIGATION = preload("res://shared/ui/bottom_navigation.tscn")
+const PORTRAIT_MAP_BACKGROUND = preload("res://shared/map/assets/mapa.png")
+const LANDSCAPE_MAP_BACKGROUND = preload("res://shared/map/assets/mapa_horizontal.png")
 const NAVY = Color("#071126")
 const PANEL = Color("#0b1735")
 const WHITE = Color("#f3f7ff")
 const CYAN = Color("#55f4e9")
+const DISTRICT_ICON_PATHS = {
+	"privacy": "res://shared/ui/assets/icons/lock_icon.svg",
+	"communication": "res://shared/ui/assets/icons/chat_icon.svg",
+	"security": "res://shared/ui/assets/icons/shield_icon.svg",
+	"respect": "res://shared/ui/assets/icons/groups_icon.svg"
+}
 const DISTRICTS = [
-	{"id": "privacy", "name": "BAIRRO DA\nPRIVACIDADE", "progress": "3/5 MISSÕES", "color": Color("#a95aff"), "center": Vector2(0.25, 0.325), "size": Vector2(0.26, 0.12), "points": [Vector2(0.04, 0.265), Vector2(0.25, 0.215), Vector2(0.48, 0.285), Vector2(0.43, 0.405), Vector2(0.25, 0.455), Vector2(0.055, 0.39)]},
-	{"id": "communication", "name": "BAIRRO DA\nCOMUNICAÇÃO", "progress": "3/5 MISSÕES", "color": Color("#23e2e7"), "center": Vector2(0.75, 0.385), "size": Vector2(0.26, 0.12), "points": [Vector2(0.53, 0.315), Vector2(0.76, 0.265), Vector2(0.97, 0.34), Vector2(0.95, 0.455), Vector2(0.75, 0.505), Vector2(0.54, 0.445)]},
-	{"id": "security", "name": "BAIRRO DA\nSEGURANÇA", "progress": "3/5 MISSÕES", "color": Color("#81ea48"), "center": Vector2(0.49, 0.555), "size": Vector2(0.30, 0.115), "points": [Vector2(0.27, 0.475), Vector2(0.50, 0.425), Vector2(0.73, 0.495), Vector2(0.69, 0.625), Vector2(0.50, 0.685), Vector2(0.30, 0.625), Vector2(0.19, 0.535)]},
-	{"id": "knowledge", "name": "BAIRRO DO\nCONHECIMENTO", "progress": "1/3 MISSÕES", "color": Color("#ffc34f"), "center": Vector2(0.245, 0.715), "size": Vector2(0.27, 0.12), "points": [Vector2(0.035, 0.625), Vector2(0.24, 0.565), Vector2(0.48, 0.665), Vector2(0.43, 0.785), Vector2(0.24, 0.835), Vector2(0.045, 0.775)]},
-	{"id": "respect", "name": "BAIRRO DO\nRESPEITO", "progress": "3/5 MISSÕES", "color": Color("#ff6687"), "center": Vector2(0.765, 0.745), "size": Vector2(0.27, 0.12), "points": [Vector2(0.56, 0.665), Vector2(0.77, 0.605), Vector2(0.97, 0.675), Vector2(0.96, 0.805), Vector2(0.77, 0.855), Vector2(0.57, 0.795)]}
+	{"id": "privacy", "name": "BAIRRO DA\nPRIVACIDADE", "progress": "3/5 MISSÕES", "color": Color("#a95aff")},
+	{"id": "communication", "name": "BAIRRO DA\nCOMUNICAÇÃO", "progress": "3/5 MISSÕES", "color": Color("#23e2e7")},
+	{"id": "security", "name": "BAIRRO DA\nSEGURANÇA", "progress": "3/5 MISSÕES", "color": Color("#81ea48")},
+	{"id": "knowledge", "name": "BAIRRO DO\nCONHECIMENTO", "progress": "1/3 MISSÕES", "color": Color("#ffc34f")},
+	{"id": "respect", "name": "BAIRRO DO\nRESPEITO", "progress": "3/5 MISSÕES", "color": Color("#ff6687")}
 ]
 
 var ui: Dictionary = {}
@@ -27,7 +35,7 @@ func _ready() -> void:
 func _build_screen() -> void:
 	var background := TextureRect.new()
 	background.name = "CityMapBackground"
-	background.texture = load("res://shared/map/assets/mapa.png")
+	background.texture = PORTRAIT_MAP_BACKGROUND
 	background.expand = true
 	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -65,6 +73,16 @@ func _build_screen() -> void:
 		var progress := _new_label(district["progress"], WHITE, "progress", Label.ALIGN_CENTER)
 		ui[district["id"] + "_title"] = title
 		ui[district["id"] + "_progress"] = progress
+		if DISTRICT_ICON_PATHS.has(district["id"]):
+			var district_icon := TextureRect.new()
+			district_icon.name = "DistrictIcon_" + district["id"]
+			district_icon.texture = load(DISTRICT_ICON_PATHS[district["id"]])
+			district_icon.expand = true
+			district_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			district_icon.modulate = district["color"]
+			district_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			add_child(district_icon)
+			ui[district["id"] + "_icon"] = district_icon
 
 	var navigation = BOTTOM_NAVIGATION.instance()
 	navigation.name = "BottomNavigation"
@@ -77,9 +95,6 @@ func _build_screen() -> void:
 
 func _draw_districts() -> void:
 	var layer: Control = ui["areas"]
-	var font: Font = layer.get_font("font")
-	if font == null:
-		return
 	var landscape: bool = current_viewport_size.x > current_viewport_size.y
 	var regions: Array = _district_layout(current_viewport_size, landscape)
 	for index in range(regions.size()):
@@ -94,36 +109,42 @@ func _draw_districts() -> void:
 		var outline := PoolVector2Array(points)
 		outline.append(points[0])
 		layer.draw_polyline(outline, color.lightened(0.2), 3.0 if index == selected_district else 2.0, true)
-		var center: Vector2 = region["center"] * layer.rect_size
-		layer.draw_circle(center + Vector2(0, -font.get_height() * 0.95), min(layer.rect_size.x, layer.rect_size.y) * (0.027 if landscape else 0.038), color)
-		layer.draw_arc(center + Vector2(0, -font.get_height() * 0.95), min(layer.rect_size.x, layer.rect_size.y) * (0.027 if landscape else 0.038), 0, TAU, 24, WHITE, 2.0, true)
 
 
 func _district_layout(viewport_size: Vector2, landscape: bool) -> Array:
 	var layouts: Array = []
+	var width: float = viewport_size.x
+	var height: float = viewport_size.y
+	var short_side: float = min(width, height)
+	var centers: Array = []
+	var district_size: Vector2
 	if landscape:
-		var centers := [Vector2(0.18, 0.40), Vector2(0.50, 0.40), Vector2(0.82, 0.40), Vector2(0.34, 0.73), Vector2(0.67, 0.73)]
-		var dimensions := Vector2(0.28, 0.25)
-		for index in range(DISTRICTS.size()):
-			layouts.append(_hex_region(centers[index], dimensions))
+		centers = [Vector2(0.18, 0.37), Vector2(0.50, 0.37), Vector2(0.82, 0.37), Vector2(0.20, 0.72), Vector2(0.80, 0.72)]
+		district_size = Vector2(min(width * 0.28, short_side * 0.50), min(height * 0.27 * 1.10, short_side * 0.36 * 1.10))
 	else:
-		for district in DISTRICTS:
-			layouts.append({"points": district["points"], "center": district["center"]})
+		centers = [Vector2(0.25, 0.34), Vector2(0.75, 0.34), Vector2(0.50, 0.54), Vector2(0.25, 0.74), Vector2(0.75, 0.74)]
+		district_size = Vector2(min(width * 0.46, short_side * 0.50), min(height * 0.19 * 1.10, short_side * 0.42 * 1.10))
+	for center in centers:
+		layouts.append(_octagon_region(center, district_size, viewport_size))
 	return layouts
 
 
-func _hex_region(center: Vector2, size: Vector2) -> Dictionary:
-	var half_width: float = size.x * 0.5
-	var half_height: float = size.y * 0.5
+func _octagon_region(center: Vector2, size: Vector2, viewport_size: Vector2) -> Dictionary:
+	var half_width: float = size.x / viewport_size.x * 0.5
+	var half_height: float = size.y / viewport_size.y * 0.5
+	var chamfer_x: float = half_width * 0.34
+	var chamfer_y: float = half_height * 0.34
 	var points := [
-		Vector2(center.x - half_width * 0.62, center.y - half_height),
-		Vector2(center.x + half_width * 0.62, center.y - half_height),
-		Vector2(center.x + half_width, center.y),
-		Vector2(center.x + half_width * 0.62, center.y + half_height),
-		Vector2(center.x - half_width * 0.62, center.y + half_height),
-		Vector2(center.x - half_width, center.y)
+		Vector2(center.x - chamfer_x, center.y - half_height),
+		Vector2(center.x + chamfer_x, center.y - half_height),
+		Vector2(center.x + half_width, center.y - chamfer_y),
+		Vector2(center.x + half_width, center.y + chamfer_y),
+		Vector2(center.x + chamfer_x, center.y + half_height),
+		Vector2(center.x - chamfer_x, center.y + half_height),
+		Vector2(center.x - half_width, center.y + chamfer_y),
+		Vector2(center.x - half_width, center.y - chamfer_y)
 	]
-	return {"points": points, "center": center}
+	return {"points": points, "center": center, "size": size}
 
 
 func _layout_screen(viewport_size: Vector2) -> void:
@@ -133,6 +154,7 @@ func _layout_screen(viewport_size: Vector2) -> void:
 	var width: float = viewport_size.x
 	var height: float = viewport_size.y
 	var landscape: bool = width > height
+	ui["background"].texture = LANDSCAPE_MAP_BACKGROUND if landscape else PORTRAIT_MAP_BACKGROUND
 	var safe: float = min(width, height) * 0.035
 	var font_basis: float = min(width, height)
 	_place(ui["header_panel"], safe * 0.6, safe * 0.55, width - safe * 1.2, height * 0.075)
@@ -145,13 +167,16 @@ func _layout_screen(viewport_size: Vector2) -> void:
 	for index in range(DISTRICTS.size()):
 		var region: Dictionary = regions[index]
 		var center: Vector2 = region["center"]
-		var size: Vector2 = region.get("size", Vector2(width * (0.20 if landscape else 0.28), height * (0.105 if landscape else 0.095)))
-		if landscape:
-			size = Vector2(width * 0.22, height * 0.10)
+		var size: Vector2 = region["size"]
 		var name_key: String = DISTRICTS[index]["id"] + "_title"
 		var progress_key: String = DISTRICTS[index]["id"] + "_progress"
-		_place(ui[name_key], center.x * width - size.x * 0.5, center.y * height - size.y * 0.28, size.x, size.y * 0.55, font_basis)
-		_place(ui[progress_key], center.x * width - size.x * 0.5, center.y * height + size.y * 0.24, size.x, size.y * 0.30, font_basis)
+		var title_y: float = center.y * height - size.y * 0.12
+		_place(ui[name_key], center.x * width - size.x * 0.5, title_y, size.x, size.y * 0.32, font_basis)
+		_place(ui[progress_key], center.x * width - size.x * 0.5, center.y * height + size.y * 0.22, size.x, size.y * 0.18, font_basis)
+		var icon_key: String = DISTRICTS[index]["id"] + "_icon"
+		if ui.has(icon_key):
+			var icon_size: float = min(min(width, height) * 0.07, size.y * 0.20)
+			_place(ui[icon_key], center.x * width - icon_size * 0.5, center.y * height - size.y * 0.35, icon_size, icon_size)
 	ui["areas"].rect_size = viewport_size
 	ui["areas"].update()
 
@@ -264,9 +289,9 @@ func _on_nav_pressed(item_id: String) -> void:
 	if item_id == "home":
 		get_tree().change_scene("res://app/menus/home_screen.tscn")
 	elif item_id == "missions":
-		ui["status"].text = "Escolha um bairro para aceitar a missão!"
+		ui["status"].text = "A tela de Missões estará disponível em breve."
 	elif item_id == "profile":
-		ui["status"].text = "A tela de Perfil estará disponível em breve."
+		get_tree().change_scene("res://app/menus/profile_screen.tscn")
 	else:
 		ui["status"].text = ""
 

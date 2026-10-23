@@ -30,7 +30,9 @@ func _run_tests() -> void:
 		for item_id in NAVIGATION_SCRIPT.ITEM_IDS:
 			var home_button: Button = home_navigation.buttons[item_id]
 			var map_button: Button = map_navigation.buttons[item_id]
-			_check(home_button.text == map_button.text, "%s label is shared at %s" % [item_id, viewport_size])
+			_check(home_navigation.labels[item_id].text == map_navigation.labels[item_id].text, "%s label is shared at %s" % [item_id, viewport_size])
+			_check(home_button.text.empty() and map_button.text.empty(), "%s button displays its label below the icon using the shared layout" % item_id)
+			_check(home_navigation.icons[item_id].texture != null and map_navigation.icons[item_id].texture != null, "%s icon loads in both screens" % item_id)
 			_check(is_equal_approx(home_button.rect_scale.x, map_button.rect_scale.x), "%s font scale matches across screens at %s" % [item_id, viewport_size])
 			_check(home_button.focus_mode == Control.FOCUS_ALL and map_button.focus_mode == Control.FOCUS_ALL, "%s can be focused at %s" % [item_id, viewport_size])
 			_check(_fits_viewport(home_button, viewport_size), "home %s item fits at %s" % [item_id, viewport_size])

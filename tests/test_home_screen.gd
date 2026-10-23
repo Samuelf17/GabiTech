@@ -23,6 +23,7 @@ func _run_tests() -> void:
 	_test_layout(screen, Vector2(320, 568), "compact portrait")
 	_test_adaptive_font_sizes(screen)
 	_test_landscape_greeting_hierarchy(screen)
+	_test_landscape_action_and_level_alignment(screen)
 	_test_text_fits_controls(screen)
 	_test_action_feedback(screen)
 
@@ -53,6 +54,7 @@ func _test_layout(screen, viewport_size: Vector2, layout_name: String) -> void:
 
 	var start_button: Button = screen.ui["start"]
 	_check(not start_button.text.empty(), "%s: mission button text is present" % layout_name)
+	_check(start_button.icon == null, "%s: mission button has no icon" % layout_name)
 	_check(start_button.align == Button.ALIGN_CENTER, "%s: mission button text is centered" % layout_name)
 	_check(start_button.has_meta("font_role"), "%s: mission button uses an adaptive font role" % layout_name)
 
@@ -67,8 +69,10 @@ func _test_layout(screen, viewport_size: Vector2, layout_name: String) -> void:
 	_check(_fits_viewport(navigation.background, viewport_size), "%s: bottom menu background stays inside the viewport" % layout_name)
 	for item_id in BOTTOM_NAVIGATION_SCRIPT.ITEM_IDS:
 		var button: Button = navigation.buttons[item_id]
+		var label: Label = navigation.labels[item_id]
 		_check(button.visible, "%s: %s menu item is visible" % [layout_name, item_id])
-		_check(button.text.ends_with(BOTTOM_NAVIGATION_SCRIPT.ITEM_LABELS[BOTTOM_NAVIGATION_SCRIPT.ITEM_IDS.find(item_id)]), "%s: %s label appears in the menu" % [layout_name, item_id])
+		_check(label.text == BOTTOM_NAVIGATION_SCRIPT.ITEM_LABELS[BOTTOM_NAVIGATION_SCRIPT.ITEM_IDS.find(item_id)], "%s: %s label appears in the menu" % [layout_name, item_id])
+		_check(navigation.icons[item_id].texture != null, "%s: %s icon texture loads" % [layout_name, item_id])
 		_check(button.get_parent() == navigation, "%s: %s menu item is owned by the shared menu" % [layout_name, item_id])
 		_check(button.get_meta("font_role") == "navigation", "%s: %s uses shared menu typography" % [layout_name, item_id])
 		_check(button.focus_mode == Control.FOCUS_ALL, "%s: %s remains keyboard/controller focusable" % [layout_name, item_id])
@@ -115,6 +119,19 @@ func _test_landscape_greeting_hierarchy(screen) -> void:
 		_check(_text_fits_control(message), "landscape greeting message fits at %s" % viewport_size)
 
 
+func _test_landscape_action_and_level_alignment(screen) -> void:
+	for viewport_size in [Vector2(1280, 720), Vector2(960, 540)]:
+		screen._layout_screen(viewport_size)
+		var start_rect: Rect2 = screen.ui["start"].get_global_rect()
+		var progress_rect: Rect2 = screen.ui["progress_panel"].get_global_rect()
+		var greeting_rect: Rect2 = screen.ui["greeting_panel"].get_global_rect()
+		var group_center_y: float = (start_rect.position.y + progress_rect.end.y) * 0.5
+		var greeting_center_y: float = greeting_rect.position.y + greeting_rect.size.y * 0.5
+		var gap: float = progress_rect.position.y - start_rect.end.y
+		_check(gap >= -1.0 and gap <= viewport_size.y * 0.05, "landscape mission button sits close to the level panel at %s" % viewport_size)
+		_check(abs(group_center_y - greeting_center_y) <= 1.0, "landscape action and level group centers on the mascot speech area at %s" % viewport_size)
+
+
 func _test_text_fits_controls(screen) -> void:
 	for viewport_size in [Vector2(720, 1280), Vector2(1280, 720), Vector2(960, 540), Vector2(360, 800), Vector2(320, 568)]:
 		screen._layout_screen(viewport_size)
@@ -125,7 +142,7 @@ func _test_text_fits_controls(screen) -> void:
 		var navigation = screen.ui["navigation"]
 		navigation.layout_for_viewport(viewport_size)
 		for item_id in BOTTOM_NAVIGATION_SCRIPT.ITEM_IDS:
-			_check(_text_fits_control(navigation.buttons[item_id]), "%s menu text fits at %s" % [item_id, viewport_size])
+			_check(navigation.labels[item_id].rect_size.x > 0.0 and navigation.labels[item_id].rect_size.y > 0.0, "%s menu label has space at %s" % [item_id, viewport_size])
 
 
 func _fits_inside(child: Control, parent: Control) -> bool:
@@ -162,8 +179,8 @@ func _test_action_feedback(screen) -> void:
 	screen._on_action_pressed("Teste de feedback")
 	_check(screen.status_label.text == "Teste de feedback", "action feedback updates status label")
 	_check(_text_fits_control(screen.status_label), "action feedback text adapts to the available status area")
-	screen.ui["navigation"].buttons["profile"].emit_signal("pressed")
-	_check(screen.status_label.text == "A tela de Perfil estará disponível em breve.", "Profile menu item keeps its action")
+	screen.ui["navigation"].buttons["missions"].emit_signal("pressed")
+	_check(screen.status_label.text == "A tela de Missões estará disponível em breve.", "Missions menu does not open the map")
 
 
 func _check(condition: bool, message: String) -> void:

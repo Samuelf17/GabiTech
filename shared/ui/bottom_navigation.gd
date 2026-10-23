@@ -10,11 +10,18 @@ const WHITE = Color("#f3f7ff")
 const FONT_ROLE_RATIO = 0.02717
 const ITEM_IDS = ["home", "map", "missions", "profile"]
 const ITEM_LABELS = ["Inicio", "Mapa", "Missões", "Perfil"]
-const ITEM_ICONS = ["⌂", "●", "⚑", "♟"]
+const ITEM_ICON_PATHS = {
+	"home": "res://shared/ui/assets/icons/home_icon.svg",
+	"map": "res://shared/ui/assets/icons/map_icon.svg",
+	"missions": "res://shared/ui/assets/icons/mission_icon.svg",
+	"profile": "res://shared/ui/assets/icons/profile_icon.svg"
+}
 
 export(String, "home", "map", "missions", "profile") var active_item = "home"
 
 var buttons: Dictionary = {}
+var labels: Dictionary = {}
+var icons: Dictionary = {}
 var background: Panel
 
 
@@ -36,8 +43,7 @@ func _build_menu() -> void:
 		var item_id: String = ITEM_IDS[index]
 		var button := Button.new()
 		button.name = "NavItem_" + item_id
-		button.text = ITEM_ICONS[index] + "\n" + ITEM_LABELS[index]
-		button.align = Button.ALIGN_CENTER
+		button.text = ""
 		button.focus_mode = Control.FOCUS_ALL
 		button.add_stylebox_override("normal", _stylebox(NAVY, NAVY, 12, 1))
 		button.add_stylebox_override("hover", _stylebox(PANEL_LIGHT, CYAN, 12, 2))
@@ -48,7 +54,30 @@ func _build_menu() -> void:
 		button.set_meta("font_role", "navigation")
 		button.connect("pressed", self, "_on_item_pressed", [item_id])
 		add_child(button)
+
+		var icon := TextureRect.new()
+		icon.name = "Icon_" + item_id
+		icon.texture = load(ITEM_ICON_PATHS[item_id])
+		icon.expand = true
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.modulate = CYAN if item_id == active_item else MUTED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		button.add_child(icon)
+
+		var label := Label.new()
+		label.name = "Label_" + item_id
+		label.text = ITEM_LABELS[index]
+		label.clip_text = true
+		label.align = Label.ALIGN_CENTER
+		label.valign = Label.VALIGN_CENTER
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		label.add_color_override("font_color", CYAN if item_id == active_item else MUTED)
+		label.set_meta("font_role", "navigation")
+		button.add_child(label)
+
 		buttons[item_id] = button
+		icons[item_id] = icon
+		labels[item_id] = label
 
 
 func layout_for_viewport(viewport_size: Vector2) -> void:
@@ -65,8 +94,13 @@ func layout_for_viewport(viewport_size: Vector2) -> void:
 	for index in range(ITEM_IDS.size()):
 		var item_id: String = ITEM_IDS[index]
 		var button: Button = buttons[item_id]
+		var label: Label = labels[item_id]
 		var x: float = safe_x + item_width * index
-		_place(button, x, bar_top + bar_height * 0.06, item_width, bar_height * 0.88, _font_scale(button, short_side, item_width, bar_height * 0.88))
+		var button_y: float = bar_top + bar_height * 0.06
+		var button_height: float = bar_height * 0.88
+		var scale: float = _font_scale(label, short_side, item_width * 0.92, button_height * 0.28)
+		_place(button, x, button_y, item_width, button_height, scale)
+		_layout_item_content(item_id, short_side, item_width, button_height, scale)
 
 
 func get_bar_top(viewport_size: Vector2) -> float:
@@ -75,17 +109,28 @@ func get_bar_top(viewport_size: Vector2) -> float:
 	return viewport_size.y - viewport_size.y * 0.11 - safe_bottom
 
 
-func _font_scale(button: Button, short_side: float, width: float, height: float) -> float:
-	var font: Font = button.get_font("font")
+func _layout_item_content(item_id: String, short_side: float, width: float, height: float, scale: float) -> void:
+	var local_width: float = width / scale
+	var local_height: float = height / scale
+	var icon_size: float = min(short_side * 0.08, height * 0.45) / scale
+	var icon: TextureRect = icons[item_id]
+	icon.rect_position = Vector2((local_width - icon_size) * 0.5, local_height * 0.08)
+	icon.rect_size = Vector2(icon_size, icon_size)
+	var label: Label = labels[item_id]
+	var label_top: float = icon.rect_position.y + icon_size + (short_side * 0.008 / scale)
+	label.rect_position = Vector2(local_width * 0.04, label_top)
+	label.rect_size = Vector2(local_width * 0.92, max(0.0, local_height - label_top - local_height * 0.04))
+
+
+func _font_scale(label: Label, short_side: float, width: float, height: float) -> float:
+	var font: Font = label.get_font("font")
 	if font == null:
 		return 1.0
 	var scale: float = short_side * FONT_ROLE_RATIO / font.get_height()
-	var widest_line: float = 0.0
-	for line in button.text.split("\n"):
-		widest_line = max(widest_line, font.get_string_size(line).x)
+	var widest_line: float = font.get_string_size(label.text).x
 	if widest_line > 0.0:
 		scale = min(scale, width / widest_line)
-	scale = min(scale, height / (font.get_height() * 2.0))
+	scale = min(scale, height / font.get_height())
 	return max(0.01, scale)
 
 

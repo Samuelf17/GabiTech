@@ -59,7 +59,7 @@ func _build_screen() -> void:
 	ui["greeting_title"] = _new_label("Olá, Guardião!", CYAN, "heading")
 	ui["greeting_text"] = _new_label("Pronto para proteger\na cidade digital?", WHITE, "body")
 
-	var start_button := _new_button("MissionButton", "▶   COMEÇAR MISSÃO", Color("#ff626f"), WHITE, "button")
+	var start_button := _new_button("MissionButton", "COMEÇAR MISSÃO", Color("#ff626f"), WHITE, "button")
 	start_button.connect("pressed", self, "_open_map_screen")
 	ui["start"] = start_button
 
@@ -153,8 +153,13 @@ func _layout_landscape(width: float, height: float, safe_x: float, safe_y: float
 
 	var content_x := width * 0.405
 	var content_width := width * 0.555
-	_place(ui["start"], content_x, height * 0.20, content_width, height * 0.12, font_basis)
-	_place_progress(content_x, height * 0.49, content_width, height * 0.23, font_basis)
+	var mission_height: float = height * 0.12
+	var progress_height: float = height * 0.23
+	var content_gap: float = height * 0.035
+	var group_height: float = mission_height + content_gap + progress_height
+	var group_top: float = greeting_y + (greeting_height - group_height) * 0.5
+	_place(ui["start"], content_x, group_top, content_width, mission_height, font_basis)
+	_place_progress(content_x, group_top + mission_height + content_gap, content_width, progress_height, font_basis)
 	_place_status_above_navigation(content_x, content_width, width, height, font_basis)
 
 
@@ -294,9 +299,11 @@ func _open_map_screen() -> void:
 
 
 func _on_home_nav_pressed(item_id: String) -> void:
-	if item_id == "map" or item_id == "missions":
+	if item_id == "map":
 		_open_map_screen()
+	elif item_id == "missions":
+		_on_action_pressed("A tela de Missões estará disponível em breve.")
 	elif item_id == "profile":
-		_on_action_pressed("A tela de Perfil estará disponível em breve.")
+		get_tree().change_scene("res://app/menus/profile_screen.tscn")
 	else:
 		status_label.text = ""
