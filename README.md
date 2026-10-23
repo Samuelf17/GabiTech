@@ -2,7 +2,7 @@
 
 Aplicativo educativo 2D para Android, planejado como um hub que reúne minijogos independentes e sistemas compartilhados.
 
-> **Estado atual:** primeira tela do hub implementada como cena principal: “Guardiões da Cidade Digital”, com o sprite do mascote. O layout reorganiza os elementos em retrato e paisagem, e as fontes se adaptam ao viewport e ao espaço disponível. Os atalhos de Missões, Mini games e Perfil usam áreas coloridas para ícones futuros, com rótulos abaixo; os destinos ainda não foram implementados.
+> **Estado atual:** o hub “Guardiões da Cidade Digital” e a tela do mapa estão implementados. O mapa combina a ilustração da cidade com cinco bairros interativos; “Começar missão” e “Missões” abrem essa tela. A navegação inferior oferece Início, Mapa, Missões e Perfil. Perfil e os fluxos de missão ainda não possuem telas de destino completas.
 
 ## Tecnologias e plataforma
 
@@ -10,6 +10,7 @@ Aplicativo educativo 2D para Android, planejado como um hub que reúne minijogos
 - Renderer configurado em `project.godot`: GLES2.
 - Plataforma-alvo: Android, com a TV Box MXQ-4K com Android 5.1 como referência mínima de hardware.
 - A interface se adapta a retrato (celulares) e paisagem (TVs), usando margens proporcionais e dimensionando textos por papel tipográfico, viewport e espaço disponível nos controles. A apresentação ainda não foi validada em dispositivos reais e não consulta recortes de câmera/notch do sistema operacional.
+- A tela do mapa usa `shared/map/assets/mapa.png` como fundo ilustrado e desenha no Godot as áreas de Privacidade, Comunicação, Segurança, Conhecimento e Respeito. As áreas aceitam toque e mouse, e podem ser selecionadas por teclado/controle.
 - A versão do editor Godot, a exportação para Android 5.1 e o desempenho no hardware de referência ainda não foram validados.
 
 # Configuração do Ambiente de Desenvolvimento

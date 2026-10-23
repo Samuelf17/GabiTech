@@ -23,6 +23,8 @@ Aplicativo educativo Android com hub e minijogos independentes, conforme definid
 ## Estado atual da implementação
 
 - A primeira tela do hub, “Guardiões da Cidade Digital”, está implementada em `app/menus/home_screen.tscn` e `app/menus/home_screen.gd`; ela mostra cabeçalho, sprite do mascote, fala de boas-vindas, chamada para missão, atalhos e progresso ilustrativo.
+- A tela `app/menus/map_screen.tscn` e seu script constroem a tela do mapa a partir da referência `ideias/tela_mapa.png`: título, mensagem fixa “Escolha um bairro para aceitar a missão!”, cinco distritos coloridos interativos e navegação inferior Inicio, Mapa, Missões e Perfil. Foram omitidos os ícones de seta e notificação da referência. A arte `ideias/mapa.png` foi copiada para `shared/map/assets/mapa.png` para uso em runtime; a referência original foi mantida.
+- O hub encaminha “Começar missão” e “Missões” para a tela do mapa; “Início” retorna ao hub. O mapa aceita toque/mouse nas formas dos bairros e seleção por setas/Enter com foco. Missões na navegação mantém a mensagem de escolha do bairro; Perfil ainda exibe feedback provisório.
 - O mascote é exibido por um `TextureRect` que carrega `shared/mascot/mascote.png` e preserva a proporção dentro da área responsiva, conforme a documentação da classe TextureRect no Godot 3.6. O arquivo original permanece em `ideias/` como referência visual.
 - A tela usa duas composições responsivas: retrato mantém a referência mobile; paisagem distribui mascote/saudação à esquerda e missão/atalhos/progresso à direita. Posições, margens e escalas tipográficas usam o tamanho do viewport. Em paisagem, a área da saudação foi ampliada e o corpo limitado a 88% da escala adaptativa do título para manter “Olá, Guardião!” maior que a mensagem.
 - A tipografia usa papéis semânticos e deriva o tamanho de fonte do menor lado do viewport e dos limites do controle, sem tamanho-base fixo por objeto. Títulos e textos ajustam-se a diferentes resoluções e ao espaço disponível em cada controle. Os papéis dos títulos GUARDIÕES e DA CIDADE DIGITAL estão 30% maiores; os papéis de título e corpo da saudação estão 15% maiores. O símbolo da marca mantém seu papel tipográfico anterior. Os três atalhos de navegação usam botões coloridos preparados para ícones futuros e rótulos centralizados abaixo em branco de alto contraste, com tamanho-base 10% maior que o papel de legenda comum.
@@ -31,11 +33,12 @@ Aplicativo educativo Android com hub e minijogos independentes, conforme definid
 - `ideias/README.md` explica o uso da pasta para guardar referências visuais.
 - `CHANGELOG.md` registra as mudanças importantes em formato conciso.
 - Ainda não há cenas de jogo ou scripts de gameplay. `tests/test_home_screen.gd` verifica retrato, paisagem em 1280×720 e 960×540, retrato compacto, adaptação tipográfica, relação de tamanho e encaixe da saudação em paisagem, os três atalhos sem Aprender, rótulos abaixo e centralizados, foco, limites da tela e feedback da ação.
+- `tests/test_map_screen.gd` verifica a imagem, o texto solicitado, os quatro itens de navegação, os cinco distritos e suas áreas de seleção em retrato/paisagem, além do feedback das opções sem destino.
 - O README está em português e documenta o estado atual, abertura do projeto, estrutura e itens ainda não validados.
 
 ## Testes executados e resultados
 
-- `tests/test_home_screen.gd` verifica o sprite e a preservação da proporção, proporções aumentadas dos papéis de fonte, escalas tipográficas adaptativas em retrato e paisagem, os três atalhos, cor de alto contraste, alinhamento e posição externa dos rótulos, foco, limites de texto, layouts responsivos e feedback. A suíte não foi executada nesta revisão porque o binário Godot não está no `PATH` nem no caminho local documentado. Em execução anterior, Godot 3.6.3 encerrou por falta de display X11, inclusive com `--no-window`.
+- `tests/test_home_screen.gd` cobre a tela inicial e `tests/test_map_screen.gd` cobre o mapa e os bairros. Nenhuma suíte pôde ser executada nesta tarefa: o Godot 3.6.3 disponível inicia, mas encerra com `X11 Display is not available`, inclusive com `--no-window`. Assim, as cenas e scripts precisam ser validados em uma sessão com display.
 - Git 2.53.0 está disponível. O diretório reporta arquivos não rastreados, incluindo o projeto e este contexto.
 
 ## Problemas conhecidos e riscos

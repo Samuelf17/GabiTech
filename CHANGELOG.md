@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Criada a tela do mapa com a ilustração copiada para `shared/map/assets/`, cinco áreas de bairro interativas desenhadas no Godot e seleção por toque, mouse ou teclado/controle. Mantida a mensagem de missão e criada a navegação Início, Mapa, Missões e Perfil; hub encaminha Começar missão e Missões ao mapa. Adicionados testes direcionados; não executados porque o Godot não encontra um display X11.
 - Aumentados em 30% os títulos da marca e em 15% o título e a mensagem da saudação, preservando a escala responsiva e o ajuste ao espaço dos controles.
 - Corrigida a baixa visibilidade dos rótulos Missões e Perfil: os três rótulos dos atalhos agora usam branco de alto contraste sobre o fundo escuro.
 - Removido o atalho Aprender; os botões de Missões, Mini games e Perfil agora reservam o espaço colorido para ícones futuros e mostram rótulos centralizados abaixo com fonte adaptativa 10% maior.

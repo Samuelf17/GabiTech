@@ -60,7 +60,7 @@ func _build_screen() -> void:
 	ui["greeting_text"] = _new_label("Pronto para proteger\na cidade digital?", WHITE, "body")
 
 	var start_button := _new_button("MissionButton", "▶   COMEÇAR MISSÃO", Color("#ff626f"), WHITE, "button")
-	start_button.connect("pressed", self, "_on_action_pressed", ["Selecione um bairro para iniciar sua missão."])
+	start_button.connect("pressed", self, "_open_map_screen")
 	ui["start"] = start_button
 
 	ui["nav_missions"] = _new_nav_button("NavMissions", "nav_missions", "MISSÕES", Color("#19c9c9"), "Missões")
@@ -302,7 +302,10 @@ func _new_nav_button(node_name: String, key: String, title: String, color: Color
 	var title_label := _new_label(title, WHITE, "nav_caption", Label.ALIGN_CENTER)
 	title_label.name = node_name + "Title"
 	ui[key + "_title"] = title_label
-	button.connect("pressed", self, "_on_action_pressed", [action + " estará disponível em breve."])
+	if key == "nav_missions":
+		button.connect("pressed", self, "_open_map_screen")
+	else:
+		button.connect("pressed", self, "_on_action_pressed", [action + " estará disponível em breve."])
 	return button
 
 
@@ -322,3 +325,7 @@ func _on_viewport_size_changed() -> void:
 func _on_action_pressed(message: String) -> void:
 	status_label.text = message
 	_layout_screen(current_viewport_size)
+
+
+func _open_map_screen() -> void:
+	get_tree().change_scene("res://app/menus/map_screen.tscn")
