@@ -3,8 +3,8 @@ extends SceneTree
 const MAP_SCREEN = preload("res://app/menus/map_screen.tscn")
 const MAP_SCREEN_SCRIPT = preload("res://app/menus/map_screen.gd")
 const BOTTOM_NAVIGATION_SCRIPT = preload("res://shared/ui/bottom_navigation.gd")
-const PORTRAIT_MAP_BACKGROUND = preload("res://shared/map/assets/mapa.png")
-const LANDSCAPE_MAP_BACKGROUND = preload("res://shared/map/assets/mapa_horizontal.png")
+const PORTRAIT_MAP_BACKGROUND_PATH = "res://shared/map/assets/mapa.png"
+const LANDSCAPE_MAP_BACKGROUND_PATH = "res://shared/map/assets/mapa_horizontal.png"
 
 var failures: Array = []
 
@@ -36,9 +36,18 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 	screen.rect_size = viewport_size
 	screen._layout_screen(viewport_size)
 	_check(screen.ui["background"].texture != null, "map illustration loads at %s" % viewport_size)
-	var expected_background = LANDSCAPE_MAP_BACKGROUND if viewport_size.x > viewport_size.y else PORTRAIT_MAP_BACKGROUND
-	_check(screen.ui["background"].texture == expected_background, "map illustration matches viewport orientation at %s" % viewport_size)
+	var expected_background_path: String = LANDSCAPE_MAP_BACKGROUND_PATH if viewport_size.x > viewport_size.y else PORTRAIT_MAP_BACKGROUND_PATH
+	_check(screen.ui["background"].texture.resource_path == expected_background_path, "map illustration matches viewport orientation at %s" % viewport_size)
+	_check(screen.active_background_path == expected_background_path, "only the active orientation is tracked at %s" % viewport_size)
+	var inactive_background_path: String = PORTRAIT_MAP_BACKGROUND_PATH if viewport_size.x > viewport_size.y else LANDSCAPE_MAP_BACKGROUND_PATH
+	_check(not ResourceLoader.has_cached(inactive_background_path), "inactive orientation texture is not cached at %s" % viewport_size)
+	var expected_dimensions: Vector2 = Vector2(1672, 941) if viewport_size.x > viewport_size.y else Vector2(1024, 1536)
+	_check(Vector2(screen.ui["background"].texture.get_width(), screen.ui["background"].texture.get_height()) == expected_dimensions, "map compression keeps source resolution at %s" % viewport_size)
 	_check(screen.ui["background"].stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED, "map art fills its background area at %s" % viewport_size)
+	var header_rect: Rect2 = screen.ui["header_panel"].get_global_rect()
+	var prompt_rect: Rect2 = screen.ui["prompt_panel"].get_global_rect()
+	_check(is_equal_approx(header_rect.position.y, viewport_size.y * 0.05), "map title panel keeps a 5% top margin at %s" % viewport_size)
+	_check(header_rect.end.y <= prompt_rect.position.y, "map title and prompt panels do not overlap at %s" % viewport_size)
 	_check(screen.ui["prompt"].text == "Escolha um bairro para aceitar a missão!", "mission prompt stays present at %s" % viewport_size)
 	_check(screen.ui["areas"].focus_mode == Control.FOCUS_ALL, "district layer supports keyboard/controller focus at %s" % viewport_size)
 	var navigation = screen.ui["navigation"]

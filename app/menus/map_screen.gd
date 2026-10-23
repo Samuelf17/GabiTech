@@ -1,8 +1,8 @@
 extends Control
 
 const BOTTOM_NAVIGATION = preload("res://shared/ui/bottom_navigation.tscn")
-const PORTRAIT_MAP_BACKGROUND = preload("res://shared/map/assets/mapa.png")
-const LANDSCAPE_MAP_BACKGROUND = preload("res://shared/map/assets/mapa_horizontal.png")
+const PORTRAIT_MAP_BACKGROUND_PATH = "res://shared/map/assets/mapa.png"
+const LANDSCAPE_MAP_BACKGROUND_PATH = "res://shared/map/assets/mapa_horizontal.png"
 const NAVY = Color("#071126")
 const PANEL = Color("#0b1735")
 const WHITE = Color("#f3f7ff")
@@ -24,6 +24,7 @@ const DISTRICTS = [
 var ui: Dictionary = {}
 var selected_district: int = -1
 var current_viewport_size := Vector2.ZERO
+var active_background_path: String = ""
 
 
 func _ready() -> void:
@@ -35,7 +36,6 @@ func _ready() -> void:
 func _build_screen() -> void:
 	var background := TextureRect.new()
 	background.name = "CityMapBackground"
-	background.texture = PORTRAIT_MAP_BACKGROUND
 	background.expand = true
 	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -154,13 +154,16 @@ func _layout_screen(viewport_size: Vector2) -> void:
 	var width: float = viewport_size.x
 	var height: float = viewport_size.y
 	var landscape: bool = width > height
-	ui["background"].texture = LANDSCAPE_MAP_BACKGROUND if landscape else PORTRAIT_MAP_BACKGROUND
+	_load_background_for_orientation(landscape)
 	var safe: float = min(width, height) * 0.035
 	var font_basis: float = min(width, height)
-	_place(ui["header_panel"], safe * 0.6, safe * 0.55, width - safe * 1.2, height * 0.075)
-	_place(ui["screen_title"], safe * 1.4, safe * 0.65, width - safe * 2.8, height * 0.055, font_basis)
-	_place(ui["prompt_panel"], safe, height * 0.105, width - safe * 2.0, height * 0.078)
-	_place(ui["prompt"], safe * 1.6, height * 0.115, width - safe * 3.2, height * 0.055, font_basis)
+	var header_y: float = height * 0.05
+	var header_height: float = height * 0.075
+	var prompt_y: float = header_y + header_height + height * 0.018
+	_place(ui["header_panel"], safe * 0.6, header_y, width - safe * 1.2, header_height)
+	_place(ui["screen_title"], safe * 1.4, header_y + safe * 0.1, width - safe * 2.8, height * 0.055, font_basis)
+	_place(ui["prompt_panel"], safe, prompt_y, width - safe * 2.0, height * 0.078)
+	_place(ui["prompt"], safe * 1.6, prompt_y + height * 0.01, width - safe * 3.2, height * 0.055, font_basis)
 	var navigation_top: float = ui["navigation"].get_bar_top(viewport_size)
 	_place(ui["status"], safe, navigation_top - height * 0.043, width - safe * 2.0, height * 0.035, font_basis)
 	var regions: Array = _district_layout(viewport_size, landscape)
@@ -179,6 +182,22 @@ func _layout_screen(viewport_size: Vector2) -> void:
 			_place(ui[icon_key], center.x * width - icon_size * 0.5, center.y * height - size.y * 0.35, icon_size, icon_size)
 	ui["areas"].rect_size = viewport_size
 	ui["areas"].update()
+
+
+func _load_background_for_orientation(landscape: bool) -> void:
+	var texture_path: String = LANDSCAPE_MAP_BACKGROUND_PATH if landscape else PORTRAIT_MAP_BACKGROUND_PATH
+	if active_background_path == texture_path:
+		return
+
+	var background: TextureRect = ui["background"]
+	background.texture = null
+	active_background_path = ""
+	var loaded_texture: Texture = ResourceLoader.load(texture_path, "Texture", true)
+	if loaded_texture == null:
+		push_error("Não foi possível carregar a arte do mapa: " + texture_path)
+		return
+	background.texture = loaded_texture
+	active_background_path = texture_path
 
 
 func _place(control: Control, x: float, y: float, width: float, height: float, font_basis: float = 720.0) -> void:

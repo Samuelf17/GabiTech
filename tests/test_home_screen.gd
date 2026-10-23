@@ -43,7 +43,7 @@ func _test_layout(screen, viewport_size: Vector2, layout_name: String) -> void:
 	screen.rect_size = viewport_size
 	screen._layout_screen(viewport_size)
 
-	for key in ["start", "greeting_panel", "progress_panel", "mascot"]:
+	for key in ["start", "greeting_panel", "progress_panel", "level_ring", "mascot"]:
 		var control: Control = screen.ui[key]
 		_check(control.visible, "%s: %s is visible" % [layout_name, key])
 		_check(control.rect_size.x > 0.0 and control.rect_size.y > 0.0, "%s: %s has positive size" % [layout_name, key])
@@ -113,6 +113,7 @@ func _test_adaptive_font_sizes(screen) -> void:
 func _test_progress_values(screen) -> void:
 	var progress: Dictionary = Progression.get_state()
 	_check(screen.ui["level_number"].text == str(progress["level"]), "home level number comes from saved progress")
+	_check(abs(screen.ui["level_ring"].get("progress_ratio") - Progression.get_progress_ratio()) < 0.0001, "home level ring reflects saved XP progress")
 	_check(screen.ui["progress_value"].text == "%s / %s XP" % [Progression.format_number(progress["experience"]), Progression.format_number(Progression.experience_per_level)], "home XP value comes from saved progress")
 	_check(screen.ui["progress_hint"].text == "Faltam %s XP para o próximo nível" % Progression.format_number(Progression.experience_per_level - progress["experience"]), "home XP hint comes from saved progress")
 	var original_path: String = Progression.storage_path
@@ -120,10 +121,13 @@ func _test_progress_values(screen) -> void:
 	_remove_progress_test_file(test_path)
 	Progression.storage_path = test_path
 	Progression.load_progress()
-	Progression.add_experience(2000)
+	Progression.add_experience(500)
+	_check(abs(screen.ui["level_ring"].get("progress_ratio") - 0.25) < 0.0001, "home level ring updates after a partial XP change")
+	Progression.add_experience(1500)
 	_check(screen.ui["level_number"].text == "2", "home level display updates after a level-up signal")
 	_check(screen.ui["progress_value"].text == "0 / 2.000 XP", "home XP display updates after a level-up signal")
 	_check(abs(Progression.get_progress_ratio()) < 0.0001, "level-up resets the XP progress ratio")
+	_check(abs(screen.ui["level_ring"].get("progress_ratio")) < 0.0001, "level-up resets the home level ring")
 	Progression.storage_path = original_path
 	Progression.load_progress()
 	_remove_progress_test_file(test_path)

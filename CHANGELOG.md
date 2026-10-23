@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Ajustada a margem superior do painel de título da tela do mapa de 10% para 5% da altura do viewport; aviso e teste sem sobreposição mantidos.
+- Tela do mapa: margem superior do painel “Mapa da cidade digital” ajustada para 10% da altura do viewport; aviso reposicionado e testes responsivos verificam margem e ausência de sobreposição.
+- Mapa agora carrega somente a arte da orientação ativa, ignora cache e libera a textura anterior ao girar. Configurada compressão lossy de importação em qualidade 0,85 com resolução original preservada; testes verificam orientação, cache e dimensões.
+- Adicionado arco circular leve ao redor do nível na tela inicial, sincronizado com o XP atual e redimensionado junto com o layout responsivo. Testes Home cobrem progresso parcial, virada de nível e retrato/paisagem/resoluções compactas; registradas no AGENTS regras para adequação ao hardware mínimo e revisão de otimizações.
 - Criado o serviço compartilhado de progressão, com nível inicial 1, XP inicial 0, avanço a cada 2.000 XP, IDs de item por nível e persistência em JSON `user://`. Home e Perfil agora leem nível/XP/inventário do mesmo estado; nenhum jogo concede XP ainda. Adicionados testes da lógica, persistência e atualização das telas.
 - Criada a tela de Perfil/Recompensas baseada em `ideias/tela_perfil.png`, com pontos, nível/XP, abas, desafio semanal e seis distintivos adaptativos usando temporariamente o ícone de escudo. Integrada à navegação inferior compartilhada e adicionados testes responsivos.
 - Em paisagem na tela inicial, aproximado o botão “Começar missão” do painel de nível/XP e centralizado o conjunto na altura do painel de fala da capivara; adicionados testes de espaçamento e alinhamento.

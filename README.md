@@ -3,7 +3,7 @@
 
 Aplicativo educativo 2D para Android, planejado como um hub que reúne minijogos independentes e sistemas compartilhados.
 
-> **Estado atual:** o hub, o mapa, a tela de Perfil/Recompensas e a persistência inicial de progresso estão implementados. Nível e XP começam em 1 e 0, avançam a cada 2.000 XP e são salvos em `user://progress.json`; a tela inicial e o Perfil leem esse estado. Ainda não há atividades que concedam XP, e os nomes e assets das recompensas serão definidos depois.
+> **Estado atual:** o hub, o mapa, a tela de Perfil/Recompensas e a persistência inicial de progresso estão implementados. Nível e XP começam em 1 e 0, avançam a cada 2.000 XP e são salvos em `user://progress.json`; a tela inicial e o Perfil leem esse estado. A tela inicial mostra um arco circular de progresso ao redor do nível. Ainda não há atividades que concedam XP, e os nomes e assets das recompensas serão definidos depois.
 
 ## Tecnologias e plataforma
 
@@ -11,10 +11,10 @@ Aplicativo educativo 2D para Android, planejado como um hub que reúne minijogos
 - Renderer configurado em `project.godot`: GLES2.
 - Plataforma-alvo: Android, com a TV Box MXQ-4K com Android 5.1 como referência mínima de hardware.
 - A interface se adapta a retrato (celulares) e paisagem (TVs), usando margens proporcionais e dimensionando textos por papel tipográfico, viewport e espaço disponível nos controles. A apresentação ainda não foi validada em dispositivos reais e não consulta recortes de câmera/notch do sistema operacional.
-- A tela do mapa usa `shared/map/assets/mapa.png` em retrato e `shared/map/assets/mapa_horizontal.png` quando o viewport está em paisagem. As duas artes ficam em `shared/map/assets/`; o Godot desenha as áreas de Privacidade, Comunicação, Segurança, Conhecimento e Respeito, que aceitam toque e mouse e podem ser selecionadas por teclado/controle.
+- A tela do mapa carrega `shared/map/assets/mapa.png` em retrato ou `shared/map/assets/mapa_horizontal.png` em paisagem, liberando a textura anterior e ignorando o cache ao trocar orientação. As imagens-fonte mantêm suas resoluções; o importador aplica compressão com perda leve (qualidade 0,85) sem limite de tamanho. O Godot desenha as áreas de Privacidade, Comunicação, Segurança, Conhecimento e Respeito, que aceitam toque e mouse e podem ser selecionadas por teclado/controle.
 - A tela `app/menus/profile_screen.tscn` segue a referência `ideias/tela_perfil.png` e exibe resumo de recompensas, progresso de nível, seis distintivos e desafio semanal. Os distintivos usam `shared/ui/assets/icons/shield_icon.svg` temporariamente; as abas Conquistas e Coleção ainda mostram aviso de disponibilidade futura.
 - A progressão compartilhada é gerenciada por `Progression` e persiste nível, XP atual e IDs de itens desbloqueados em `user://progress.json`. A regra atual exige 2.000 XP por nível. Não há fontes de ganho de XP conectadas; o serviço oferece apenas a API para integração futura. Cada avanço registra um ID `level_reward_N`, enquanto nome e arte do item aguardam definição.
-- Os testes GDScript de progressão, Home e Perfil estão escritos, mas ainda não foram executados nesta sessão: Godot 3.6.3 encerrou antes de iniciar por falta de display X11. A sintaxe dos arquivos JSON e `git diff --check` foram validados.
+- Os testes GDScript de progressão, Home, Mapa, Perfil e navegação estão escritos, mas não foram executados nesta sessão porque o executável Godot não está disponível no ambiente. Em tentativas anteriores, Godot 3.6.3 não iniciou por falta de display X11. `git diff --check` passou nesta mudança; as asserções GDScript e a reimportação das texturas seguem sem validação de execução.
 - A versão do editor Godot, a exportação para Android 5.1 e o desempenho no hardware de referência ainda não foram validados.
 
 # Configuração do Ambiente de Desenvolvimento

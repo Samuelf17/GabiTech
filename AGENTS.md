@@ -155,6 +155,8 @@ Esses padrões são ferramentas, não obrigações para todos os scripts.
 13. Após cada mudança de código, execute testes direcionados às funções alteradas e verificações de regressão nas funções e fluxos relacionados. Cubra os modos de tela e entradas afetados e confira erros de execução; não declare sucesso para verificações que não puderam ser executadas.
 14. Se algum teste falhar após uma mudança, reverta o código funcional afetado ao último estado anterior à mudança, registre e descreva a falha e qualquer alteração indesejada, e informe o usuário. Preserve mudanças independentes e não esconda a falha.
 15. Não defina tamanhos absolutos de fonte por objeto. Use papéis tipográficos com escala calculada pelo tamanho do viewport e pelo espaço disponível no controle. Ao alterar uma interface, analise sempre primeiro a resolução e o posicionamento em retrato para celular e também a composição em paisagem para TV; inclua resoluções menores nos testes responsivos.
+16. Avalie comandos, APIs, recursos e abordagens propostas contra os requisitos mínimos de hardware, sistema operacional, renderer e desempenho descritos neste documento. Se algo não for adequado ou não puder rodar no dispositivo de referência, informe isso e proponha alternativas viáveis; se nenhuma alternativa for viável, deixe essa limitação explícita.
+17. Após cada mudança, revise o projeto como um todo em busca de funcionalidades ou elementos que possam ser otimizados. Relate cada oportunidade encontrada, explique como poderia ser otimizada e aguarde confirmação explícita antes de implementar otimizações fora do escopo autorizado.
 
 ### Navegação inferior compartilhada
 

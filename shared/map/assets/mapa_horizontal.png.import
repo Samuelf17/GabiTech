@@ -14,8 +14,8 @@ dest_files=[ "res://.import/mapa_horizontal.png-e311e40a636f21f4f9e4624bbdb5e2e1
 
 [params]
 
-compress/mode=0
-compress/lossy_quality=0.7
+compress/mode=1
+compress/lossy_quality=0.85
 compress/hdr_mode=0
 compress/bptc_ldr=0
 compress/normal_map=0

@@ -67,6 +67,12 @@ func _build_screen() -> void:
 
 	ui["progress_panel"] = _new_panel("ProgressPanel", PANEL, Color("#26385e"), 18)
 	ui["level_badge"] = _new_panel("LevelBadge", Color("#132345"), Color("#16c7d0"), 56)
+	var level_ring := Control.new()
+	level_ring.name = "LevelProgressRing"
+	level_ring.set_script(preload("res://shared/progress/progress_ring.gd"))
+	level_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(level_ring)
+	ui["level_ring"] = level_ring
 	ui["level_caption"] = _new_label("NÍVEL", MUTED, "caption", Label.ALIGN_CENTER)
 	ui["level_number"] = _new_label("1", WHITE, "display_number", Label.ALIGN_CENTER)
 	ui["progress_title"] = _new_label("NÍVEL", MUTED, "caption")
@@ -169,9 +175,13 @@ func _place_progress(x: float, y: float, width: float, height: float, font_basis
 	_place(ui["progress_panel"], x, y, width, height)
 	var padding: float = min(width, height) * 0.12
 	var badge_size: float = min(height * 0.72, width * 0.22)
-	_place(ui["level_badge"], x + padding, y + (height - badge_size) * 0.5, badge_size, badge_size)
-	_place(ui["level_caption"], x + padding + 5, y + height * 0.5 - badge_size * 0.27, badge_size - 10, badge_size * 0.23, font_basis)
-	_place(ui["level_number"], x + padding + 5, y + height * 0.5 - badge_size * 0.02, badge_size - 10, badge_size * 0.45, font_basis)
+	var badge_x: float = x + padding
+	var badge_y: float = y + (height - badge_size) * 0.5
+	_place(ui["level_badge"], badge_x, badge_y, badge_size, badge_size)
+	var ring_size: float = badge_size * 1.18
+	_place(ui["level_ring"], badge_x - (ring_size - badge_size) * 0.5, badge_y - (ring_size - badge_size) * 0.5, ring_size, ring_size)
+	_place(ui["level_caption"], badge_x + 5, y + height * 0.5 - badge_size * 0.27, badge_size - 10, badge_size * 0.23, font_basis)
+	_place(ui["level_number"], badge_x + 5, y + height * 0.5 - badge_size * 0.02, badge_size - 10, badge_size * 0.45, font_basis)
 
 	var text_x := x + padding + badge_size + padding * 0.55
 	var text_width := width - (text_x - x) - padding
@@ -302,6 +312,7 @@ func _refresh_progress_ui() -> void:
 	var current_xp: int = int(progress["experience"])
 	var xp_required: int = Progression.experience_per_level
 	ui["level_number"].text = str(progress["level"])
+	ui["level_ring"].call("set_progress_ratio", Progression.get_progress_ratio())
 	ui["progress_value"].text = "%s / %s XP" % [Progression.format_number(current_xp), Progression.format_number(xp_required)]
 	ui["progress_hint"].text = "Faltam %s XP para o próximo nível" % Progression.format_number(xp_required - current_xp)
 
