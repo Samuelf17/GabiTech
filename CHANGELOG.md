@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Aumentados em 30% os títulos da marca e em 15% o título e a mensagem da saudação, preservando a escala responsiva e o ajuste ao espaço dos controles.
+- Corrigida a baixa visibilidade dos rótulos Missões e Perfil: os três rótulos dos atalhos agora usam branco de alto contraste sobre o fundo escuro.
+- Removido o atalho Aprender; os botões de Missões, Mini games e Perfil agora reservam o espaço colorido para ícones futuros e mostram rótulos centralizados abaixo com fonte adaptativa 10% maior.
+- Copiado `ideias/mascote.png` para `shared/mascot/mascote.png`, mantida a referência original e atualizado o caminho usado pela tela principal.
 - Recolocado `ideias/mascote.png` como sprite da tela inicial, com proporção preservada. Mantida a tipografia adaptativa por viewport e espaço do controle; os testes cobrem escalas em retrato e paisagem e o sprite, mas aguardam ambiente com display para execução.
 - Desfeitos na tela principal o aumento tipográfico de 2×/1,5× e a substituição do robô pelo sprite; os papéis de fonte adaptativos retornaram a fatores menores, e o robô responsivo foi recriado em desenho vetorial. A suíte adicionou verificações de regressão, mas continua sem execução por falta de display X11.
 - Corrigida a hierarquia tipográfica da saudação em paisagem: o título ganhou área maior e a mensagem é limitada a 88% da escala do título; testes agora comparam os tamanhos e o encaixe em 1280×720 e 960×540. A execução automatizada continua bloqueada pela ausência de display X11.

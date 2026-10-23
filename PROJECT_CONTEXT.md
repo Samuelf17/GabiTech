@@ -23,19 +23,19 @@ Aplicativo educativo Android com hub e minijogos independentes, conforme definid
 ## Estado atual da implementação
 
 - A primeira tela do hub, “Guardiões da Cidade Digital”, está implementada em `app/menus/home_screen.tscn` e `app/menus/home_screen.gd`; ela mostra cabeçalho, sprite do mascote, fala de boas-vindas, chamada para missão, atalhos e progresso ilustrativo.
-- O mascote é exibido por um `TextureRect` que carrega `ideias/mascote.png` e preserva a proporção dentro da área responsiva, conforme a documentação da classe TextureRect no Godot 3.6.
+- O mascote é exibido por um `TextureRect` que carrega `shared/mascot/mascote.png` e preserva a proporção dentro da área responsiva, conforme a documentação da classe TextureRect no Godot 3.6. O arquivo original permanece em `ideias/` como referência visual.
 - A tela usa duas composições responsivas: retrato mantém a referência mobile; paisagem distribui mascote/saudação à esquerda e missão/atalhos/progresso à direita. Posições, margens e escalas tipográficas usam o tamanho do viewport. Em paisagem, a área da saudação foi ampliada e o corpo limitado a 88% da escala adaptativa do título para manter “Olá, Guardião!” maior que a mensagem.
-- A tipografia usa papéis semânticos e deriva o tamanho de fonte do menor lado do viewport e dos limites do controle, sem tamanho-base fixo por objeto. Títulos e textos ajustam-se a diferentes resoluções e ao espaço disponível em cada controle. Os quatro atalhos usam como preenchimento a cor anteriormente aplicada às bordas e texto azul-marinho para manter contraste.
+- A tipografia usa papéis semânticos e deriva o tamanho de fonte do menor lado do viewport e dos limites do controle, sem tamanho-base fixo por objeto. Títulos e textos ajustam-se a diferentes resoluções e ao espaço disponível em cada controle. Os papéis dos títulos GUARDIÕES e DA CIDADE DIGITAL estão 30% maiores; os papéis de título e corpo da saudação estão 15% maiores. O símbolo da marca mantém seu papel tipográfico anterior. Os três atalhos de navegação usam botões coloridos preparados para ícones futuros e rótulos centralizados abaixo em branco de alto contraste, com tamanho-base 10% maior que o papel de legenda comum.
 - Os botões aceitam interação por foco, mouse e toque. Como as telas de destino ainda não existem, mostram mensagens temporárias em vez de navegar.
-- Os arquivos gerados para modelagem do mascote em `shared/mascot/` foram removidos a pedido; a pasta de funcionalidade está sem implementação e `ideias/mascote.png` foi preservada como referência.
+- O sprite do mascote foi copiado para `shared/mascot/` para uso em runtime; a imagem original em `ideias/` foi mantida como referência. O metadado de importação acompanha a cópia.
 - `ideias/README.md` explica o uso da pasta para guardar referências visuais.
 - `CHANGELOG.md` registra as mudanças importantes em formato conciso.
-- Ainda não há cenas de jogo ou scripts de gameplay. `tests/test_home_screen.gd` verifica retrato, paisagem em 1280×720 e 960×540, retrato compacto, adaptação tipográfica, relação de tamanho e encaixe da saudação em paisagem, centralização dos botões, limites dos rótulos dos atalhos e feedback da ação.
+- Ainda não há cenas de jogo ou scripts de gameplay. `tests/test_home_screen.gd` verifica retrato, paisagem em 1280×720 e 960×540, retrato compacto, adaptação tipográfica, relação de tamanho e encaixe da saudação em paisagem, os três atalhos sem Aprender, rótulos abaixo e centralizados, foco, limites da tela e feedback da ação.
 - O README está em português e documenta o estado atual, abertura do projeto, estrutura e itens ainda não validados.
 
 ## Testes executados e resultados
 
-- `tests/test_home_screen.gd` verifica o sprite e a preservação da proporção, escalas tipográficas adaptativas em retrato e paisagem, limites de texto, layouts responsivos e feedback. Na última execução, a suíte não iniciou: Godot 3.6.3 encerrou por falta de display X11 (`X11 Display is not available`), inclusive com `--no-window`; a execução após as alterações atuais ainda está pendente.
+- `tests/test_home_screen.gd` verifica o sprite e a preservação da proporção, proporções aumentadas dos papéis de fonte, escalas tipográficas adaptativas em retrato e paisagem, os três atalhos, cor de alto contraste, alinhamento e posição externa dos rótulos, foco, limites de texto, layouts responsivos e feedback. A suíte não foi executada nesta revisão porque o binário Godot não está no `PATH` nem no caminho local documentado. Em execução anterior, Godot 3.6.3 encerrou por falta de display X11, inclusive com `--no-window`.
 - Git 2.53.0 está disponível. O diretório reporta arquivos não rastreados, incluindo o projeto e este contexto.
 
 ## Problemas conhecidos e riscos

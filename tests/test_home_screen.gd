@@ -1,6 +1,7 @@
 extends SceneTree
 
 const HOME_SCREEN = preload("res://app/menus/home_screen.tscn")
+const HOME_SCREEN_SCRIPT = preload("res://app/menus/home_screen.gd")
 
 var failures: Array = []
 
@@ -54,17 +55,28 @@ func _test_layout(screen, viewport_size: Vector2, layout_name: String) -> void:
 	_check(start_button.align == Button.ALIGN_CENTER, "%s: mission button text is centered" % layout_name)
 	_check(start_button.has_meta("font_role"), "%s: mission button uses an adaptive font role" % layout_name)
 
-	for key in ["nav_missions", "nav_games", "nav_learn", "nav_profile"]:
+	_check(not screen.ui.has("nav_learn"), "%s: Learn shortcut is removed" % layout_name)
+	for key in ["nav_missions", "nav_games", "nav_profile"]:
 		var button: Button = screen.ui[key]
-		var icon_label: Label = screen.ui[key + "_icon"]
 		var title_label: Label = screen.ui[key + "_title"]
 		_check(button.visible, "%s: %s is visible" % [layout_name, key])
-		_check(not icon_label.text.empty(), "%s: %s icon text is present" % [layout_name, key])
+		_check(button.text.empty(), "%s: %s button has no text placeholder" % [layout_name, key])
+		_check(button.icon == null, "%s: %s button is ready for a future icon" % [layout_name, key])
 		_check(not title_label.text.empty(), "%s: %s title text is present" % [layout_name, key])
-		_check(title_label.align == Label.ALIGN_CENTER, "%s: %s title is centered" % [layout_name, key])
-		_check(button.rect_scale == Vector2.ONE, "%s: %s container does not rescale its child labels" % [layout_name, key])
-		_check(_fits_inside(title_label, button), "%s: %s title fits in its button" % [layout_name, key])
-		_check(icon_label.has_meta("font_role") and title_label.has_meta("font_role"), "%s: %s uses adaptive font roles" % [layout_name, key])
+		_check(title_label.get_color("font_color") == Color("#f3f7ff"), "%s: %s title has high-contrast white text" % [layout_name, key])
+		_check(title_label.align == Label.ALIGN_CENTER, "%s: %s title is centered horizontally" % [layout_name, key])
+		_check(title_label.valign == Label.VALIGN_CENTER, "%s: %s title is centered vertically in its label area" % [layout_name, key])
+		_check(title_label.get_parent() == screen, "%s: %s title is outside the button" % [layout_name, key])
+		_check(title_label.get_meta("font_role") == "nav_caption", "%s: %s title uses the larger adaptive font role" % [layout_name, key])
+		_check(button.icon_align == Button.ALIGN_CENTER and button.expand_icon, "%s: %s button centers a future icon" % [layout_name, key])
+		var button_rect: Rect2 = button.get_global_rect()
+		var title_rect: Rect2 = title_label.get_global_rect()
+		var progress_rect: Rect2 = screen.ui["progress_panel"].get_global_rect()
+		_check(title_rect.position.y >= button_rect.end.y, "%s: %s title is below its button" % [layout_name, key])
+		_check(title_rect.end.y <= progress_rect.position.y, "%s: %s title does not overlap progress" % [layout_name, key])
+		_check(abs((title_rect.position.x + title_rect.size.x * 0.5) - (button_rect.position.x + button_rect.size.x * 0.5)) <= 1.0, "%s: %s title is horizontally centered under its button" % [layout_name, key])
+		_check(button.focus_mode == Control.FOCUS_ALL, "%s: %s remains keyboard/controller focusable" % [layout_name, key])
+		_check(_fits_viewport(title_label, viewport_size), "%s: %s title stays inside the viewport" % [layout_name, key])
 		_check(_fits_viewport(button, viewport_size), "%s: %s stays inside the viewport" % [layout_name, key])
 
 
@@ -80,6 +92,20 @@ func _test_adaptive_font_sizes(screen) -> void:
 	_check(narrow_portrait_scale < large_portrait_scale, "font size decreases with a smaller portrait viewport")
 	_check(compact_landscape_scale < tv_landscape_scale, "font size decreases with a smaller landscape viewport")
 	_check(narrow_portrait_scale > 0.0 and compact_landscape_scale > 0.0, "adaptive font sizes remain positive in portrait and landscape")
+	var nav_caption_ratio: float = HOME_SCREEN_SCRIPT.FONT_ROLE_RATIOS["nav_caption"]
+	var caption_ratio: float = HOME_SCREEN_SCRIPT.FONT_ROLE_RATIOS["caption"]
+	_check(abs(nav_caption_ratio - caption_ratio * 1.1) < 0.00001, "shortcut labels use a 10% larger adaptive font role")
+	var font_ratios: Dictionary = HOME_SCREEN_SCRIPT.FONT_ROLE_RATIOS
+	_check(abs(font_ratios["brand_title"] - 0.0485 * 1.3) < 0.00001, "main brand title uses a 30% larger adaptive font role")
+	_check(abs(font_ratios["brand"] - 0.0485) < 0.00001, "brand icon keeps its previous adaptive font role")
+	_check(abs(font_ratios["brand_secondary"] - 0.038 * 1.3) < 0.00001, "secondary brand title uses a 30% larger adaptive font role")
+	_check(abs(font_ratios["heading"] - 0.0333 * 1.15) < 0.00001, "greeting title uses a 15% larger adaptive font role")
+	_check(abs(font_ratios["body"] - 0.0313 * 1.15) < 0.00001, "greeting message uses a 15% larger adaptive font role")
+	screen._layout_screen(Vector2(720, 1280))
+	var large_nav_label_scale: float = screen.ui["nav_missions_title"].rect_scale.x
+	screen._layout_screen(Vector2(320, 568))
+	var compact_nav_label_scale: float = screen.ui["nav_missions_title"].rect_scale.x
+	_check(compact_nav_label_scale < large_nav_label_scale, "shortcut label font adapts to a compact viewport")
 
 
 func _test_landscape_greeting_hierarchy(screen) -> void:
@@ -95,7 +121,7 @@ func _test_landscape_greeting_hierarchy(screen) -> void:
 func _test_text_fits_controls(screen) -> void:
 	for viewport_size in [Vector2(720, 1280), Vector2(1280, 720), Vector2(960, 540), Vector2(360, 800), Vector2(320, 568)]:
 		screen._layout_screen(viewport_size)
-		for key in ["menu", "notification", "logo_icon", "brand_top", "brand_bottom", "greeting_title", "greeting_text", "start", "level_caption", "level_number", "progress_title", "progress_value", "progress_hint", "status"]:
+		for key in ["menu", "notification", "logo_icon", "brand_top", "brand_bottom", "greeting_title", "greeting_text", "start", "nav_missions_title", "nav_games_title", "nav_profile_title", "level_caption", "level_number", "progress_title", "progress_value", "progress_hint", "status"]:
 			var control: Control = screen.ui[key]
 			_check(control.has_meta("font_role"), "%s uses an adaptive font role at %s" % [key, viewport_size])
 			_check(_text_fits_control(control), "%s text fits its allocated area at %s" % [key, viewport_size])
@@ -135,6 +161,8 @@ func _test_action_feedback(screen) -> void:
 	screen._on_action_pressed("Teste de feedback")
 	_check(screen.status_label.text == "Teste de feedback", "action feedback updates status label")
 	_check(_text_fits_control(screen.status_label), "action feedback text adapts to the available status area")
+	screen.ui["nav_games"].emit_signal("pressed")
+	_check(screen.status_label.text == "Mini games estará disponível em breve.", "shortcut button keeps its action")
 
 
 func _check(condition: bool, message: String) -> void:

@@ -2,7 +2,7 @@
 
 Aplicativo educativo 2D para Android, planejado como um hub que reúne minijogos independentes e sistemas compartilhados.
 
-> **Estado atual:** primeira tela do hub implementada como cena principal: “Guardiões da Cidade Digital”, com o sprite do mascote. O layout reorganiza os elementos em retrato e paisagem, e as fontes se adaptam ao viewport e ao espaço disponível; telas de missão, mini games, aprendizado e perfil ainda não foram implementadas.
+> **Estado atual:** primeira tela do hub implementada como cena principal: “Guardiões da Cidade Digital”, com o sprite do mascote. O layout reorganiza os elementos em retrato e paisagem, e as fontes se adaptam ao viewport e ao espaço disponível. Os atalhos de Missões, Mini games e Perfil usam áreas coloridas para ícones futuros, com rótulos abaixo; os destinos ainda não foram implementados.
 
 ## Tecnologias e plataforma
 
@@ -308,8 +308,10 @@ shared/                      # Sistemas e componentes compartilhados
   progress/
   ui/
 data/                        # Catálogo e conteúdo pedagógico
-ideias/                      # Referências visuais e sprite do mascote usado na tela
+ideias/                      # Referências visuais para telas e minijogos
 tests/                       # Testes de regressão da tela principal
 ```
 
 Os designs criados no Godot devem consultar as imagens disponíveis em `ideias/`. As regras permanentes de desenvolvimento e as decisões de arquitetura estão em [AGENTS.md](AGENTS.md); o estado de implementação está em [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md).
+
+O sprite do mascote usado pelo hub fica em `shared/mascot/`; a cópia original permanece em `ideias/` como referência visual.

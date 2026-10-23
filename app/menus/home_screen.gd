@@ -9,11 +9,13 @@ const MUTED = Color("#a8b5d2")
 const FONT_ROLE_RATIOS = {
 	"icon": 0.0392,
 	"brand": 0.0485,
-	"brand_secondary": 0.038,
-	"heading": 0.0333,
-	"body": 0.0313,
+	"brand_title": 0.06305,
+	"brand_secondary": 0.0494,
+	"heading": 0.038295,
+	"body": 0.035995,
 	"button": 0.0367,
 	"caption": 0.0247,
+	"nav_caption": 0.02717,
 	"display_number": 0.0593,
 	"progress_value": 0.0347,
 	"progress_caption": 0.026
@@ -41,12 +43,12 @@ func _build_screen() -> void:
 	ui["menu"] = _new_label("☰", WHITE, "icon", Label.ALIGN_CENTER)
 	ui["notification"] = _new_label("♧", WHITE, "icon", Label.ALIGN_CENTER)
 	ui["logo_icon"] = _new_label("✦", CYAN, "brand", Label.ALIGN_CENTER)
-	ui["brand_top"] = _new_label("GUARDIÕES", WHITE, "brand")
+	ui["brand_top"] = _new_label("GUARDIÕES", WHITE, "brand_title")
 	ui["brand_bottom"] = _new_label("DA CIDADE DIGITAL", CYAN, "brand_secondary")
 
 	var mascot := TextureRect.new()
 	mascot.name = "MascotSprite"
-	mascot.texture = load("res://ideias/mascote.png")
+	mascot.texture = load("res://shared/mascot/mascote.png")
 	mascot.expand = true
 	mascot.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	mascot.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -61,11 +63,9 @@ func _build_screen() -> void:
 	start_button.connect("pressed", self, "_on_action_pressed", ["Selecione um bairro para iniciar sua missão."])
 	ui["start"] = start_button
 
-	ui["nav_missions"] = _new_nav_button("NavMissions", "nav_missions", "◇", "MISSÕES", Color("#19c9c9"), NAVY, "Missões")
-	ui["nav_games"] = _new_nav_button("NavMiniGames", "nav_games", "♫", "MINI GAMES", Color("#7565f6"), NAVY, "Mini games")
-	ui["nav_games"].add_color_override("font_color", Color("#FFFFFF"))
-	ui["nav_learn"] = _new_nav_button("NavLearn", "nav_learn", "▤", "APRENDER", Color("#65c88b"), NAVY, "Aprender")
-	ui["nav_profile"] = _new_nav_button("NavProfile", "nav_profile", "♧", "PERFIL", Color("#3187ec"), NAVY, "Perfil")
+	ui["nav_missions"] = _new_nav_button("NavMissions", "nav_missions", "MISSÕES", Color("#19c9c9"), "Missões")
+	ui["nav_games"] = _new_nav_button("NavMiniGames", "nav_games", "MINI GAMES", Color("#7565f6"), "Mini games")
+	ui["nav_profile"] = _new_nav_button("NavProfile", "nav_profile", "PERFIL", Color("#3187ec"), "Perfil")
 
 	ui["progress_panel"] = _new_panel("ProgressPanel", PANEL, Color("#26385e"), 18)
 	ui["level_badge"] = _new_panel("LevelBadge", Color("#132345"), Color("#16c7d0"), 56)
@@ -119,13 +119,12 @@ func _layout_portrait(width: float, height: float, safe_x: float, safe_y: float,
 	_place(ui["start"], width * 0.06, height * 0.595, width * 0.88, height * 0.068, font_basis)
 	var nav_left := width * 0.05
 	var nav_gap := width * 0.018
-	var nav_width := (width * 0.90 - nav_gap * 3.0) / 4.0
+	var nav_width := (width * 0.90 - nav_gap * 2.0) / 3.0
 	var nav_y := height * 0.69
 	var nav_height := height * 0.112
 	_place_nav("nav_missions", nav_left, nav_y, nav_width, nav_height, font_basis)
 	_place_nav("nav_games", nav_left + nav_width + nav_gap, nav_y, nav_width, nav_height, font_basis)
-	_place_nav("nav_learn", nav_left + (nav_width + nav_gap) * 2.0, nav_y, nav_width, nav_height, font_basis)
-	_place_nav("nav_profile", nav_left + (nav_width + nav_gap) * 3.0, nav_y, nav_width, nav_height, font_basis)
+	_place_nav("nav_profile", nav_left + (nav_width + nav_gap) * 2.0, nav_y, nav_width, nav_height, font_basis)
 
 	var progress_x := width * 0.05
 	var progress_y := height * 0.81
@@ -163,13 +162,12 @@ func _layout_landscape(width: float, height: float, safe_x: float, safe_y: float
 	var content_width := width * 0.555
 	_place(ui["start"], content_x, height * 0.20, content_width, height * 0.12, font_basis)
 	var nav_gap := content_width * 0.025
-	var nav_width := (content_width - nav_gap * 3.0) / 4.0
+	var nav_width := (content_width - nav_gap * 2.0) / 3.0
 	var nav_y := height * 0.385
 	var nav_height := height * 0.30
 	_place_nav("nav_missions", content_x, nav_y, nav_width, nav_height, font_basis)
 	_place_nav("nav_games", content_x + nav_width + nav_gap, nav_y, nav_width, nav_height, font_basis)
-	_place_nav("nav_learn", content_x + (nav_width + nav_gap) * 2.0, nav_y, nav_width, nav_height, font_basis)
-	_place_nav("nav_profile", content_x + (nav_width + nav_gap) * 3.0, nav_y, nav_width, nav_height, font_basis)
+	_place_nav("nav_profile", content_x + (nav_width + nav_gap) * 2.0, nav_y, nav_width, nav_height, font_basis)
 
 	_place_progress(content_x, height * 0.735, content_width, height * 0.205, font_basis)
 	_place(ui["status"], content_x, height - safe_y - 36.0, content_width, 34, font_basis)
@@ -200,17 +198,13 @@ func _place_mascot(x: float, y: float, width: float, height: float) -> void:
 
 
 func _place_nav(key: String, x: float, y: float, width: float, height: float, font_basis: float) -> void:
-	_place(ui[key], x, y, width, height)
-	var icon_label: Label = ui[key + "_icon"]
+	var button: Button = ui[key]
 	var title_label: Label = ui[key + "_title"]
-	var base_title: String = title_label.get_meta("base_text")
-	if width < 112.0 and base_title == "MINI GAMES":
-		title_label.text = "MINI\nGAMES"
-	else:
-		title_label.text = base_title
-	var title_scale: float = max(0.75, min(1.0, width / 110.0))
-	_place(icon_label, 0.0, height * 0.04, width, height * 0.43, font_basis)
-	_place(title_label, 2.0, height * 0.49, width - 4.0, height * 0.48, font_basis, title_scale)
+	var button_height: float = height * 0.70
+	var label_y: float = y + height * 0.74
+	var label_height: float = height * 0.26
+	_place(button, x, y, width, button_height)
+	_place(title_label, x, label_y, width, label_height, font_basis)
 
 
 func _place(control: Control, x: float, y: float, width: float, height: float, font_basis: float = 720.0, extra_scale: float = 1.0) -> void:
@@ -296,38 +290,20 @@ func _new_button(node_name: String, text: String, fill: Color, text_color: Color
 	return button
 
 
-func _new_nav_button(node_name: String, key: String, icon: String, title: String, color: Color, text_color: Color, action: String) -> Button:
-	var button := _new_button(node_name, "", color, text_color, "button")
-	# The button is only a background/focus target; scaling it would also scale
-	# its child labels and push their centered text outside the visible button.
+func _new_nav_button(node_name: String, key: String, title: String, color: Color, action: String) -> Button:
+	var button := _new_button(node_name, "", color, WHITE, "button")
+	# Keep each colored button ready for a centered icon without a text placeholder.
 	button.remove_meta("font_role")
+	button.icon_align = Button.ALIGN_CENTER
+	button.expand_icon = true
 	button.add_stylebox_override("normal", _stylebox(color, color, 16, 2))
 	button.add_stylebox_override("hover", _stylebox(color, color, 16, 3))
 	button.add_stylebox_override("focus", _stylebox(color, WHITE, 16, 4))
-	button.add_color_override("font_color", text_color)
-	button.add_color_override("font_color_hover", text_color)
-	button.add_color_override("font_color_focus", text_color)
-	var icon_label := _new_child_label(icon, text_color, "icon", Label.ALIGN_CENTER)
-	var title_label := _new_child_label(title, text_color, "caption", Label.ALIGN_CENTER)
-	title_label.set_meta("base_text", title)
-	button.add_child(icon_label)
-	button.add_child(title_label)
-	ui[key + "_icon"] = icon_label
+	var title_label := _new_label(title, WHITE, "nav_caption", Label.ALIGN_CENTER)
+	title_label.name = node_name + "Title"
 	ui[key + "_title"] = title_label
 	button.connect("pressed", self, "_on_action_pressed", [action + " estará disponível em breve."])
 	return button
-
-
-func _new_child_label(text: String, color: Color, font_role: String, alignment: int) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.align = alignment
-	label.valign = Label.VALIGN_CENTER
-	label.autowrap = true
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.add_color_override("font_color", color)
-	label.set_meta("font_role", font_role)
-	return label
 
 
 func _stylebox(fill: Color, border: Color, radius: int, border_width: int) -> StyleBoxFlat:
