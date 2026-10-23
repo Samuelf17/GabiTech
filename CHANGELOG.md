@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Criado o serviço compartilhado de progressão, com nível inicial 1, XP inicial 0, avanço a cada 2.000 XP, IDs de item por nível e persistência em JSON `user://`. Home e Perfil agora leem nível/XP/inventário do mesmo estado; nenhum jogo concede XP ainda. Adicionados testes da lógica, persistência e atualização das telas.
 - Criada a tela de Perfil/Recompensas baseada em `ideias/tela_perfil.png`, com pontos, nível/XP, abas, desafio semanal e seis distintivos adaptativos usando temporariamente o ícone de escudo. Integrada à navegação inferior compartilhada e adicionados testes responsivos.
 - Em paisagem na tela inicial, aproximado o botão “Começar missão” do painel de nível/XP e centralizado o conjunto na altura do painel de fala da capivara; adicionados testes de espaçamento e alinhamento.
 - Em paisagem, aproximados os octógonos de Conhecimento e Respeito das extremidades laterais; adicionada verificação dos novos centros ao teste do mapa.

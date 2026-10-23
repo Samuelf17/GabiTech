@@ -28,6 +28,8 @@ var current_viewport_size: Vector2
 
 func _ready() -> void:
 	_build_screen()
+	Progression.connect("progress_changed", self, "_on_progress_changed")
+	_refresh_progress_ui()
 	get_viewport().connect("size_changed", self, "_on_viewport_size_changed")
 	_layout_screen(get_viewport_rect().size)
 
@@ -66,12 +68,12 @@ func _build_screen() -> void:
 	ui["progress_panel"] = _new_panel("ProgressPanel", PANEL, Color("#26385e"), 18)
 	ui["level_badge"] = _new_panel("LevelBadge", Color("#132345"), Color("#16c7d0"), 56)
 	ui["level_caption"] = _new_label("NÍVEL", MUTED, "caption", Label.ALIGN_CENTER)
-	ui["level_number"] = _new_label("12", WHITE, "display_number", Label.ALIGN_CENTER)
+	ui["level_number"] = _new_label("1", WHITE, "display_number", Label.ALIGN_CENTER)
 	ui["progress_title"] = _new_label("NÍVEL", MUTED, "caption")
-	ui["progress_value"] = _new_label("1.250 / 2.000 XP", WHITE, "progress_value")
+	ui["progress_value"] = _new_label("0 / 2.000 XP", WHITE, "progress_value")
 	ui["progress_track"] = _new_panel("ProgressTrack", Color("#243253"), Color("#243253"), 12)
 	ui["progress_fill"] = _new_panel("ProgressFill", CYAN, CYAN, 10)
-	ui["progress_hint"] = _new_label("Mais 750 XP para o próximo nível", MUTED, "progress_caption")
+	ui["progress_hint"] = _new_label("Faltam 2.000 XP para o próximo nível", MUTED, "progress_caption")
 
 	status_label = _new_label("", CYAN, "caption", Label.ALIGN_CENTER)
 	ui["status"] = status_label
@@ -179,7 +181,8 @@ func _place_progress(x: float, y: float, width: float, height: float, font_basis
 	var track_y: float = y + height * 0.62
 	var track_height: float = max(14.0, height * 0.13)
 	_place(ui["progress_track"], text_x, track_y, text_width, track_height)
-	_place(ui["progress_fill"], text_x + 2, track_y + 2, max(8.0, (text_width - 4.0) * 0.625), track_height - 4.0)
+	var progress_width: float = max(0.0, (text_width - 4.0) * Progression.get_progress_ratio())
+	_place(ui["progress_fill"], text_x + 2, track_y + 2, progress_width, track_height - 4.0)
 	_place(ui["progress_hint"], text_x, track_y + track_height + 4.0, text_width, height * 0.19, font_basis)
 
 
@@ -287,6 +290,20 @@ func _stylebox(fill: Color, border: Color, radius: int, border_width: int) -> St
 
 func _on_viewport_size_changed() -> void:
 	_layout_screen(get_viewport_rect().size)
+
+
+func _on_progress_changed(_state: Dictionary) -> void:
+	_refresh_progress_ui()
+	_layout_screen(current_viewport_size)
+
+
+func _refresh_progress_ui() -> void:
+	var progress: Dictionary = Progression.get_state()
+	var current_xp: int = int(progress["experience"])
+	var xp_required: int = Progression.experience_per_level
+	ui["level_number"].text = str(progress["level"])
+	ui["progress_value"].text = "%s / %s XP" % [Progression.format_number(current_xp), Progression.format_number(xp_required)]
+	ui["progress_hint"].text = "Faltam %s XP para o próximo nível" % Progression.format_number(xp_required - current_xp)
 
 
 func _on_action_pressed(message: String) -> void:

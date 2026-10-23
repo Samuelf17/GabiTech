@@ -38,6 +38,8 @@ var selected_tab: String = "DISTINTIVOS"
 
 func _ready() -> void:
 	_build_screen()
+	Progression.connect("progress_changed", self, "_on_progress_changed")
+	_refresh_progress_ui()
 	get_viewport().connect("size_changed", self, "_on_viewport_size_changed")
 	_layout_screen(get_viewport_rect().size)
 
@@ -61,13 +63,13 @@ func _build_screen() -> void:
 	hero_shield.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(hero_shield)
 	ui["hero_shield"] = hero_shield
-	ui["points_label"] = _new_label("PONTOS DE GUARDIÃO", MUTED, "points_label")
-	ui["points"] = _new_label("2.450", WHITE, "points")
-	ui["support"] = _new_label("Continue assim!", Color("#a6e85d"), "support")
+	ui["points_label"] = _new_label("EXPERIÊNCIA TOTAL", MUTED, "points_label")
+	ui["points"] = _new_label("0", WHITE, "points")
+	ui["support"] = _new_label("Itens desbloqueados: 0", Color("#a6e85d"), "support")
 
 	ui["level_panel"] = _new_panel("LevelProgressPanel", PANEL, Color("#315076"), 16)
-	ui["level_caption"] = _new_label("NÍVEL 12", WHITE, "level")
-	ui["xp_value"] = _new_label("1.250 / 2.000 XP", WHITE, "level", Label.ALIGN_RIGHT)
+	ui["level_caption"] = _new_label("NÍVEL 1", WHITE, "level")
+	ui["xp_value"] = _new_label("0 / 2.000 XP", WHITE, "level", Label.ALIGN_RIGHT)
 	ui["xp_track"] = _new_panel("XPTrack", Color("#18284a"), Color("#18284a"), 12)
 	ui["xp_fill"] = _new_panel("XPFill", Color("#48dfae"), Color("#48dfae"), 12)
 
@@ -157,7 +159,7 @@ func _layout_screen(viewport_size: Vector2) -> void:
 	var track_width: float = width - safe * 3.4
 	var track_height: float = max(short_side * 0.018, level_height * 0.18)
 	_place(ui["xp_track"], track_x, track_y, track_width, track_height)
-	_place(ui["xp_fill"], track_x, track_y, track_width * 0.625, track_height)
+	_place(ui["xp_fill"], track_x, track_y, track_width * Progression.get_progress_ratio(), track_height)
 
 	var tabs_y: float = level_y + level_height + height * 0.018
 	var tabs_height: float = height * (0.075 if landscape else 0.065)
@@ -274,9 +276,31 @@ func _apply_tab_style() -> void:
 		tab.add_color_override("font_color", NAVY if active else MUTED)
 
 
+func _on_progress_changed(_state: Dictionary) -> void:
+	_refresh_progress_ui()
+	_layout_screen(current_viewport_size)
+
+
+func _refresh_progress_ui() -> void:
+	var progress: Dictionary = Progression.get_state()
+	var level: int = int(progress["level"])
+	var current_xp: int = int(progress["experience"])
+	var xp_required: int = Progression.experience_per_level
+	var total_xp: int = Progression.get_total_experience()
+	var item_count: int = progress["unlocked_items"].size()
+	ui["points"].text = Progression.format_number(total_xp)
+	ui["support"].text = "Itens desbloqueados: %d" % item_count
+	ui["level_caption"].text = "NÍVEL %d" % level
+	ui["xp_value"].text = "%s / %s XP" % [Progression.format_number(current_xp), Progression.format_number(xp_required)]
+
+
 func _on_tab_pressed(tab_name: String) -> void:
 	if tab_name != "DISTINTIVOS":
-		ui["status"].text = "A aba %s estará disponível em breve." % tab_name.to_lower().capitalize()
+		if tab_name == "COLEÇÃO":
+			var item_count: int = Progression.get_state()["unlocked_items"].size()
+			ui["status"].text = "%d item(ns) desbloqueado(s); nomes e artes serão cadastrados depois." % item_count
+		else:
+			ui["status"].text = "A aba %s estará disponível em breve." % tab_name.to_lower().capitalize()
 		return
 	selected_tab = tab_name
 	ui["status"].text = ""

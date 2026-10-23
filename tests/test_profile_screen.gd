@@ -18,6 +18,7 @@ func _run_tests() -> void:
 	yield(self, "idle_frame")
 	for viewport_size in [Vector2(720, 1280), Vector2(1280, 720), Vector2(960, 540), Vector2(360, 800), Vector2(320, 568)]:
 		_test_layout(screen, viewport_size)
+	_test_progress_values(screen)
 	_test_tabs(screen)
 	if failures.empty():
 		print("Profile screen tests passed")
@@ -62,6 +63,35 @@ func _test_tabs(screen) -> void:
 	_check(screen.selected_tab == "DISTINTIVOS", "badge tab remains selected")
 	screen._on_nav_pressed("missions")
 	_check(screen.ui["status"].text == "A tela de Missões estará disponível em breve.", "Missions menu gives temporary feedback")
+
+
+func _test_progress_values(screen) -> void:
+	var progress: Dictionary = Progression.get_state()
+	var total_xp: int = Progression.get_total_experience()
+	var item_count: int = progress["unlocked_items"].size()
+	_check(screen.ui["points"].text == Progression.format_number(total_xp), "profile total experience comes from saved progress")
+	_check(screen.ui["support"].text == "Itens desbloqueados: %d" % item_count, "profile item count comes from saved progress")
+	_check(screen.ui["level_caption"].text == "NÍVEL %d" % progress["level"], "profile level comes from saved progress")
+	_check(screen.ui["xp_value"].text == "%s / %s XP" % [Progression.format_number(progress["experience"]), Progression.format_number(Progression.experience_per_level)], "profile XP comes from saved progress")
+	var original_path: String = Progression.storage_path
+	var test_path: String = "user://profile_progress_test.json"
+	_remove_progress_test_file(test_path)
+	Progression.storage_path = test_path
+	Progression.load_progress()
+	Progression.add_experience(2000)
+	_check(screen.ui["level_caption"].text == "NÍVEL 2", "profile level updates after a level-up signal")
+	_check(screen.ui["points"].text == "2.000", "profile total experience updates after a level-up signal")
+	_check(screen.ui["support"].text == "Itens desbloqueados: 1", "profile reward count updates after a level-up signal")
+	Progression.storage_path = original_path
+	Progression.load_progress()
+	_remove_progress_test_file(test_path)
+
+
+func _remove_progress_test_file(path: String) -> void:
+	var file := File.new()
+	if file.file_exists(path):
+		var directory := Directory.new()
+		directory.remove(path)
 
 
 func _fits_viewport(control: Control, viewport_size: Vector2) -> bool:

@@ -14,6 +14,10 @@ config/name="Guardiões da Cidade Digital"
 run/main_scene="res://app/menus/home_screen.tscn"
 config/icon="res://icon.png"
 
+[autoload]
+
+Progression="*res://shared/progress/progression_service.gd"
+
 [display]
 
 window/size/width=720
