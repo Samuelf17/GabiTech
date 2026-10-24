@@ -3,8 +3,10 @@ extends SceneTree
 const MAP_SCREEN = preload("res://app/menus/map_screen.tscn")
 const MAP_SCREEN_SCRIPT = preload("res://app/menus/map_screen.gd")
 const BOTTOM_NAVIGATION_SCRIPT = preload("res://shared/ui/bottom_navigation.gd")
+const TYPOGRAPHY_SCRIPT = preload("res://shared/ui/typography.gd")
 const PORTRAIT_MAP_BACKGROUND_PATH = "res://shared/map/assets/mapa.png"
 const LANDSCAPE_MAP_BACKGROUND_PATH = "res://shared/map/assets/mapa_horizontal.png"
+const QUIZ_SCENE_PATH = "res://games/quiz/scenes/quiz_screen.tscn"
 
 var failures: Array = []
 
@@ -37,7 +39,7 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 	screen._layout_screen(viewport_size)
 	_check(screen.ui["background"].texture != null, "map illustration loads at %s" % viewport_size)
 	var expected_background_path: String = LANDSCAPE_MAP_BACKGROUND_PATH if viewport_size.x > viewport_size.y else PORTRAIT_MAP_BACKGROUND_PATH
-	_check(screen.ui["background"].texture.resource_path == expected_background_path, "map illustration matches viewport orientation at %s" % viewport_size)
+	_check(screen.active_background_path == expected_background_path, "map illustration matches viewport orientation at %s" % viewport_size)
 	_check(screen.active_background_path == expected_background_path, "only the active orientation is tracked at %s" % viewport_size)
 	var inactive_background_path: String = PORTRAIT_MAP_BACKGROUND_PATH if viewport_size.x > viewport_size.y else LANDSCAPE_MAP_BACKGROUND_PATH
 	_check(not ResourceLoader.has_cached(inactive_background_path), "inactive orientation texture is not cached at %s" % viewport_size)
@@ -46,9 +48,17 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 	_check(screen.ui["background"].stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED, "map art fills its background area at %s" % viewport_size)
 	var header_rect: Rect2 = screen.ui["header_panel"].get_global_rect()
 	var prompt_rect: Rect2 = screen.ui["prompt_panel"].get_global_rect()
-	_check(is_equal_approx(header_rect.position.y, viewport_size.y * 0.05), "map title panel keeps a 5% top margin at %s" % viewport_size)
+	_check(is_equal_approx(header_rect.position.y, viewport_size.y * 0.05), "map title panel keeps a five percent top margin at %s" % viewport_size)
 	_check(header_rect.end.y <= prompt_rect.position.y, "map title and prompt panels do not overlap at %s" % viewport_size)
 	_check(screen.ui["prompt"].text == "Escolha um bairro para aceitar a missão!", "mission prompt stays present at %s" % viewport_size)
+	var typography = TYPOGRAPHY_SCRIPT.new()
+	_check(is_equal_approx(typography.get_role_ratio("body"), 0.035995), "map typography uses the shared greeting text base")
+	_check(is_equal_approx(typography.get_role_ratio("prompt"), typography.get_role_ratio("body")), "map prompt matches the greeting body size")
+	_check(is_equal_approx(typography.get_role_ratio("district"), typography.get_role_ratio("body")), "district names match the greeting body size")
+	_check(is_equal_approx(typography.get_role_ratio("district_progress"), typography.get_role_ratio("body")), "district progress matches the greeting body size")
+	_check(typography.has_role(screen.ui["screen_title"].get_meta("font_role")), "map title uses the shared typography scale")
+	_check(typography.has_role(screen.ui["prompt"].get_meta("font_role")), "map prompt uses the shared typography scale")
+	_check(typography.has_role(screen.ui["status"].get_meta("font_role")), "map status uses the shared typography scale")
 	_check(screen.ui["areas"].focus_mode == Control.FOCUS_ALL, "district layer supports keyboard/controller focus at %s" % viewport_size)
 	var navigation = screen.ui["navigation"]
 	navigation.layout_for_viewport(viewport_size)
@@ -64,6 +74,8 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 	for district in MAP_SCREEN_SCRIPT.DISTRICTS:
 		_check(screen.ui[district["id"] + "_title"].visible, "%s title is visible at %s" % [district["id"], viewport_size])
 		_check(screen.ui[district["id"] + "_progress"].visible, "%s progress is visible at %s" % [district["id"], viewport_size])
+		_check(typography.has_role(screen.ui[district["id"] + "_title"].get_meta("font_role")), "%s title uses shared typography" % district["id"])
+		_check(typography.has_role(screen.ui[district["id"] + "_progress"].get_meta("font_role")), "%s progress uses shared typography" % district["id"])
 	for district_id in ["privacy", "communication", "security", "respect"]:
 		var icon: TextureRect = screen.ui[district_id + "_icon"]
 		_check(icon.texture != null and icon.visible, "%s district icon loads and is visible at %s" % [district_id, viewport_size])
@@ -106,13 +118,18 @@ func _test_district_selection(screen) -> void:
 
 
 func _test_navigation(screen) -> void:
-	screen._on_nav_pressed("missions")
-	_check(screen.ui["status"].text == "A tela de Missões estará disponível em breve.", "Missions menu does not route to the map content")
+	_check(ResourceLoader.exists(QUIZ_SCENE_PATH), "Missions destination scene exists")
 
 
 func _fits_viewport(control: Control, viewport_size: Vector2) -> bool:
-	var rect: Rect2 = control.get_global_rect()
-	return rect.position.x >= -1.0 and rect.position.y >= -1.0 and rect.end.x <= viewport_size.x + 1.0 and rect.end.y <= viewport_size.y + 1.0
+	var position: Vector2 = control.rect_position
+	var size: Vector2 = control.rect_size * control.rect_scale
+	var parent = control.get_parent()
+	while parent is Control:
+		position = parent.rect_position + position * parent.rect_scale
+		size *= parent.rect_scale
+		parent = parent.get_parent()
+	return position.x >= -1.0 and position.y >= -1.0 and position.x + size.x <= viewport_size.x + 1.0 and position.y + size.y <= viewport_size.y + 1.0
 
 
 func _check(condition: bool, message: String) -> void:

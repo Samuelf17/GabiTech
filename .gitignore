@@ -1,6 +1,9 @@
 #Pasta de ideias
 ideias/
 
+#Algotimo Shell
+project.sh
+
 #Godot: arquivos temporários e importados
 .import/
 export.cfg

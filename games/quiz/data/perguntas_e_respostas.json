@@ -1,0 +1,652 @@
+[
+  {
+    "tema": "Segurança digital",
+    "dificuldade": "Fácil",
+    "pergunta": "Você recebe um aviso dizendo que sua conta será bloqueada e precisa clicar em um link. Qual é a atitude mais segura?",
+    "opcoes": [
+      "Clicar rapidamente no link",
+      "Abrir o aplicativo oficial e verificar o aviso",
+      "Encaminhar a mensagem para todos",
+      "Enviar sua senha para confirmar sua identidade"
+    ],
+    "respostaCorreta": 1,
+    "explicacao": "Mensagens urgentes podem ser golpes. Acesse o serviço pelo aplicativo ou site oficial."
+  },
+  {
+    "tema": "Segurança digital",
+    "dificuldade": "Fácil",
+    "pergunta": "Um amigo envia um arquivo de um site desconhecido que promete vantagens em um jogo. O que fazer?",
+    "opcoes": [
+      "Baixar porque veio de um amigo",
+      "Desativar a proteção do aparelho",
+      "Verificar a origem e evitar arquivos suspeitos",
+      "Enviar o arquivo para outros testarem"
+    ],
+    "respostaCorreta": 2,
+    "explicacao": "Arquivos desconhecidos podem conter programas maliciosos, mesmo quando são enviados por conhecidos."
+  },
+  {
+    "tema": "Segurança digital",
+    "dificuldade": "Média",
+    "pergunta": "O que é phishing?",
+    "opcoes": [
+      "Uma técnica para criar senhas longas",
+      "Uma tentativa de enganar alguém para obter dados ou acesso",
+      "Um recurso que melhora a internet",
+      "Uma atualização do sistema"
+    ],
+    "respostaCorreta": 1,
+    "explicacao": "Phishing usa mensagens ou páginas falsas para tentar roubar informações ou invadir contas."
+  },
+  {
+    "tema": "Segurança digital",
+    "dificuldade": "Média",
+    "pergunta": "Ao usar o Wi-Fi público de um shopping, qual cuidado é recomendado?",
+    "opcoes": [
+      "Confiar em qualquer rede com o nome do shopping",
+      "Compartilhar arquivos com todos",
+      "Desativar as proteções do aparelho",
+      "Confirmar a rede e evitar operações sensíveis em redes não confiáveis"
+    ],
+    "respostaCorreta": 3,
+    "explicacao": "Redes públicas podem ser falsas ou inseguras. Confirme a rede e tenha cuidado com informações sensíveis."
+  },
+  {
+    "tema": "Segurança digital",
+    "dificuldade": "Fácil",
+    "pergunta": "Um jogo promete moedas grátis se você informar a senha da sua conta. O que fazer?",
+    "opcoes": [
+      "Informar a senha para ganhar",
+      "Confiar se o site tiver um logotipo conhecido",
+      "Não fornecer a senha e verificar os canais oficiais do jogo",
+      "Compartilhar a oferta com todos"
+    ],
+    "respostaCorreta": 2,
+    "explicacao": "Nunca compartilhe sua senha para receber prêmios. Prefira recompensas oferecidas pelos canais oficiais."
+  },
+  {
+    "tema": "Segurança digital",
+    "dificuldade": "Fácil",
+    "pergunta": "Por que é importante atualizar o sistema e os aplicativos?",
+    "opcoes": [
+      "Porque atualizações podem corrigir falhas de segurança",
+      "Porque todas as senhas ficam iguais",
+      "Porque impedem qualquer erro humano",
+      "Porque apagam automaticamente todos os vírus"
+    ],
+    "respostaCorreta": 0,
+    "explicacao": "Atualizações frequentemente corrigem vulnerabilidades e ajudam a proteger os dispositivos."
+  },
+  {
+    "tema": "Segurança digital",
+    "dificuldade": "Média",
+    "pergunta": "Um aplicativo começou a abrir anúncios estranhos depois que você instalou um jogo desconhecido. O que fazer?",
+    "opcoes": [
+      "Instalar mais aplicativos",
+      "Investigar e remover o aplicativo suspeito e verificar a segurança do aparelho",
+      "Ignorar porque anúncios nunca indicam riscos",
+      "Enviar suas senhas ao desenvolvedor"
+    ],
+    "respostaCorreta": 1,
+    "explicacao": "Comportamentos inesperados podem indicar aplicativos indesejados. Verifique o aparelho e remova fontes suspeitas."
+  },
+  {
+    "tema": "Segurança digital",
+    "dificuldade": "Média",
+    "pergunta": "Qual atitude ajuda a evitar golpes online?",
+    "opcoes": [
+      "Acreditar em mensagens com logotipos conhecidos",
+      "Responder rapidamente a toda mensagem urgente",
+      "Usar a mesma senha em todos os sites",
+      "Desconfiar de pedidos inesperados e confirmar por um canal oficial"
+    ],
+    "respostaCorreta": 3,
+    "explicacao": "Logotipos podem ser imitados. Verifique pedidos inesperados por um canal oficial."
+  },
+  {
+    "tema": "Cyberbullying",
+    "dificuldade": "Fácil",
+    "pergunta": "Várias pessoas ridicularizam repetidamente um colega em um grupo. O que é mais adequado fazer?",
+    "opcoes": [
+      "Entrar na brincadeira",
+      "Não participar, apoiar o colega e procurar um adulto de confiança",
+      "Compartilhar as mensagens em outros grupos",
+      "Criar uma votação sobre as piadas"
+    ],
+    "respostaCorreta": 1,
+    "explicacao": "Não amplifique a humilhação. Apoiar a pessoa e buscar ajuda pode interromper o cyberbullying."
+  },
+  {
+    "tema": "Cyberbullying",
+    "dificuldade": "Fácil",
+    "pergunta": "Alguém publica uma montagem ofensiva sua. Qual é uma boa atitude?",
+    "opcoes": [
+      "Responder com ameaças",
+      "Atacar a família da pessoa",
+      "Guardar evidências, denunciar e procurar apoio",
+      "Criar outra conta para atacar a pessoa"
+    ],
+    "respostaCorreta": 2,
+    "explicacao": "Guardar evidências e denunciar ajuda a lidar com a situação sem aumentar o conflito."
+  },
+  {
+    "tema": "Cyberbullying",
+    "dificuldade": "Fácil",
+    "pergunta": "Qual situação é um exemplo de cyberbullying?",
+    "opcoes": [
+      "Discordar respeitosamente de uma opinião",
+      "Combinar um jogo por mensagem",
+      "Bloquear uma conta",
+      "Humilhar repetidamente alguém por mensagens ou publicações online"
+    ],
+    "respostaCorreta": 3,
+    "explicacao": "Cyberbullying envolve agressões e humilhações por meios digitais, frequentemente repetidas."
+  },
+  {
+    "tema": "Cyberbullying",
+    "dificuldade": "Fácil",
+    "pergunta": "Um colega pede que você compartilhe um vídeo constrangedor de outro aluno. O que fazer?",
+    "opcoes": [
+      "Não compartilhar e explicar que isso pode machucar a pessoa",
+      "Compartilhar só com amigos próximos",
+      "Compartilhar sem comentar",
+      "Publicar e apagar depois de uma hora"
+    ],
+    "respostaCorreta": 0,
+    "explicacao": "Não compartilhar conteúdo humilhante ajuda a impedir que a exposição se espalhe."
+  },
+  {
+    "tema": "Cyberbullying",
+    "dificuldade": "Média",
+    "pergunta": "Você presencia cyberbullying, mas teme virar alvo também. Qual é uma opção segura?",
+    "opcoes": [
+      "Publicar insultos contra todos os envolvidos",
+      "Denunciar na plataforma e contar a um adulto de confiança",
+      "Criar um perfil falso para ameaçar o agressor",
+      "Fingir ser outra pessoa para atacar o agressor"
+    ],
+    "respostaCorreta": 1,
+    "explicacao": "Você pode denunciar e buscar ajuda sem precisar confrontar diretamente os envolvidos."
+  },
+  {
+    "tema": "Cyberbullying",
+    "dificuldade": "Média",
+    "pergunta": "Uma pessoa diz que uma ofensa online era apenas uma brincadeira. O que deve ser considerado?",
+    "opcoes": [
+      "Que mensagens online nunca machucam",
+      "Que toda brincadeira é aceitável se houver risadas",
+      "O impacto sobre a pessoa e se os limites dela foram respeitados",
+      "A quantidade de curtidas recebidas"
+    ],
+    "respostaCorreta": 2,
+    "explicacao": "Chamar algo de brincadeira não elimina o dano. Respeito e limites importam também online."
+  },
+  {
+    "tema": "Cyberbullying",
+    "dificuldade": "Fácil",
+    "pergunta": "Como você pode apoiar alguém que sofre cyberbullying?",
+    "opcoes": [
+      "Exigir que resolva tudo sozinho",
+      "Repassar as mensagens para mais pessoas",
+      "Dizer que a vítima merece isso",
+      "Ouvir sem culpar, oferecer apoio e ajudar a procurar alguém confiável"
+    ],
+    "respostaCorreta": 3,
+    "explicacao": "Acolher sem culpar e ajudar a buscar apoio é melhor do que julgar ou espalhar o conteúdo."
+  },
+  {
+    "tema": "Segurança de dados pessoais",
+    "dificuldade": "Fácil",
+    "pergunta": "Qual destas informações é melhor não publicar abertamente?",
+    "opcoes": [
+      "Seu personagem favorito",
+      "O nome de um filme de que gosta",
+      "Seu endereço residencial",
+      "A cor de um desenho"
+    ],
+    "respostaCorreta": 2,
+    "explicacao": "Seu endereço pode revelar onde você mora. Evite publicar dados que facilitem sua localização."
+  },
+  {
+    "tema": "Segurança de dados pessoais",
+    "dificuldade": "Fácil",
+    "pergunta": "Uma pessoa desconhecida em um jogo pergunta em qual escola você estuda e a que horas sai. O que fazer?",
+    "opcoes": [
+      "Não compartilhar esses detalhes e conversar com um adulto de confiança",
+      "Responder para provar que é simpática",
+      "Enviar uma foto do uniforme",
+      "Contar tudo se a pessoa disser o nome dela"
+    ],
+    "respostaCorreta": 0,
+    "explicacao": "Informações sobre escola e rotina podem facilitar que alguém localize você."
+  },
+  {
+    "tema": "Segurança de dados pessoais",
+    "dificuldade": "Média",
+    "pergunta": "Por que não é recomendado publicar uma foto que mostre seu crachá escolar com nome completo?",
+    "opcoes": [
+      "Porque nenhuma foto pode ser publicada",
+      "Porque o crachá pode revelar informações que ajudam a identificar você",
+      "Porque nomes completos deixam a internet lenta",
+      "Porque qualquer foto com texto é ilegal"
+    ],
+    "respostaCorreta": 1,
+    "explicacao": "Uma imagem pode revelar dados pessoais sem que você perceba."
+  },
+  {
+    "tema": "Segurança de dados pessoais",
+    "dificuldade": "Média",
+    "pergunta": "Um site pede data de nascimento completa, endereço e telefone para você jogar um jogo simples. O que fazer?",
+    "opcoes": [
+      "Preencher tudo porque o site pediu",
+      "Usar os dados de um familiar sem avisar",
+      "Publicar os dados em um comentário",
+      "Questionar se os dados são necessários e pedir orientação antes de fornecê-los"
+    ],
+    "respostaCorreta": 3,
+    "explicacao": "Forneça apenas os dados necessários e verifique se o serviço é confiável."
+  },
+  {
+    "tema": "Segurança de dados pessoais",
+    "dificuldade": "Fácil",
+    "pergunta": "O que são dados pessoais?",
+    "opcoes": [
+      "Somente senhas bancárias",
+      "Apenas informações impressas em documentos",
+      "Informações que identificam ou podem identificar uma pessoa",
+      "Somente fotos publicadas nas redes sociais"
+    ],
+    "respostaCorreta": 2,
+    "explicacao": "Nome, telefone, endereço e certos identificadores online podem ser dados pessoais."
+  },
+  {
+    "tema": "Segurança de dados pessoais",
+    "dificuldade": "Média",
+    "pergunta": "Você recebeu por engano uma lista com nomes, telefones e endereços de outras pessoas. O que fazer?",
+    "opcoes": [
+      "Não divulgar e avisar quem enviou ou o responsável adequado",
+      "Postar a lista para descobrir de quem é",
+      "Usar os telefones para fazer brincadeiras",
+      "Enviar a lista a todos os seus contatos"
+    ],
+    "respostaCorreta": 0,
+    "explicacao": "Dados de outras pessoas também merecem proteção. Evite compartilhá-los e avise o responsável."
+  },
+  {
+    "tema": "Segurança de dados pessoais",
+    "dificuldade": "Média",
+    "pergunta": "Por que é arriscado publicar em tempo real que sua casa está vazia?",
+    "opcoes": [
+      "Porque isso reduz a qualidade do vídeo",
+      "Porque pode revelar quando não há ninguém em casa",
+      "Porque a localização nunca aparece na internet",
+      "Porque só adultos conseguem ver publicações"
+    ],
+    "respostaCorreta": 1,
+    "explicacao": "Publicações em tempo real podem revelar a rotina e a ausência de pessoas em um local."
+  },
+  {
+    "tema": "Proteção da privacidade",
+    "dificuldade": "Fácil",
+    "pergunta": "Um aplicativo de lanterna pede acesso aos seus contatos e ao microfone. O que fazer?",
+    "opcoes": [
+      "Permitir tudo",
+      "Dar acesso e compartilhar a senha",
+      "Negar permissões desnecessárias e verificar as configurações",
+      "Desativar o bloqueio do celular"
+    ],
+    "respostaCorreta": 2,
+    "explicacao": "As permissões devem fazer sentido para a função do aplicativo. Negue acessos desnecessários."
+  },
+  {
+    "tema": "Proteção da privacidade",
+    "dificuldade": "Fácil",
+    "pergunta": "Antes de publicar uma foto em que aparece seu amigo, qual é uma boa atitude?",
+    "opcoes": [
+      "Publicar e perguntar depois",
+      "Marcar todas as pessoas da escola",
+      "Esconder o rosto dele sem avisar",
+      "Perguntar se ele concorda com a publicação"
+    ],
+    "respostaCorreta": 3,
+    "explicacao": "Pedir consentimento respeita a privacidade e os limites das outras pessoas."
+  },
+  {
+    "tema": "Proteção da privacidade",
+    "dificuldade": "Média",
+    "pergunta": "O que é autenticação em dois fatores?",
+    "opcoes": [
+      "Usar a mesma senha duas vezes",
+      "Adicionar uma segunda etapa de verificação ao entrar na conta",
+      "Criar duas contas com o mesmo nome",
+      "Compartilhar a senha com duas pessoas"
+    ],
+    "respostaCorreta": 1,
+    "explicacao": "A segunda etapa dificulta o acesso indevido mesmo quando alguém descobre a senha."
+  },
+  {
+    "tema": "Proteção da privacidade",
+    "dificuldade": "Fácil",
+    "pergunta": "Você usa um computador compartilhado para entrar no e-mail. O que deve fazer ao terminar?",
+    "opcoes": [
+      "Sair da conta e não salvar a senha no navegador",
+      "Deixar a conta aberta",
+      "Salvar a senha na área de trabalho",
+      "Desativar o bloqueio de tela"
+    ],
+    "respostaCorreta": 0,
+    "explicacao": "Encerrar a sessão e não salvar credenciais ajuda a impedir que outras pessoas acessem sua conta."
+  },
+  {
+    "tema": "Proteção da privacidade",
+    "dificuldade": "Média",
+    "pergunta": "Qual configuração ajuda a limitar quem vê suas publicações pessoais?",
+    "opcoes": [
+      "Usar a senha de um amigo",
+      "Aceitar qualquer solicitação de amizade",
+      "Revisar as configurações de privacidade e escolher quem pode ver as publicações",
+      "Publicar tudo em modo público"
+    ],
+    "respostaCorreta": 2,
+    "explicacao": "As configurações de privacidade ajudam a controlar quem pode ver suas informações."
+  },
+  {
+    "tema": "Proteção da privacidade",
+    "dificuldade": "Média",
+    "pergunta": "Um teste online pede acesso a todos os dados do seu perfil para revelar sua personalidade. O que fazer?",
+    "opcoes": [
+      "Aceitar porque testes são sempre confiáveis",
+      "Avaliar se o serviço é confiável e evitar acessos desnecessários",
+      "Informar também a senha",
+      "Pedir aos amigos que concedam acesso primeiro"
+    ],
+    "respostaCorreta": 1,
+    "explicacao": "Testes e aplicativos podem coletar mais informações do que precisam. Avalie os acessos solicitados."
+  },
+  {
+    "tema": "Proteção da privacidade",
+    "dificuldade": "Média",
+    "pergunta": "Por que revisar as permissões dos aplicativos de vez em quando?",
+    "opcoes": [
+      "Para permitir que todos vejam tudo",
+      "Porque as permissões tornam o aparelho invulnerável",
+      "Para que os aplicativos coletem mais dados",
+      "Para remover acessos que não são mais necessários"
+    ],
+    "respostaCorreta": 3,
+    "explicacao": "Revisar permissões ajuda a reduzir acessos desnecessários a dados, câmera, microfone e localização."
+  },
+  {
+    "tema": "Assédio digital",
+    "dificuldade": "Fácil",
+    "pergunta": "Uma pessoa continua mandando mensagens insistentes depois que você pediu para parar. O que fazer?",
+    "opcoes": [
+      "Guardar evidências, bloquear ou denunciar e buscar ajuda de alguém confiável",
+      "Responder com ameaças mais fortes",
+      "Encontrar a pessoa sozinho",
+      "Enviar mais informações pessoais para acalmá-la"
+    ],
+    "respostaCorreta": 0,
+    "explicacao": "Você tem direito a estabelecer limites. Guarde evidências e procure apoio; não precisa lidar com isso sozinho."
+  },
+  {
+    "tema": "Assédio digital",
+    "dificuldade": "Média",
+    "pergunta": "Alguém ameaça divulgar uma imagem sua se você não enviar mais fotos. Qual é a atitude mais segura?",
+    "opcoes": [
+      "Enviar o que foi pedido",
+      "Obedecer sem contar a ninguém",
+      "Não ceder à chantagem, preservar evidências e procurar um adulto de confiança",
+      "Apagar todas as mensagens antes de pedir ajuda"
+    ],
+    "respostaCorreta": 2,
+    "explicacao": "A chantagem não é culpa da vítima. Não envie mais conteúdo e procure ajuda de confiança."
+  },
+  {
+    "tema": "Assédio digital",
+    "dificuldade": "Fácil",
+    "pergunta": "Uma pessoa desconhecida pede segredo sobre conversas que deixam você desconfortável. O que fazer?",
+    "opcoes": [
+      "Prometer segredo",
+      "Interromper a conversa e contar a um adulto de confiança",
+      "Enviar seu endereço para provar confiança",
+      "Aceitar qualquer pedido para manter a amizade"
+    ],
+    "respostaCorreta": 1,
+    "explicacao": "Pedidos de segredo que causam desconforto são um sinal para procurar apoio de um adulto confiável."
+  },
+  {
+    "tema": "Assédio digital",
+    "dificuldade": "Média",
+    "pergunta": "Qual comportamento pode ser assédio digital?",
+    "opcoes": [
+      "Discordar de uma ideia com respeito",
+      "Enviar uma mensagem para combinar um trabalho",
+      "Bloquear alguém por preferência pessoal",
+      "Enviar repetidamente mensagens ameaçadoras ou sexualizadas sem consentimento"
+    ],
+    "respostaCorreta": 3,
+    "explicacao": "Mensagens invasivas, ameaçadoras ou sexualizadas sem consentimento podem constituir assédio."
+  },
+  {
+    "tema": "Assédio digital",
+    "dificuldade": "Média",
+    "pergunta": "Se alguém envia mensagens ofensivas e ameaçadoras, que evidência pode ser útil guardar?",
+    "opcoes": [
+      "Capturas de tela e informações relevantes, sem espalhar o conteúdo",
+      "Rumores contados por colegas",
+      "A senha da conta da pessoa",
+      "Mensagens editadas para parecerem mais graves"
+    ],
+    "respostaCorreta": 0,
+    "explicacao": "Registros autênticos podem ajudar ao denunciar e pedir ajuda."
+  },
+  {
+    "tema": "Assédio digital",
+    "dificuldade": "Média",
+    "pergunta": "Uma pessoa conhecida online insiste em encontrar você em segredo, sem contar a ninguém. O que fazer?",
+    "opcoes": [
+      "Ir para mostrar coragem",
+      "Enviar sua localização exata",
+      "Não aceitar o encontro secreto e conversar com um adulto de confiança",
+      "Convidar colegas sem avisar os responsáveis"
+    ],
+    "respostaCorreta": 2,
+    "explicacao": "Não aceite encontros secretos com desconhecidos. Conte a um adulto de confiança e priorize sua segurança."
+  },
+  {
+    "tema": "Assédio digital",
+    "dificuldade": "Fácil",
+    "pergunta": "Você recebe mensagens com conteúdo sexual que não pediu e que deixam você desconfortável. Qual é uma boa atitude?",
+    "opcoes": [
+      "Responder para não parecer mal-educado",
+      "Não precisa responder; bloqueie ou denuncie e procure ajuda de confiança",
+      "Compartilhar as mensagens para virar uma piada",
+      "Enviar uma foto em troca"
+    ],
+    "respostaCorreta": 1,
+    "explicacao": "Você não precisa aceitar mensagens indesejadas. Use os recursos de bloqueio e denúncia e procure apoio."
+  },
+  {
+    "tema": "LGPD",
+    "dificuldade": "Fácil",
+    "pergunta": "O que significa a sigla LGPD?",
+    "opcoes": [
+      "Lei Geral de Proteção de Dados Pessoais",
+      "Lista Global de Programas Digitais",
+      "Lei de Garantia de Produtos Domésticos",
+      "Licença Geral para Publicar Dados"
+    ],
+    "respostaCorreta": 0,
+    "explicacao": "LGPD significa Lei Geral de Proteção de Dados Pessoais, lei brasileira sobre o tratamento de dados pessoais."
+  },
+  {
+    "tema": "LGPD",
+    "dificuldade": "Fácil",
+    "pergunta": "Qual é um dos objetivos da LGPD?",
+    "opcoes": [
+      "Permitir que empresas publiquem dados livremente",
+      "Impedir o uso de toda tecnologia",
+      "Estabelecer regras para o tratamento de dados pessoais e proteger direitos",
+      "Obrigar todos a usar redes sociais"
+    ],
+    "respostaCorreta": 2,
+    "explicacao": "A LGPD estabelece regras para o tratamento de dados pessoais e protege direitos das pessoas."
+  },
+  {
+    "tema": "LGPD",
+    "dificuldade": "Média",
+    "pergunta": "Uma loja coleta o telefone de um cliente. Como deve tratar esse dado?",
+    "opcoes": [
+      "Compartilhar com qualquer empresa",
+      "Tratá-lo de acordo com uma finalidade adequada e as regras aplicáveis",
+      "Publicá-lo para demonstrar transparência",
+      "Guardá-lo para sempre, sem motivo"
+    ],
+    "respostaCorreta": 1,
+    "explicacao": "Dados devem ser tratados de forma adequada, com finalidade legítima e observando as obrigações da lei."
+  },
+  {
+    "tema": "LGPD",
+    "dificuldade": "Média",
+    "pergunta": "A LGPD se aplica apenas a dados guardados em computadores?",
+    "opcoes": [
+      "Sim, dados em papel nunca contam",
+      "Sim, apenas em empresas grandes",
+      "Não, somente em redes sociais",
+      "Não; pode alcançar dados digitais e físicos, conforme as condições da lei"
+    ],
+    "respostaCorreta": 3,
+    "explicacao": "A LGPD pode se aplicar ao tratamento de dados pessoais em meios digitais ou físicos."
+  },
+  {
+    "tema": "LGPD",
+    "dificuldade": "Fácil",
+    "pergunta": "Qual alternativa é um exemplo de dado pessoal?",
+    "opcoes": [
+      "A temperatura média de uma cidade sem vínculo com alguém",
+      "O número de telefone associado a uma pessoa identificável",
+      "A cor de um objeto sem relação com pessoas",
+      "A regra de um jogo fictício"
+    ],
+    "respostaCorreta": 1,
+    "explicacao": "Um telefone associado a uma pessoa identificável é um dado pessoal."
+  },
+  {
+    "tema": "LGPD",
+    "dificuldade": "Média",
+    "pergunta": "Uma empresa pede dados que não parecem necessários para entregar um produto. Qual princípio ajuda a avaliar isso?",
+    "opcoes": [
+      "Necessidade: limitar o tratamento ao mínimo necessário para a finalidade",
+      "Popularidade: coletar o que todos coletam",
+      "Velocidade: guardar tudo imediatamente",
+      "Publicidade: divulgar todos os registros"
+    ],
+    "respostaCorreta": 0,
+    "explicacao": "O princípio da necessidade busca limitar os dados tratados ao mínimo pertinente para a finalidade."
+  },
+  {
+    "tema": "LGPD",
+    "dificuldade": "Média",
+    "pergunta": "Uma pessoa quer saber como uma organização usa seus dados. Qual atitude combina com a transparência?",
+    "opcoes": [
+      "Esconder todas as informações",
+      "Responder apenas se a pessoa for famosa",
+      "Fornecer informações claras sobre o tratamento, conforme as regras aplicáveis",
+      "Publicar os dados da pessoa para provar que existem"
+    ],
+    "respostaCorreta": 2,
+    "explicacao": "A transparência envolve informações claras e acessíveis sobre como os dados pessoais são tratados."
+  },
+  {
+    "tema": "Construção de senhas seguras",
+    "dificuldade": "Fácil",
+    "pergunta": "Qual característica torna uma senha mais segura?",
+    "opcoes": [
+      "Ser igual ao nome de usuário",
+      "Ser curta para facilitar a memorização",
+      "Ser a mesma em todas as contas",
+      "Ser longa, difícil de adivinhar e exclusiva para aquela conta"
+    ],
+    "respostaCorreta": 3,
+    "explicacao": "Senhas longas e únicas dificultam a adivinhação e reduzem o risco para outras contas."
+  },
+  {
+    "tema": "Construção de senhas seguras",
+    "dificuldade": "Média",
+    "pergunta": "Qual é uma boa forma de guardar várias senhas fortes?",
+    "opcoes": [
+      "Anotar todas em um comentário público",
+      "Usar um gerenciador de senhas confiável e proteger seu acesso",
+      "Enviar todas para um grupo de amigos",
+      "Usar a senha mais fácil em todas as contas"
+    ],
+    "respostaCorreta": 1,
+    "explicacao": "Um gerenciador confiável ajuda a criar e armazenar senhas únicas sem precisar decorar todas."
+  },
+  {
+    "tema": "Construção de senhas seguras",
+    "dificuldade": "Fácil",
+    "pergunta": "Por que usar sua data de nascimento como senha é arriscado?",
+    "opcoes": [
+      "Porque datas pessoais podem ser fáceis de descobrir ou adivinhar",
+      "Porque números não podem fazer parte de senhas",
+      "Porque datas sempre bloqueiam a conta",
+      "Porque toda senha com números é inválida"
+    ],
+    "respostaCorreta": 0,
+    "explicacao": "Informações conhecidas ou publicadas sobre você não são boas escolhas para senhas."
+  },
+  {
+    "tema": "Construção de senhas seguras",
+    "dificuldade": "Média",
+    "pergunta": "Você recebeu um código de verificação por SMS que não pediu. O que fazer?",
+    "opcoes": [
+      "Enviar o código a quem perguntar",
+      "Publicar o código para descobrir sua origem",
+      "Não compartilhar o código e verificar a segurança da conta por canais oficiais",
+      "Usar o código em qualquer site que aparecer"
+    ],
+    "respostaCorreta": 2,
+    "explicacao": "Códigos de verificação são secretos. Não os compartilhe e investigue acessos inesperados."
+  },
+  {
+    "tema": "Construção de senhas seguras",
+    "dificuldade": "Média",
+    "pergunta": "Qual hábito aumenta o risco se uma senha for descoberta?",
+    "opcoes": [
+      "Ativar autenticação em dois fatores",
+      "Usar senhas diferentes em contas importantes",
+      "Trocar senhas comprometidas",
+      "Reutilizar a mesma senha em vários serviços"
+    ],
+    "respostaCorreta": 3,
+    "explicacao": "Se uma senha reutilizada vazar, criminosos podem tentar usá-la em outras contas."
+  },
+  {
+    "tema": "Construção de senhas seguras",
+    "dificuldade": "Média",
+    "pergunta": "Qual é uma boa estratégia para criar uma senha longa e memorizável?",
+    "opcoes": [
+      "Usar seu nome e o ano atual",
+      "Combinar palavras aleatórias e manter a senha exclusiva, sem informações pessoais óbvias",
+      "Usar a sequência 123456789",
+      "Usar a palavra senha com um ponto de exclamação"
+    ],
+    "respostaCorreta": 1,
+    "explicacao": "Uma frase-senha de palavras aleatórias pode ser longa e fácil de lembrar. Use uma diferente para cada conta."
+  },
+  {
+    "tema": "Construção de senhas seguras",
+    "dificuldade": "Fácil",
+    "pergunta": "Um amigo pede sua senha para fazer uma missão no seu perfil. O que fazer?",
+    "opcoes": [
+      "Não compartilhar a senha e procurar uma forma oficial de jogar junto",
+      "Passar a senha se ele prometer não mudar nada",
+      "Enviar a senha apenas por mensagem privada",
+      "Compartilhar também o código de verificação"
+    ],
+    "respostaCorreta": 0,
+    "explicacao": "Mesmo com amigos, não compartilhe senhas ou códigos. Use recursos oficiais de colaboração."
+  }
+]

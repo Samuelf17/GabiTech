@@ -1,9 +1,13 @@
 extends SceneTree
 
 const HOME_SCREEN = preload("res://app/menus/home_screen.tscn")
-const HOME_SCREEN_SCRIPT = preload("res://app/menus/home_screen.gd")
 const BOTTOM_NAVIGATION_SCRIPT = preload("res://shared/ui/bottom_navigation.gd")
+const TYPOGRAPHY_SCRIPT = preload("res://shared/ui/typography.gd")
+const QUIZ_SCENE_PATH = "res://games/quiz/scenes/quiz_screen.tscn"
 
+const PROGRESSION_SCRIPT = preload("res://shared/progress/progression_service.gd")
+
+var progression: Node
 var failures: Array = []
 
 
@@ -12,6 +16,7 @@ func _initialize() -> void:
 
 
 func _run_tests() -> void:
+	_setup_progression()
 	var screen = HOME_SCREEN.instance()
 	get_root().add_child(screen)
 	yield(self, "idle_frame")
@@ -93,13 +98,16 @@ func _test_adaptive_font_sizes(screen) -> void:
 	_check(narrow_portrait_scale < large_portrait_scale, "font size decreases with a smaller portrait viewport")
 	_check(compact_landscape_scale < tv_landscape_scale, "font size decreases with a smaller landscape viewport")
 	_check(narrow_portrait_scale > 0.0 and compact_landscape_scale > 0.0, "adaptive font sizes remain positive in portrait and landscape")
-	_check(abs(BOTTOM_NAVIGATION_SCRIPT.FONT_ROLE_RATIO - 0.02717) < 0.00001, "shared navigation keeps the home menu font scale as its standard")
-	var font_ratios: Dictionary = HOME_SCREEN_SCRIPT.FONT_ROLE_RATIOS
-	_check(abs(font_ratios["brand_title"] - 0.0485 * 1.3) < 0.00001, "main brand title uses a 30% larger adaptive font role")
-	_check(abs(font_ratios["brand"] - 0.0485) < 0.00001, "brand icon keeps its previous adaptive font role")
-	_check(abs(font_ratios["brand_secondary"] - 0.038 * 1.3) < 0.00001, "secondary brand title uses a 30% larger adaptive font role")
-	_check(abs(font_ratios["heading"] - 0.0333 * 1.15) < 0.00001, "greeting title uses a 15% larger adaptive font role")
-	_check(abs(font_ratios["body"] - 0.0313 * 1.15) < 0.00001, "greeting message uses a 15% larger adaptive font role")
+	var typography = TYPOGRAPHY_SCRIPT.new()
+	_check(is_equal_approx(typography.get_role_ratio("body"), 0.035995), "greeting message remains the shared typography base")
+	_check(is_equal_approx(typography.get_role_ratio("navigation"), typography.get_role_ratio("body")), "shared menu typography matches the greeting body size")
+	_check(is_equal_approx(typography.get_role_ratio("brand_title"), 0.0485 * 1.3), "main brand title keeps its 30% larger role")
+	_check(is_equal_approx(typography.get_role_ratio("brand"), 0.0485), "brand icon keeps its previous role")
+	_check(is_equal_approx(typography.get_role_ratio("brand_secondary"), 0.038 * 1.3), "secondary brand title keeps its 30% larger role")
+	_check(is_equal_approx(typography.get_role_ratio("heading"), 0.0333 * 1.15), "greeting title keeps its 15% larger role")
+	_check(is_equal_approx(typography.get_role_ratio("button"), typography.get_role_ratio("body")), "main action matches the greeting body size")
+	for role in ["caption", "display_number", "progress_value", "progress_caption", "prompt", "district", "district_progress", "status", "points_label", "points", "support", "level", "tab", "badge", "badge_level", "challenge_body", "reward_progress"]:
+		_check(is_equal_approx(typography.get_role_ratio(role), typography.get_role_ratio("body")), "%s matches the greeting body size" % role)
 	screen._layout_screen(Vector2(720, 1280))
 	var navigation = screen.ui["navigation"]
 	navigation.layout_for_viewport(Vector2(720, 1280))
@@ -111,25 +119,25 @@ func _test_adaptive_font_sizes(screen) -> void:
 
 
 func _test_progress_values(screen) -> void:
-	var progress: Dictionary = Progression.get_state()
+	var progress: Dictionary = progression.get_state()
 	_check(screen.ui["level_number"].text == str(progress["level"]), "home level number comes from saved progress")
-	_check(abs(screen.ui["level_ring"].get("progress_ratio") - Progression.get_progress_ratio()) < 0.0001, "home level ring reflects saved XP progress")
-	_check(screen.ui["progress_value"].text == "%s / %s XP" % [Progression.format_number(progress["experience"]), Progression.format_number(Progression.experience_per_level)], "home XP value comes from saved progress")
-	_check(screen.ui["progress_hint"].text == "Faltam %s XP para o próximo nível" % Progression.format_number(Progression.experience_per_level - progress["experience"]), "home XP hint comes from saved progress")
-	var original_path: String = Progression.storage_path
+	_check(abs(screen.ui["level_ring"].get("progress_ratio") - progression.get_progress_ratio()) < 0.0001, "home level ring reflects saved XP progress")
+	_check(screen.ui["progress_value"].text == "%s / %s XP" % [progression.format_number(progress["experience"]), progression.format_number(progression.experience_per_level)], "home XP value comes from saved progress")
+	_check(screen.ui["progress_hint"].text == "Faltam %s XP para o próximo nível" % progression.format_number(progression.experience_per_level - progress["experience"]), "home XP hint comes from saved progress")
+	var original_path: String = progression.storage_path
 	var test_path: String = "user://home_progress_test.json"
 	_remove_progress_test_file(test_path)
-	Progression.storage_path = test_path
-	Progression.load_progress()
-	Progression.add_experience(500)
+	progression.storage_path = test_path
+	progression.load_progress()
+	progression.add_experience(500)
 	_check(abs(screen.ui["level_ring"].get("progress_ratio") - 0.25) < 0.0001, "home level ring updates after a partial XP change")
-	Progression.add_experience(1500)
+	progression.add_experience(1500)
 	_check(screen.ui["level_number"].text == "2", "home level display updates after a level-up signal")
 	_check(screen.ui["progress_value"].text == "0 / 2.000 XP", "home XP display updates after a level-up signal")
-	_check(abs(Progression.get_progress_ratio()) < 0.0001, "level-up resets the XP progress ratio")
+	_check(abs(progression.get_progress_ratio()) < 0.0001, "level-up resets the XP progress ratio")
 	_check(abs(screen.ui["level_ring"].get("progress_ratio")) < 0.0001, "level-up resets the home level ring")
-	Progression.storage_path = original_path
-	Progression.load_progress()
+	progression.storage_path = original_path
+	progression.load_progress()
 	_remove_progress_test_file(test_path)
 
 
@@ -153,13 +161,13 @@ func _test_landscape_greeting_hierarchy(screen) -> void:
 func _test_landscape_action_and_level_alignment(screen) -> void:
 	for viewport_size in [Vector2(1280, 720), Vector2(960, 540)]:
 		screen._layout_screen(viewport_size)
-		var start_rect: Rect2 = screen.ui["start"].get_global_rect()
-		var progress_rect: Rect2 = screen.ui["progress_panel"].get_global_rect()
-		var greeting_rect: Rect2 = screen.ui["greeting_panel"].get_global_rect()
+		var start_rect: Rect2 = _layout_rect(screen.ui["start"])
+		var progress_rect: Rect2 = _layout_rect(screen.ui["progress_panel"])
+		var greeting_rect: Rect2 = _layout_rect(screen.ui["greeting_panel"])
 		var group_center_y: float = (start_rect.position.y + progress_rect.end.y) * 0.5
 		var greeting_center_y: float = greeting_rect.position.y + greeting_rect.size.y * 0.5
 		var gap: float = progress_rect.position.y - start_rect.end.y
-		_check(gap >= -1.0 and gap <= viewport_size.y * 0.05, "landscape mission button sits close to the level panel at %s" % viewport_size)
+		_check(gap >= -1.0 and gap <= viewport_size.y * 0.05, "landscape mission button gap %.2f fits at %s" % [gap, viewport_size])
 		_check(abs(group_center_y - greeting_center_y) <= 1.0, "landscape action and level group centers on the mascot speech area at %s" % viewport_size)
 
 
@@ -169,6 +177,7 @@ func _test_text_fits_controls(screen) -> void:
 		for key in ["menu", "notification", "logo_icon", "brand_top", "brand_bottom", "greeting_title", "greeting_text", "start", "level_caption", "level_number", "progress_title", "progress_value", "progress_hint", "status"]:
 			var control: Control = screen.ui[key]
 			_check(control.has_meta("font_role"), "%s uses an adaptive font role at %s" % [key, viewport_size])
+			_check(screen.typography.has_role(control.get_meta("font_role")), "%s uses the shared typography scale at %s" % [key, viewport_size])
 			_check(_text_fits_control(control), "%s text fits its allocated area at %s" % [key, viewport_size])
 		var navigation = screen.ui["navigation"]
 		navigation.layout_for_viewport(viewport_size)
@@ -183,8 +192,18 @@ func _fits_inside(child: Control, parent: Control) -> bool:
 
 
 func _fits_viewport(control: Control, viewport_size: Vector2) -> bool:
-	var rect: Rect2 = control.get_global_rect()
-	return rect.position.x >= -1.0 and rect.position.y >= -1.0 and rect.end.x <= viewport_size.x + 1.0 and rect.end.y <= viewport_size.y + 1.0
+	var position: Vector2 = control.rect_position
+	var size: Vector2 = control.rect_size * control.rect_scale
+	var parent = control.get_parent()
+	while parent is Control:
+		position = parent.rect_position + position * parent.rect_scale
+		size *= parent.rect_scale
+		parent = parent.get_parent()
+	return position.x >= -1.0 and position.y >= -1.0 and position.x + size.x <= viewport_size.x + 1.0 and position.y + size.y <= viewport_size.y + 1.0
+
+
+func _layout_rect(control: Control) -> Rect2:
+	return Rect2(control.rect_position, control.rect_size * control.rect_scale)
 
 
 func _text_fits_control(control: Control) -> bool:
@@ -210,9 +229,13 @@ func _test_action_feedback(screen) -> void:
 	screen._on_action_pressed("Teste de feedback")
 	_check(screen.status_label.text == "Teste de feedback", "action feedback updates status label")
 	_check(_text_fits_control(screen.status_label), "action feedback text adapts to the available status area")
-	screen.ui["navigation"].buttons["missions"].emit_signal("pressed")
-	_check(screen.status_label.text == "A tela de Missões estará disponível em breve.", "Missions menu does not open the map")
+	_check(ResourceLoader.exists(QUIZ_SCENE_PATH), "Missions destination scene exists")
 
+
+func _setup_progression() -> void:
+	progression = get_root().get_node("Progression")
+	progression.set("storage_path", "user://screen_progress_test.json")
+	progression.load_progress()
 
 func _check(condition: bool, message: String) -> void:
 	if not condition:

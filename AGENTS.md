@@ -164,6 +164,7 @@ Esses padrões são ferramentas, não obrigações para todos os scripts.
 - Antes de adicionar a cena à árvore, defina `active_item` como `home`, `map`, `missions` ou `profile`, e conecte o sinal `item_selected` para que a tela decida o destino.
 - O componente compartilhado é a fonte única de rótulos, ícones, cores, foco e escala tipográfica do menu. Atualize-o se o padrão visual mudar, e valide todas as telas que o usam.
 - Guarde novos ícones SVG reutilizáveis em `shared/ui/assets/icons/`; mantenha `ideias/` como referência e copie os assets que forem usados em runtime.
+- Todas as telas devem usar os papéis responsivos de `shared/ui/typography.gd`, cuja base é a mensagem “Pronto para proteger a cidade digital?” da tela inicial. Não crie tabelas isoladas de escala tipográfica por tela.
 
 ## Persistência e dados
 

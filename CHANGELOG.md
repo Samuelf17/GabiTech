@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Corrigida a configuração local do preset Android para incluir arquivos JSON não importados, como o banco de perguntas do quiz; documentado o filtro necessário, pois o preset não é versionado.
+- Ajustada a tipografia da missão de quiz para que os títulos usem o mesmo papel `body` da fala do mascote na tela inicial; adicionadas verificações de regressão para todas as fontes da tela.
+- Na tela de conclusão do quiz, ocultados o botão de voltar superior e o botão “Voltar ao mapa”, e adicionada a navegação inferior compartilhada com Missões ativo. As telas de pergunta mantêm o layout e agora usam o asset `arrow_back_icon.svg`, copiado de `ideias/` para `shared/ui/assets/icons/`. Adicionados testes para a conclusão, navegação e tipografia responsiva; as oito suítes passaram.
+- Criada a suíte completa de testes automatizados e `tests/run_all_tests.sh`; registrada no README a regra de incluir teste para cada funcionalidade e executar todos os testes após qualquer mudança. As oito suítes passaram em Godot 3.6.3. A execução encontrou e corrigiu a validação do índice de resposta do quiz, uma chamada `min()` incompatível com Godot 3, o estado inicial inválido da progressão e o espaçamento do grupo de missão/progresso na Home em paisagem.
+- Criada a tela de missão de perguntas e respostas conforme `ideias/tela_missoes.png`; o banco JSON foi copiado para `games/quiz/data/`. O quiz sorteia perguntas sem repetir as respondidas no dia, destaca respostas certas/erradas, mostra explicação por 10 segundos ou até toque fora e salva um limite diário de cinco respostas. A navegação Missões agora abre a tela; testes automatizados cobrem esses fluxos.
+- Centralizados os papéis tipográficos responsivos de Home, Mapa, Perfil e navegação em `shared/ui/typography.gd`; todos os textos que não são títulos agora usam como base o texto de fala da tela inicial. Os distintivos cresceram mais 20% sobre o tamanho anterior, com grade responsiva de Perfil ajustada e testes atualizados.
+- Aumentado em 2% da altura do viewport o espaço acima do título “Recompensas”, em retrato e paisagem, com teste responsivo atualizado.
 - Ajustada a margem superior do painel de título da tela do mapa de 10% para 5% da altura do viewport; aviso e teste sem sobreposição mantidos.
 - Tela do mapa: margem superior do painel “Mapa da cidade digital” ajustada para 10% da altura do viewport; aviso reposicionado e testes responsivos verificam margem e ausência de sobreposição.
 - Mapa agora carrega somente a arte da orientação ativa, ignora cache e libera a textura anterior ao girar. Configurada compressão lossy de importação em qualidade 0,85 com resolução original preservada; testes verificam orientação, cache e dimensões.

@@ -1,6 +1,7 @@
 extends Control
 
 const BOTTOM_NAVIGATION = preload("res://shared/ui/bottom_navigation.tscn")
+const TYPOGRAPHY = preload("res://shared/ui/typography.gd")
 const SHIELD_ICON = preload("res://shared/ui/assets/icons/shield_icon.svg")
 const NAVY = Color("#071126")
 const PANEL = Color("#0b1735")
@@ -8,6 +9,7 @@ const PANEL_LIGHT = Color("#14254a")
 const WHITE = Color("#f3f7ff")
 const MUTED = Color("#a8b5d2")
 const CYAN = Color("#28e3dc")
+const BADGE_ICON_SCALE: float = 1.20
 const BADGES = [
 	{"name": "PRIVACIDADE", "level": "NÍVEL 2", "color": Color("#28dce4")},
 	{"name": "SEGURANÇA", "level": "NÍVEL 3", "color": Color("#83e74c")},
@@ -16,29 +18,19 @@ const BADGES = [
 	{"name": "RESPEITO", "level": "NÍVEL 2", "color": Color("#ff6687")},
 	{"name": "ATENÇÃO", "level": "NÍVEL 1", "color": Color("#ad4fe8")}
 ]
-const FONT_RATIOS = {
-	"title": 0.041,
-	"points_label": 0.020,
-	"points": 0.063,
-	"support": 0.021,
-	"level": 0.021,
-	"tab": 0.020,
-	"badge": 0.017,
-	"badge_level": 0.015,
-	"challenge": 0.019,
-	"body": 0.016,
-	"progress": 0.017
-}
-
 var ui: Dictionary = {}
 var badge_controls: Array = []
 var current_viewport_size := Vector2.ZERO
 var selected_tab: String = "DISTINTIVOS"
+var typography = TYPOGRAPHY.new()
+var progression_service: Node
 
 
 func _ready() -> void:
+	progression_service = get_node_or_null("/root/Progression")
 	_build_screen()
-	Progression.connect("progress_changed", self, "_on_progress_changed")
+	if progression_service != null:
+		progression_service.connect("progress_changed", self, "_on_progress_changed")
 	_refresh_progress_ui()
 	get_viewport().connect("size_changed", self, "_on_viewport_size_changed")
 	_layout_screen(get_viewport_rect().size)
@@ -108,8 +100,8 @@ func _build_screen() -> void:
 
 	ui["challenge_panel"] = _new_panel("WeeklyChallengePanel", Color("#191b4a"), Color("#383474"), 18)
 	ui["challenge_title"] = _new_label("★  DESAFIO SEMANAL", Color("#c06bff"), "challenge")
-	ui["challenge_text"] = _new_label("Complete 3 missões desta semana", WHITE, "body")
-	ui["challenge_count"] = _new_label("2 / 3", WHITE, "progress", Label.ALIGN_CENTER)
+	ui["challenge_text"] = _new_label("Complete 3 missões desta semana", WHITE, "challenge_body")
+	ui["challenge_count"] = _new_label("2 / 3", WHITE, "reward_progress", Label.ALIGN_CENTER)
 	ui["challenge_track"] = _new_panel("ChallengeTrack", Color("#30265b"), Color("#30265b"), 10)
 	ui["challenge_fill"] = _new_panel("ChallengeFill", Color("#a951ed"), Color("#a951ed"), 10)
 	ui["status"] = _new_label("", CYAN, "support", Label.ALIGN_CENTER)
@@ -133,76 +125,155 @@ func _layout_screen(viewport_size: Vector2) -> void:
 	var safe: float = short_side * 0.04
 	var landscape: bool = width > height
 	var nav_top: float = ui["navigation"].get_bar_top(viewport_size)
-	var header_y: float = height * (0.035 if landscape else 0.025)
+	var header_y: float = height * (0.055 if landscape else 0.045)
 	_place(ui["header"], safe, header_y, width - safe * 2.0, height * 0.055, short_side)
+	if landscape:
+		_layout_landscape(viewport_size, safe, short_side, nav_top)
+	else:
+		_layout_portrait(viewport_size, safe, short_side, nav_top)
+	ui["navigation"].layout_for_viewport(viewport_size)
 
-	var hero_y: float = height * (0.105 if landscape else 0.09)
-	var hero_height: float = height * (0.19 if landscape else 0.18)
-	var hero_x: float = safe
-	var hero_width: float = width - safe * 2.0
-	_place(ui["hero_panel"], hero_x, hero_y, hero_width, hero_height)
-	var hero_icon_size: float = min(hero_height * 0.82, short_side * 0.22)
-	_place(ui["hero_shield"], hero_x + hero_width * 0.06, hero_y + (hero_height - hero_icon_size) * 0.5, hero_icon_size, hero_icon_size)
-	var points_x: float = hero_x + hero_width * 0.38
-	var points_width: float = hero_width * 0.57
-	_place(ui["points_label"], points_x, hero_y + hero_height * 0.13, points_width, hero_height * 0.18, short_side)
-	_place(ui["points"], points_x, hero_y + hero_height * 0.31, points_width, hero_height * 0.48, short_side)
-	_place(ui["support"], points_x, hero_y + hero_height * 0.78, points_width, hero_height * 0.16, short_side)
 
-	var level_y: float = hero_y + hero_height + height * 0.018
-	var level_height: float = height * (0.12 if landscape else 0.105)
-	_place(ui["level_panel"], safe, level_y, width - safe * 2.0, level_height)
-	_place(ui["level_caption"], safe * 1.7, level_y + level_height * 0.12, width * 0.34, level_height * 0.30, short_side)
-	_place(ui["xp_value"], width * 0.52, level_y + level_height * 0.12, width * 0.40, level_height * 0.30, short_side)
-	var track_x: float = safe * 1.7
-	var track_y: float = level_y + level_height * 0.57
-	var track_width: float = width - safe * 3.4
-	var track_height: float = max(short_side * 0.018, level_height * 0.18)
+func _layout_portrait(viewport_size: Vector2, safe: float, short_side: float, nav_top: float) -> void:
+	var width: float = viewport_size.x
+	var height: float = viewport_size.y
+	var content_x: float = safe
+	var content_width: float = width - safe * 2.0
+	var hero_y: float = height * 0.105
+	var hero_height: float = height * 0.15
+	_layout_hero(content_x, hero_y, content_width, hero_height, short_side)
+
+	var level_y: float = hero_y + hero_height + height * 0.012
+	var level_height: float = height * 0.07
+	_layout_level(content_x, level_y, content_width, level_height, short_side, width)
+
+	var tabs_y: float = level_y + level_height + height * 0.012
+	var tabs_height: float = height * 0.05
+	_layout_tabs(content_x, tabs_y, content_width, tabs_height, short_side)
+
+	var challenge_height: float = height * 0.105
+	var challenge_y: float = nav_top - challenge_height - height * 0.06
+	var grid_top: float = tabs_y + tabs_height + height * 0.012
+	var grid_bottom: float = challenge_y - height * 0.018
+	_layout_badges(viewport_size, content_x, grid_top, content_width, grid_bottom)
+	_layout_challenge(content_x, challenge_y, content_width, challenge_height, short_side)
+	_place(ui["status"], safe, nav_top - height * 0.043, width - safe * 2.0, height * 0.03, short_side)
+
+
+func _layout_landscape(viewport_size: Vector2, safe: float, short_side: float, nav_top: float) -> void:
+	var width: float = viewport_size.x
+	var height: float = viewport_size.y
+	var content_x: float = safe
+	var content_width: float = width * 0.42
+	var badges_x: float = width * 0.46
+	var badges_width: float = width - badges_x - safe
+	var hero_y: float = height * 0.12
+	var hero_height: float = height * 0.20
+	_layout_hero(content_x, hero_y, content_width, hero_height, short_side)
+
+	var level_y: float = hero_y + hero_height + height * 0.014
+	var level_height: float = height * 0.12
+	_layout_level(content_x, level_y, content_width, level_height, short_side, content_width)
+
+	var tabs_y: float = level_y + level_height + height * 0.012
+	var tabs_height: float = height * 0.075
+	_layout_tabs(content_x, tabs_y, content_width, tabs_height, short_side)
+
+	var challenge_height: float = height * 0.15
+	var challenge_y: float = nav_top - challenge_height - height * 0.06
+	_layout_challenge(content_x, challenge_y, content_width, challenge_height, short_side)
+	var grid_top: float = height * 0.12
+	var grid_bottom: float = nav_top - height * 0.02
+	_layout_badges(viewport_size, badges_x, grid_top, badges_width, grid_bottom)
+	_place(ui["status"], content_x, nav_top - height * 0.043, content_width, height * 0.03, short_side)
+
+
+func _layout_hero(x: float, y: float, width: float, height: float, short_side: float) -> void:
+	_place(ui["hero_panel"], x, y, width, height)
+	var icon_size: float = min(height * 0.82, short_side * 0.22)
+	_place(ui["hero_shield"], x + width * 0.06, y + (height - icon_size) * 0.5, icon_size, icon_size)
+	var points_x: float = x + width * 0.38
+	var points_width: float = width * 0.57
+	_place(ui["points_label"], points_x, y + height * 0.08, points_width, height * 0.24, short_side)
+	_place(ui["points"], points_x, y + height * 0.31, points_width, height * 0.41, short_side)
+	_place(ui["support"], points_x, y + height * 0.74, points_width, height * 0.22, short_side)
+
+
+func _layout_level(x: float, y: float, width: float, height: float, short_side: float, viewport_width: float) -> void:
+	_place(ui["level_panel"], x, y, width, height)
+	var safe: float = short_side * 0.04
+	_place(ui["level_caption"], x + safe * 0.7, y + height * 0.08, width * 0.34, height * 0.34, short_side)
+	_place(ui["xp_value"], x + width * 0.52, y + height * 0.08, width * 0.40, height * 0.34, short_side)
+	var track_x: float = x + safe * 0.7
+	var track_y: float = y + height * 0.55
+	var track_width: float = width - safe * 1.4
+	var track_height: float = max(short_side * 0.018, height * 0.18)
 	_place(ui["xp_track"], track_x, track_y, track_width, track_height)
-	_place(ui["xp_fill"], track_x, track_y, track_width * Progression.get_progress_ratio(), track_height)
+	_place(ui["xp_fill"], track_x, track_y, track_width * progression_service.get_progress_ratio(), track_height)
 
-	var tabs_y: float = level_y + level_height + height * 0.018
-	var tabs_height: float = height * (0.075 if landscape else 0.065)
-	_place(ui["tabs_panel"], safe, tabs_y, width - safe * 2.0, tabs_height)
-	var tab_width: float = (width - safe * 2.4) / 3.0
+
+func _layout_tabs(x: float, y: float, width: float, height: float, short_side: float) -> void:
+	_place(ui["tabs_panel"], x, y, width, height)
+	var tab_width: float = (width - short_side * 0.024) / 3.0
 	for tab_name in ui["tabs"]:
 		var tab_index: int = ["DISTINTIVOS", "CONQUISTAS", "COLEÇÃO"].find(tab_name)
-		_place(ui["tabs"][tab_name], safe * 1.1 + tab_width * tab_index, tabs_y + tabs_height * 0.08, tab_width, tabs_height * 0.84, short_side)
+		_place(ui["tabs"][tab_name], x + short_side * 0.012 + tab_width * tab_index, y + height * 0.08, tab_width, height * 0.84, short_side)
 
-	var grid_top: float = tabs_y + tabs_height + height * 0.014
-	var challenge_height: float = height * (0.115 if landscape else 0.105)
-	var challenge_y: float = nav_top - challenge_height - height * 0.06
-	var grid_bottom: float = challenge_y - height * 0.018
-	var grid_height: float = max(0.0, grid_bottom - grid_top)
-	var cell_width: float = (width - safe * 2.0) / 3.0
-	var row_height: float = grid_height / 2.0
+
+func _layout_badges(viewport_size: Vector2, x: float, top: float, width: float, bottom: float) -> void:
+	var short_side: float = min(viewport_size.x, viewport_size.y)
+	var cell_width: float = width / 3.0
+	var row_height: float = max(1.0, (bottom - top) / 2.0)
+	var icon_size: float = _previous_badge_icon_size(viewport_size) * BADGE_ICON_SCALE
 	for index in range(badge_controls.size()):
 		var row: int = int(index / 3)
 		var column: int = index % 3
-		var cell_x: float = safe + cell_width * column
-		var cell_y: float = grid_top + row_height * row
+		var cell_x: float = x + cell_width * column
+		var cell_y: float = top + row_height * row
 		var cell: Dictionary = badge_controls[index]
-		var icon_size: float = min(min(short_side * 0.105, cell_width * 0.38), row_height * 0.49)
-		var icon_y: float = cell_y + row_height * 0.04
+		var icon_y: float = cell_y + row_height * 0.015
+		cell["icon"].set_meta("size_before_current_increase", icon_size / BADGE_ICON_SCALE)
 		_place(cell["icon"], cell_x + (cell_width - icon_size) * 0.5, icon_y, icon_size, icon_size)
-		_place(cell["name"], cell_x + cell_width * 0.025, icon_y + icon_size + row_height * 0.025, cell_width * 0.95, row_height * 0.19, short_side)
-		_place(cell["level"], cell_x + cell_width * 0.025, icon_y + icon_size + row_height * 0.22, cell_width * 0.95, row_height * 0.16, short_side)
+		var name_y: float = icon_y + icon_size + row_height * 0.012
+		_place(cell["name"], cell_x + cell_width * 0.02, name_y, cell_width * 0.96, row_height * 0.18, short_side)
+		_place(cell["level"], cell_x + cell_width * 0.02, name_y + row_height * 0.19, cell_width * 0.96, row_height * 0.15, short_side)
 
-	_place(ui["challenge_panel"], safe, challenge_y, width - safe * 2.0, challenge_height)
-	var challenge_x: float = safe * 1.7
-	var challenge_width: float = width - safe * 3.4
-	_place(ui["challenge_title"], challenge_x, challenge_y + challenge_height * 0.12, challenge_width, challenge_height * 0.22, short_side)
-	_place(ui["challenge_text"], challenge_x, challenge_y + challenge_height * 0.37, challenge_width * 0.74, challenge_height * 0.24, short_side)
-	_place(ui["challenge_count"], challenge_x, challenge_y + challenge_height * 0.66, short_side * 0.12, challenge_height * 0.22, short_side)
-	var challenge_track_x: float = challenge_x + short_side * 0.14
-	var challenge_track_y: float = challenge_y + challenge_height * 0.70
-	var challenge_track_width: float = max(0.0, challenge_width - short_side * 0.16)
-	var challenge_track_height: float = max(3.0, challenge_height * 0.12)
-	_place(ui["challenge_track"], challenge_track_x, challenge_track_y, challenge_track_width, challenge_track_height)
-	_place(ui["challenge_fill"], challenge_track_x, challenge_track_y, challenge_track_width * (2.0 / 3.0), challenge_track_height)
 
-	_place(ui["status"], safe, nav_top - height * 0.043, width - safe * 2.0, height * 0.03, short_side)
-	ui["navigation"].layout_for_viewport(viewport_size)
+func _previous_badge_icon_size(viewport_size: Vector2) -> float:
+	var width: float = viewport_size.x
+	var height: float = viewport_size.y
+	var short_side: float = min(width, height)
+	var safe: float = short_side * 0.04
+	var landscape: bool = width > height
+	var nav_top: float = ui["navigation"].get_bar_top(viewport_size)
+	var hero_y: float = height * (0.105 if landscape else 0.09)
+	var hero_height: float = height * (0.19 if landscape else 0.18)
+	var level_y: float = hero_y + hero_height + height * 0.018
+	var level_height: float = height * (0.12 if landscape else 0.105)
+	var tabs_y: float = level_y + level_height + height * 0.018
+	var tabs_height: float = height * (0.075 if landscape else 0.065)
+	var grid_top: float = tabs_y + tabs_height + height * 0.014
+	var challenge_height: float = height * (0.115 if landscape else 0.105)
+	var challenge_y: float = nav_top - challenge_height - height * 0.06
+	var row_height: float = max(1.0, (challenge_y - height * 0.018 - grid_top) / 2.0)
+	var cell_width: float = (width - safe * 2.0) / 3.0
+	var previous_base_size: float = min(min(short_side * 0.105, cell_width * 0.38), row_height * 0.49)
+	return previous_base_size * 1.15
+
+
+func _layout_challenge(x: float, y: float, width: float, height: float, short_side: float) -> void:
+	_place(ui["challenge_panel"], x, y, width, height)
+	var content_x: float = x + short_side * 0.04
+	var content_width: float = max(0.0, width - short_side * 0.08)
+	_place(ui["challenge_title"], content_x, y + height * 0.10, content_width, height * 0.22, short_side)
+	_place(ui["challenge_text"], content_x, y + height * 0.34, content_width, height * 0.25, short_side)
+	_place(ui["challenge_count"], content_x, y + height * 0.66, short_side * 0.12, height * 0.22, short_side)
+	var track_x: float = content_x + short_side * 0.14
+	var track_y: float = y + height * 0.70
+	var track_width: float = max(0.0, width - (track_x - x) - short_side * 0.04)
+	var track_height: float = max(3.0, height * 0.12)
+	_place(ui["challenge_track"], track_x, track_y, track_width, track_height)
+	_place(ui["challenge_fill"], track_x, track_y, track_width * (2.0 / 3.0), track_height)
 
 
 func _place(control: Control, x: float, y: float, width: float, height: float, font_basis: float = 720.0) -> void:
@@ -210,8 +281,8 @@ func _place(control: Control, x: float, y: float, width: float, height: float, f
 	if control.has_meta("font_role"):
 		var font: Font = control.get_font("font")
 		var role: String = control.get_meta("font_role")
-		if font != null and FONT_RATIOS.has(role):
-			scale = min(font_basis * FONT_RATIOS[role] / font.get_height(), _fit_text_scale(control, font, width, height))
+		if font != null and typography.has_role(role):
+			scale = min(typography.get_target_height(role, font_basis) / font.get_height(), _fit_text_scale(control, font, width, height))
 	control.anchor_left = 0.0
 	control.anchor_top = 0.0
 	control.anchor_right = 0.0
@@ -282,22 +353,24 @@ func _on_progress_changed(_state: Dictionary) -> void:
 
 
 func _refresh_progress_ui() -> void:
-	var progress: Dictionary = Progression.get_state()
+	if progression_service == null:
+		return
+	var progress: Dictionary = progression_service.get_state()
 	var level: int = int(progress["level"])
 	var current_xp: int = int(progress["experience"])
-	var xp_required: int = Progression.experience_per_level
-	var total_xp: int = Progression.get_total_experience()
+	var xp_required: int = progression_service.experience_per_level
+	var total_xp: int = progression_service.get_total_experience()
 	var item_count: int = progress["unlocked_items"].size()
-	ui["points"].text = Progression.format_number(total_xp)
+	ui["points"].text = progression_service.format_number(total_xp)
 	ui["support"].text = "Itens desbloqueados: %d" % item_count
 	ui["level_caption"].text = "NÍVEL %d" % level
-	ui["xp_value"].text = "%s / %s XP" % [Progression.format_number(current_xp), Progression.format_number(xp_required)]
+	ui["xp_value"].text = "%s / %s XP" % [progression_service.format_number(current_xp), progression_service.format_number(xp_required)]
 
 
 func _on_tab_pressed(tab_name: String) -> void:
 	if tab_name != "DISTINTIVOS":
 		if tab_name == "COLEÇÃO":
-			var item_count: int = Progression.get_state()["unlocked_items"].size()
+			var item_count: int = progression_service.get_state()["unlocked_items"].size()
 			ui["status"].text = "%d item(ns) desbloqueado(s); nomes e artes serão cadastrados depois." % item_count
 		else:
 			ui["status"].text = "A aba %s estará disponível em breve." % tab_name.to_lower().capitalize()
@@ -313,7 +386,7 @@ func _on_nav_pressed(item_id: String) -> void:
 	elif item_id == "map":
 		get_tree().change_scene("res://app/menus/map_screen.tscn")
 	elif item_id == "missions":
-		ui["status"].text = "A tela de Missões estará disponível em breve."
+		get_tree().change_scene("res://games/quiz/scenes/quiz_screen.tscn")
 	else:
 		ui["status"].text = ""
 

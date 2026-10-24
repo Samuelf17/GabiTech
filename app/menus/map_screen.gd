@@ -1,6 +1,7 @@
 extends Control
 
 const BOTTOM_NAVIGATION = preload("res://shared/ui/bottom_navigation.tscn")
+const TYPOGRAPHY = preload("res://shared/ui/typography.gd")
 const PORTRAIT_MAP_BACKGROUND_PATH = "res://shared/map/assets/mapa.png"
 const LANDSCAPE_MAP_BACKGROUND_PATH = "res://shared/map/assets/mapa_horizontal.png"
 const NAVY = Color("#071126")
@@ -25,6 +26,7 @@ var ui: Dictionary = {}
 var selected_district: int = -1
 var current_viewport_size := Vector2.ZERO
 var active_background_path: String = ""
+var typography = TYPOGRAPHY.new()
 
 
 func _ready() -> void:
@@ -70,7 +72,7 @@ func _build_screen() -> void:
 
 	for district in DISTRICTS:
 		var title := _new_label(district["name"], WHITE, "district", Label.ALIGN_CENTER)
-		var progress := _new_label(district["progress"], WHITE, "progress", Label.ALIGN_CENTER)
+		var progress := _new_label(district["progress"], WHITE, "district_progress", Label.ALIGN_CENTER)
 		ui[district["id"] + "_title"] = title
 		ui[district["id"] + "_progress"] = progress
 		if DISTRICT_ICON_PATHS.has(district["id"]):
@@ -204,9 +206,9 @@ func _place(control: Control, x: float, y: float, width: float, height: float, f
 	var scale: float = 1.0
 	if control.has_meta("font_role"):
 		var font: Font = control.get_font("font")
-		var ratio: float = {"title": 0.038, "prompt": 0.031, "district": 0.021, "progress": 0.016, "status": 0.018}[control.get_meta("font_role")]
-		if font != null:
-			scale = min(font_basis * ratio / font.get_height(), _fit_text_scale(control, font, width, height))
+		var role: String = control.get_meta("font_role")
+		if font != null and typography.has_role(role):
+			scale = min(typography.get_target_height(role, font_basis) / font.get_height(), _fit_text_scale(control, font, width, height))
 	control.anchor_left = 0.0
 	control.anchor_top = 0.0
 	control.anchor_right = 0.0
@@ -308,7 +310,7 @@ func _on_nav_pressed(item_id: String) -> void:
 	if item_id == "home":
 		get_tree().change_scene("res://app/menus/home_screen.tscn")
 	elif item_id == "missions":
-		ui["status"].text = "A tela de Missões estará disponível em breve."
+		get_tree().change_scene("res://games/quiz/scenes/quiz_screen.tscn")
 	elif item_id == "profile":
 		get_tree().change_scene("res://app/menus/profile_screen.tscn")
 	else:

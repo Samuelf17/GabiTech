@@ -7,7 +7,7 @@ const PANEL_LIGHT = Color("#17284c")
 const CYAN = Color("#18d6d2")
 const MUTED = Color("#a8b5d2")
 const WHITE = Color("#f3f7ff")
-const FONT_ROLE_RATIO = 0.02717
+const TYPOGRAPHY = preload("res://shared/ui/typography.gd")
 const ITEM_IDS = ["home", "map", "missions", "profile"]
 const ITEM_LABELS = ["Inicio", "Mapa", "Missões", "Perfil"]
 const ITEM_ICON_PATHS = {
@@ -23,6 +23,7 @@ var buttons: Dictionary = {}
 var labels: Dictionary = {}
 var icons: Dictionary = {}
 var background: Panel
+var typography = TYPOGRAPHY.new()
 
 
 func _ready() -> void:
@@ -98,7 +99,7 @@ func layout_for_viewport(viewport_size: Vector2) -> void:
 		var x: float = safe_x + item_width * index
 		var button_y: float = bar_top + bar_height * 0.06
 		var button_height: float = bar_height * 0.88
-		var scale: float = _font_scale(label, short_side, item_width * 0.92, button_height * 0.28)
+		var scale: float = _font_scale(label, short_side, item_width * 0.92, button_height * 0.40)
 		_place(button, x, button_y, item_width, button_height, scale)
 		_layout_item_content(item_id, short_side, item_width, button_height, scale)
 
@@ -126,7 +127,7 @@ func _font_scale(label: Label, short_side: float, width: float, height: float) -
 	var font: Font = label.get_font("font")
 	if font == null:
 		return 1.0
-	var scale: float = short_side * FONT_ROLE_RATIO / font.get_height()
+	var scale: float = typography.get_target_height("navigation", short_side) / font.get_height()
 	var widest_line: float = font.get_string_size(label.text).x
 	if widest_line > 0.0:
 		scale = min(scale, width / widest_line)

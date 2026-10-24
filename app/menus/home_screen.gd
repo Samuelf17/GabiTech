@@ -1,34 +1,25 @@
 extends Control
 
 const BOTTOM_NAVIGATION = preload("res://shared/ui/bottom_navigation.tscn")
+const TYPOGRAPHY = preload("res://shared/ui/typography.gd")
 const NAVY = Color("#071126")
 const PANEL = Color("#101d3c")
 const PANEL_LIGHT = Color("#17284c")
 const CYAN = Color("#18d6d2")
 const WHITE = Color("#f3f7ff")
 const MUTED = Color("#a8b5d2")
-const FONT_ROLE_RATIOS = {
-	"icon": 0.0392,
-	"brand": 0.0485,
-	"brand_title": 0.06305,
-	"brand_secondary": 0.0494,
-	"heading": 0.038295,
-	"body": 0.035995,
-	"button": 0.0367,
-	"caption": 0.0247,
-	"display_number": 0.0593,
-	"progress_value": 0.0347,
-	"progress_caption": 0.026
-}
-
 var ui: Dictionary = {}
+var typography = TYPOGRAPHY.new()
+var progression_service: Node
 var status_label: Label
 var current_viewport_size: Vector2
 
 
 func _ready() -> void:
+	progression_service = get_node_or_null("/root/Progression")
 	_build_screen()
-	Progression.connect("progress_changed", self, "_on_progress_changed")
+	if progression_service != null:
+		progression_service.connect("progress_changed", self, "_on_progress_changed")
 	_refresh_progress_ui()
 	get_viewport().connect("size_changed", self, "_on_viewport_size_changed")
 	_layout_screen(get_viewport_rect().size)
@@ -163,7 +154,7 @@ func _layout_landscape(width: float, height: float, safe_x: float, safe_y: float
 	var content_width := width * 0.555
 	var mission_height: float = height * 0.12
 	var progress_height: float = height * 0.23
-	var content_gap: float = height * 0.035
+	var content_gap: float = height * 0.02
 	var group_height: float = mission_height + content_gap + progress_height
 	var group_top: float = greeting_y + (greeting_height - group_height) * 0.5
 	_place(ui["start"], content_x, group_top, content_width, mission_height, font_basis)
@@ -191,7 +182,7 @@ func _place_progress(x: float, y: float, width: float, height: float, font_basis
 	var track_y: float = y + height * 0.62
 	var track_height: float = max(14.0, height * 0.13)
 	_place(ui["progress_track"], text_x, track_y, text_width, track_height)
-	var progress_width: float = max(0.0, (text_width - 4.0) * Progression.get_progress_ratio())
+	var progress_width: float = max(0.0, (text_width - 4.0) * progression_service.get_progress_ratio())
 	_place(ui["progress_fill"], text_x + 2, track_y + 2, progress_width, track_height - 4.0)
 	_place(ui["progress_hint"], text_x, track_y + track_height + 4.0, text_width, height * 0.19, font_basis)
 
@@ -224,14 +215,14 @@ func _place(control: Control, x: float, y: float, width: float, height: float, f
 func _adaptive_font_scale(control: Control, font_basis: float, width: float, height: float) -> float:
 	var role: String = control.get_meta("font_role")
 	var font: Font = control.get_font("font")
-	if font == null or not FONT_ROLE_RATIOS.has(role):
+	if font == null or not typography.has_role(role):
 		return 1.0
 	var text: String = ""
 	if control is Label:
 		text = (control as Label).text
 	elif control is Button:
 		text = (control as Button).text
-	var target_height: float = font_basis * FONT_ROLE_RATIOS[role]
+	var target_height: float = typography.get_target_height(role, font_basis)
 	var scale: float = target_height / font.get_height()
 	if control is Button:
 		var widest_line: float = 0.0
@@ -308,13 +299,15 @@ func _on_progress_changed(_state: Dictionary) -> void:
 
 
 func _refresh_progress_ui() -> void:
-	var progress: Dictionary = Progression.get_state()
+	if progression_service == null:
+		return
+	var progress: Dictionary = progression_service.get_state()
 	var current_xp: int = int(progress["experience"])
-	var xp_required: int = Progression.experience_per_level
+	var xp_required: int = progression_service.experience_per_level
 	ui["level_number"].text = str(progress["level"])
-	ui["level_ring"].call("set_progress_ratio", Progression.get_progress_ratio())
-	ui["progress_value"].text = "%s / %s XP" % [Progression.format_number(current_xp), Progression.format_number(xp_required)]
-	ui["progress_hint"].text = "Faltam %s XP para o próximo nível" % Progression.format_number(xp_required - current_xp)
+	ui["level_ring"].call("set_progress_ratio", progression_service.get_progress_ratio())
+	ui["progress_value"].text = "%s / %s XP" % [progression_service.format_number(current_xp), progression_service.format_number(xp_required)]
+	ui["progress_hint"].text = "Faltam %s XP para o próximo nível" % progression_service.format_number(xp_required - current_xp)
 
 
 func _on_action_pressed(message: String) -> void:
@@ -330,7 +323,7 @@ func _on_home_nav_pressed(item_id: String) -> void:
 	if item_id == "map":
 		_open_map_screen()
 	elif item_id == "missions":
-		_on_action_pressed("A tela de Missões estará disponível em breve.")
+		get_tree().change_scene("res://games/quiz/scenes/quiz_screen.tscn")
 	elif item_id == "profile":
 		get_tree().change_scene("res://app/menus/profile_screen.tscn")
 	else:

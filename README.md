@@ -1,21 +1,22 @@
-<!-- Pasta de dados do usuário Godot: /home/samuka/.local/share/godot/app_userdata/Guardiões da Cidade Digital/ -->
+<!-- Pasta de dados do usuário Godot: /home/samuka/.local/share/godot/app_userdata/"Guardiões da Cidade Digital"/ -->
 # app-jogos
 
 Aplicativo educativo 2D para Android, planejado como um hub que reúne minijogos independentes e sistemas compartilhados.
 
-> **Estado atual:** o hub, o mapa, a tela de Perfil/Recompensas e a persistência inicial de progresso estão implementados. Nível e XP começam em 1 e 0, avançam a cada 2.000 XP e são salvos em `user://progress.json`; a tela inicial e o Perfil leem esse estado. A tela inicial mostra um arco circular de progresso ao redor do nível. Ainda não há atividades que concedam XP, e os nomes e assets das recompensas serão definidos depois.
+> **Estado atual:** o hub, o mapa, a tela de Perfil/Recompensas e a missão de perguntas e respostas estão implementados. Nível e XP começam em 1 e 0, avançam a cada 2.000 XP e são salvos em `user://progress.json`; a tela inicial e o Perfil leem esse estado. A missão escolhe perguntas aleatoriamente do JSON e limita a cinco respostas por dia, com contagem local em `user://quiz_daily_progress.json`. Ao concluir as cinco perguntas, o quiz exibe a navegação inferior compartilhada. A suíte automatizada tem oito scripts e passou com Godot 3.6.3. Ainda não há atividades que concedam XP, e os nomes e assets das recompensas serão definidos depois.
 
 ## Tecnologias e plataforma
 
 - Engine e linguagem planejadas: Godot Engine e GDScript.
 - Renderer configurado em `project.godot`: GLES2.
 - Plataforma-alvo: Android, com a TV Box MXQ-4K com Android 5.1 como referência mínima de hardware.
-- A interface se adapta a retrato (celulares) e paisagem (TVs), usando margens proporcionais e dimensionando textos por papel tipográfico, viewport e espaço disponível nos controles. A apresentação ainda não foi validada em dispositivos reais e não consulta recortes de câmera/notch do sistema operacional.
+- A interface se adapta a retrato (celulares) e paisagem (TVs). `shared/ui/typography.gd` centraliza a escala de fontes; a mensagem “Pronto para proteger a cidade digital?” da tela inicial define a base. A missão de quiz usa essa mesma escala também nos títulos. A escala se ajusta ao espaço de cada controle. A apresentação ainda não foi validada em dispositivos reais e não consulta recortes de câmera/notch do sistema operacional.
 - A tela do mapa carrega `shared/map/assets/mapa.png` em retrato ou `shared/map/assets/mapa_horizontal.png` em paisagem, liberando a textura anterior e ignorando o cache ao trocar orientação. As imagens-fonte mantêm suas resoluções; o importador aplica compressão com perda leve (qualidade 0,85) sem limite de tamanho. O Godot desenha as áreas de Privacidade, Comunicação, Segurança, Conhecimento e Respeito, que aceitam toque e mouse e podem ser selecionadas por teclado/controle.
-- A tela `app/menus/profile_screen.tscn` segue a referência `ideias/tela_perfil.png` e exibe resumo de recompensas, progresso de nível, seis distintivos e desafio semanal. Os distintivos usam `shared/ui/assets/icons/shield_icon.svg` temporariamente; as abas Conquistas e Coleção ainda mostram aviso de disponibilidade futura.
+- A tela `app/menus/profile_screen.tscn` segue a referência `ideias/tela_perfil.png` e exibe resumo de recompensas, progresso de nível, seis distintivos 20% maiores que seu tamanho anterior e desafio semanal. Os distintivos usam `shared/ui/assets/icons/shield_icon.svg` temporariamente; as abas Conquistas e Coleção ainda mostram aviso de disponibilidade futura.
+- A missão em `games/quiz/scenes/quiz_screen.tscn` segue `ideias/tela_missoes.png`, usa as 50 perguntas de `games/quiz/data/perguntas_e_respostas.json` e sorteia uma pergunta ainda não respondida no dia. O preset Android precisa incluir arquivos `.json` não importados (`include_filter="*.json"`); `export_presets.cfg` é ignorado pelo Git, então confira essa opção no preset local ao configurar uma cópia nova do projeto. Respostas corretas ficam verdes; quando há erro, a resposta selecionada fica vermelha e a correta verde. A explicação vem do JSON e fecha após 10 segundos ou toque/clique fora do pop-up. A contagem diária de cinco respostas e os identificadores já usados persistem em `user://quiz_daily_progress.json`.
 - A progressão compartilhada é gerenciada por `Progression` e persiste nível, XP atual e IDs de itens desbloqueados em `user://progress.json`. A regra atual exige 2.000 XP por nível. Não há fontes de ganho de XP conectadas; o serviço oferece apenas a API para integração futura. Cada avanço registra um ID `level_reward_N`, enquanto nome e arte do item aguardam definição.
-- Os testes GDScript de progressão, Home, Mapa, Perfil e navegação estão escritos, mas não foram executados nesta sessão porque o executável Godot não está disponível no ambiente. Em tentativas anteriores, Godot 3.6.3 não iniciou por falta de display X11. `git diff --check` passou nesta mudança; as asserções GDScript e a reimportação das texturas seguem sem validação de execução.
-- A versão do editor Godot, a exportação para Android 5.1 e o desempenho no hardware de referência ainda não foram validados.
+- A suíte automatizada tem oito scripts e passou com Godot 3.6.3 em desktop usando llvmpipe. A exportação de um pacote PCK confirmou que o caminho do banco de perguntas está incluído. A criação de um APK Android não foi concluída neste ambiente porque o keystore de assinatura não foi encontrado; portanto, a instalação do APK corrigido ainda precisa ser validada. Compatibilidade e desempenho no hardware de referência também não foram validados.
+- A exportação para Android 5.1 e o desempenho no hardware de referência ainda não foram validados.
 
 # Configuração do Ambiente de Desenvolvimento
 
@@ -293,13 +294,25 @@ Configure a exportação Android e gere um APK de teste.
 1. Abra o Godot Project Manager.
 2. Importe a pasta deste repositório, que contém `project.godot`, e abra o projeto no editor.
 
-Ao executar o projeto no Godot, a cena inicial abre a tela principal do hub. A composição se ajusta à orientação do viewport: retrato em celulares e paisagem em telas horizontais, como TVs. A barra inferior oferece Início, Mapa, Missões e Perfil; Mapa abre o mapa, Perfil abre as recompensas, e Missões mostra um aviso provisório. O botão “Começar missão” também abre o mapa. A navegação responde ao toque/clique e ao foco por teclado/controle.
+Ao executar o projeto no Godot, a cena inicial abre a tela principal do hub. A composição se ajusta à orientação do viewport: retrato em celulares e paisagem em telas horizontais, como TVs. A barra inferior oferece Início, Mapa, Missões e Perfil; Mapa abre o mapa, Perfil abre as recompensas, e Missões abre o minijogo de perguntas e respostas. O botão “Começar missão” também abre o mapa. A navegação responde ao toque/clique e ao foco por teclado/controle.
 
 Todas as telas devem reutilizar `shared/ui/bottom_navigation.tscn` para a barra inferior. Antes de adicionar o componente à tela, defina `active_item` com `home`, `map`, `missions` ou `profile`; conecte o sinal `item_selected` para tratar a navegação. O componente centraliza ícones, cores, foco e escala tipográfica responsiva.
 
 Os ícones SVG de interface ficam em `shared/ui/assets/icons/`. A barra inferior usa casa, mapa, missão e perfil; os bairros do mapa usam os símbolos disponíveis de privacidade, comunicação, segurança e respeito. O botão “Começar missão” não exibe ícone. O ícone de controle foi copiado para uso futuro. `ideias/` mantém os arquivos de referência originais.
 
 ## Estrutura
+
+## Testes automatizados (obrigatório)
+
+Toda funcionalidade nova deve incluir testes automatizados que cubram suas regras e fluxos relevantes. Após qualquer mudança no projeto, execute a suíte completa; corrija falhas e rode a suíte novamente antes de considerar a mudança concluída. Se o ambiente impedir a execução, registre o bloqueio específico e não declare os testes aprovados.
+
+Execute todos os testes GDScript com:
+
+```bash
+GODOT_BIN=/caminho/para/Godot tests/run_all_tests.sh
+```
+
+Se `godot` estiver no `PATH`, basta executar `tests/run_all_tests.sh`. O runner encontra automaticamente todos os arquivos `tests/test_*.gd`, executa as suítes em sequência e retorna código diferente de zero se alguma falhar.
 
 ```text
 app/                         # Hub, menus e navegação
@@ -312,12 +325,16 @@ app/                         # Hub, menus e navegação
     profile_screen.gd
 games/                       # Minijogos independentes
   quiz/
+    scenes/quiz_screen.tscn  # Missão adaptativa de perguntas e respostas
+    scripts/                 # Tela, sorteio e limite diário
+    data/perguntas_e_respostas.json # Banco de perguntas usado pela missão
   puzzle/
   simulation/
 shared/                      # Sistemas e componentes compartilhados
   ui/
     bottom_navigation.tscn   # Menu inferior reutilizável e tipografia padronizada
     bottom_navigation.gd
+    typography.gd            # Escala tipográfica adaptativa compartilhada
     assets/
       icons/                 # Símbolos SVG reutilizáveis da interface
   accessibility/
@@ -332,7 +349,8 @@ data/                        # Catálogo e conteúdo pedagógico
     default_progress.json   # Estado inicial: nível 1, 0 XP e inventário vazio
     progression_rules.json  # Regra atual: 2.000 XP por nível
 ideias/                      # Referências visuais para telas e minijogos
-tests/                       # Testes de progressão, navegação e telas responsivas
+tests/                       # Testes automatizados das funcionalidades e fluxos do app
+  run_all_tests.sh           # Executa a suíte completa após qualquer alteração
 ```
 
 Os designs criados no Godot devem consultar as imagens disponíveis em `ideias/`. As regras permanentes de desenvolvimento e as decisões de arquitetura estão em [AGENTS.md](AGENTS.md); o estado de implementação está em [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md).

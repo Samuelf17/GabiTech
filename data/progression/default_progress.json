@@ -1,6 +1,6 @@
 {
 	"schema_version": 1,
-	"level": 2,
-	"experience": 3000,
-	"unlocked_items": ["level_reward_2"]
+	"level": 1,
+	"experience": 0,
+	"unlocked_items": []
 }
