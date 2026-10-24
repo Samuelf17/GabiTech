@@ -4,6 +4,7 @@ const PROFILE_SCREEN = preload("res://app/menus/profile_screen.tscn")
 const PROFILE_SCREEN_SCRIPT = preload("res://app/menus/profile_screen.gd")
 const BOTTOM_NAVIGATION_SCRIPT = preload("res://shared/ui/bottom_navigation.gd")
 const TYPOGRAPHY_SCRIPT = preload("res://shared/ui/typography.gd")
+const TYPOGRAPHY_TEST_UTILS = preload("res://tests/typography_test_utils.gd")
 const SHIELD_ICON = preload("res://shared/ui/assets/icons/shield_icon.svg")
 const QUIZ_SCENE_PATH = "res://games/quiz/scenes/quiz_screen.tscn"
 
@@ -40,6 +41,9 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 	screen.anchor_bottom = 0.0
 	screen.rect_size = viewport_size
 	screen._layout_screen(viewport_size)
+	var typography_failures: Array = TYPOGRAPHY_TEST_UTILS.get_uniform_body_size_failures(screen, screen.typography, min(viewport_size.x, viewport_size.y))
+	for typography_failure in typography_failures:
+		_check(false, "%s at %s" % [typography_failure, viewport_size])
 	var expected_header_y: float = viewport_size.y * (0.055 if viewport_size.x > viewport_size.y else 0.045)
 	_check(is_equal_approx(screen.ui["header"].rect_position.y, expected_header_y), "Recompensas has two percent more top spacing at %s" % viewport_size)
 	var navigation = screen.ui["navigation"]
@@ -53,7 +57,7 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		_check(_fits_viewport(screen.ui[key], viewport_size), "%s stays inside the viewport at %s" % [key, viewport_size])
 	_check(screen.ui["hero_shield"].texture == SHIELD_ICON, "guardian emblem uses the temporary shield asset")
 	var typography = TYPOGRAPHY_SCRIPT.new()
-	_check(is_equal_approx(typography.get_role_ratio("body"), 0.035995), "profile typography uses the greeting text as its shared base")
+	_check(is_equal_approx(typography.get_role_ratio("body"), TYPOGRAPHY_SCRIPT.BASE_BODY_RATIO), "profile typography uses the greeting text as its shared base")
 	_check(is_equal_approx(PROFILE_SCREEN_SCRIPT.BADGE_ICON_SCALE, 1.20), "profile badge icons are 20% larger than their current size")
 	for key in ["header", "points_label", "points", "support", "level_caption", "xp_value", "challenge_title", "challenge_text", "challenge_count"]:
 		_check(typography.has_role(screen.ui[key].get_meta("font_role")), "%s uses the shared typography scale" % key)

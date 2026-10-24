@@ -3,6 +3,7 @@ extends SceneTree
 const HOME_SCREEN = preload("res://app/menus/home_screen.tscn")
 const BOTTOM_NAVIGATION_SCRIPT = preload("res://shared/ui/bottom_navigation.gd")
 const TYPOGRAPHY_SCRIPT = preload("res://shared/ui/typography.gd")
+const TYPOGRAPHY_TEST_UTILS = preload("res://tests/typography_test_utils.gd")
 const QUIZ_SCENE_PATH = "res://games/quiz/scenes/quiz_screen.tscn"
 
 const PROGRESSION_SCRIPT = preload("res://shared/progress/progression_service.gd")
@@ -99,12 +100,12 @@ func _test_adaptive_font_sizes(screen) -> void:
 	_check(compact_landscape_scale < tv_landscape_scale, "font size decreases with a smaller landscape viewport")
 	_check(narrow_portrait_scale > 0.0 and compact_landscape_scale > 0.0, "adaptive font sizes remain positive in portrait and landscape")
 	var typography = TYPOGRAPHY_SCRIPT.new()
-	_check(is_equal_approx(typography.get_role_ratio("body"), 0.035995), "greeting message remains the shared typography base")
+	_check(is_equal_approx(typography.get_role_ratio("body"), TYPOGRAPHY_SCRIPT.BASE_BODY_RATIO), "greeting message remains the shared typography base")
 	_check(is_equal_approx(typography.get_role_ratio("navigation"), typography.get_role_ratio("body")), "shared menu typography matches the greeting body size")
-	_check(is_equal_approx(typography.get_role_ratio("brand_title"), 0.0485 * 1.3), "main brand title keeps its 30% larger role")
-	_check(is_equal_approx(typography.get_role_ratio("brand"), 0.0485), "brand icon keeps its previous role")
-	_check(is_equal_approx(typography.get_role_ratio("brand_secondary"), 0.038 * 1.3), "secondary brand title keeps its 30% larger role")
-	_check(is_equal_approx(typography.get_role_ratio("heading"), 0.0333 * 1.15), "greeting title keeps its 15% larger role")
+	_check(typography.is_title_role("brand_title"), "main brand name remains a title")
+	_check(is_equal_approx(typography.get_role_ratio("brand"), TYPOGRAPHY_SCRIPT.BASE_BODY_RATIO * TYPOGRAPHY_SCRIPT.ROLE_MULTIPLIERS["brand"]), "brand icon keeps its shared role")
+	_check(typography.is_title_role("brand_secondary"), "secondary brand name remains a title")
+	_check(typography.is_title_role("heading"), "greeting title remains a title")
 	_check(is_equal_approx(typography.get_role_ratio("button"), typography.get_role_ratio("body")), "main action matches the greeting body size")
 	for role in ["caption", "display_number", "progress_value", "progress_caption", "prompt", "district", "district_progress", "status", "points_label", "points", "support", "level", "tab", "badge", "badge_level", "challenge_body", "reward_progress"]:
 		_check(is_equal_approx(typography.get_role_ratio(role), typography.get_role_ratio("body")), "%s matches the greeting body size" % role)
@@ -153,7 +154,7 @@ func _test_landscape_greeting_hierarchy(screen) -> void:
 		screen._layout_screen(viewport_size)
 		var title: Control = screen.ui["greeting_title"]
 		var message: Control = screen.ui["greeting_text"]
-		_check(title.rect_scale.x > message.rect_scale.x, "landscape greeting title is larger than its message at %s" % viewport_size)
+		_check(title.rect_scale.x > message.rect_scale.x, "landscape greeting title remains distinct from its message at %s" % viewport_size)
 		_check(_text_fits_control(title), "landscape greeting title fits at %s" % viewport_size)
 		_check(_text_fits_control(message), "landscape greeting message fits at %s" % viewport_size)
 
@@ -181,8 +182,15 @@ func _test_text_fits_controls(screen) -> void:
 			_check(_text_fits_control(control), "%s text fits its allocated area at %s" % [key, viewport_size])
 		var navigation = screen.ui["navigation"]
 		navigation.layout_for_viewport(viewport_size)
+		_check_uniform_body_typography(screen, viewport_size)
 		for item_id in BOTTOM_NAVIGATION_SCRIPT.ITEM_IDS:
 			_check(navigation.labels[item_id].rect_size.x > 0.0 and navigation.labels[item_id].rect_size.y > 0.0, "%s menu label has space at %s" % [item_id, viewport_size])
+
+
+func _check_uniform_body_typography(screen, viewport_size: Vector2) -> void:
+	var failures: Array = TYPOGRAPHY_TEST_UTILS.get_uniform_body_size_failures(screen, screen.typography, min(viewport_size.x, viewport_size.y))
+	for failure in failures:
+		_check(false, "%s at %s" % [failure, viewport_size])
 
 
 func _fits_inside(child: Control, parent: Control) -> bool:

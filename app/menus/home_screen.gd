@@ -117,11 +117,11 @@ func _layout_portrait(width: float, height: float, safe_x: float, safe_y: float,
 	_place(ui["greeting_title"], greeting_x + 18, greeting_y + 14, greeting_width - 36, 34, font_basis)
 	_place(ui["greeting_text"], greeting_x + 18, greeting_y + 52, greeting_width - 36, greeting_height - 62, font_basis)
 
-	_place(ui["start"], width * 0.06, height * 0.595, width * 0.88, height * 0.068, font_basis)
+	_place(ui["start"], width * 0.06, height * 0.55, width * 0.88, height * 0.068, font_basis)
 	var progress_x := width * 0.05
-	var progress_y := height * 0.69
+	var progress_y := height * 0.63
 	var progress_width := width * 0.90
-	var progress_height := height * 0.13
+	var progress_height := height * 0.18
 	_place_progress(progress_x, progress_y, progress_width, progress_height, font_basis)
 	_place_status_above_navigation(safe_x, width - safe_x * 2.0, width, height, font_basis)
 
@@ -142,13 +142,9 @@ func _layout_landscape(width: float, height: float, safe_x: float, safe_y: float
 	var greeting_text_x: float = greeting_x + 18
 	var greeting_text_width: float = greeting_width - 36
 	_place(ui["greeting_title"], greeting_text_x, greeting_y + 12, greeting_text_width, 60, font_basis)
-	var greeting_title_scale: float = ui["greeting_title"].rect_scale.x
 	var greeting_text_y: float = greeting_y + 80
 	var greeting_text_height: float = greeting_height - 96
-	var greeting_text_scale: float = _adaptive_font_scale(ui["greeting_text"], font_basis, greeting_text_width, greeting_text_height)
-	var greeting_text_scale_limit: float = greeting_title_scale * 0.88
-	var greeting_text_extra_scale: float = min(1.0, greeting_text_scale_limit / greeting_text_scale)
-	_place(ui["greeting_text"], greeting_text_x, greeting_text_y, greeting_text_width, greeting_text_height, font_basis, greeting_text_extra_scale)
+	_place(ui["greeting_text"], greeting_text_x, greeting_text_y, greeting_text_width, greeting_text_height, font_basis)
 
 	var content_x := width * 0.405
 	var content_width := width * 0.555
@@ -176,15 +172,15 @@ func _place_progress(x: float, y: float, width: float, height: float, font_basis
 
 	var text_x := x + padding + badge_size + padding * 0.55
 	var text_width := width - (text_x - x) - padding
-	var title_y: float = y + height * 0.13
-	_place(ui["progress_title"], text_x, title_y, text_width, height * 0.19, font_basis)
+	var title_y: float = y + height * 0.05
+	_place(ui["progress_title"], text_x, title_y, text_width, height * 0.18, font_basis)
 	_place(ui["progress_value"], text_x, title_y + height * 0.20, text_width, height * 0.23, font_basis)
-	var track_y: float = y + height * 0.62
-	var track_height: float = max(14.0, height * 0.13)
+	var track_y: float = y + height * 0.52
+	var track_height: float = max(14.0, height * 0.11)
 	_place(ui["progress_track"], text_x, track_y, text_width, track_height)
 	var progress_width: float = max(0.0, (text_width - 4.0) * progression_service.get_progress_ratio())
 	_place(ui["progress_fill"], text_x + 2, track_y + 2, progress_width, track_height - 4.0)
-	_place(ui["progress_hint"], text_x, track_y + track_height + 4.0, text_width, height * 0.19, font_basis)
+	_place(ui["progress_hint"], text_x, track_y + track_height + 4.0, text_width, height * 0.30, font_basis)
 
 
 func _place_mascot(x: float, y: float, width: float, height: float) -> void:
@@ -197,10 +193,16 @@ func _place_status_above_navigation(x: float, width: float, viewport_width: floa
 	_place(ui["status"], x, navigation_top - height * 0.04, width, height * 0.03, font_basis)
 
 
-func _place(control: Control, x: float, y: float, width: float, height: float, font_basis: float = 720.0, extra_scale: float = 1.0) -> void:
-	var scale: float = extra_scale
+func _place(control: Control, x: float, y: float, width: float, height: float, font_basis: float = 720.0) -> void:
+	var scale: float = 1.0
 	if control.has_meta("font_role"):
-		scale = _adaptive_font_scale(control, font_basis, width, height) * extra_scale
+		var role: String = control.get_meta("font_role")
+		if typography.is_uniform_body_role(role):
+			var font: Font = control.get_font("font")
+			if font != null:
+				scale = typography.get_target_height("body", font_basis) / font.get_height()
+		else:
+			scale = _adaptive_font_scale(control, font_basis, width, height)
 	control.anchor_left = 0.0
 	control.anchor_top = 0.0
 	control.anchor_right = 0.0
@@ -316,15 +318,15 @@ func _on_action_pressed(message: String) -> void:
 
 
 func _open_map_screen() -> void:
-	get_tree().change_scene("res://app/menus/map_screen.tscn")
+	get_node("/root/NavigationHistory").call("navigate_to", "res://app/menus/map_screen.tscn")
 
 
 func _on_home_nav_pressed(item_id: String) -> void:
 	if item_id == "map":
 		_open_map_screen()
 	elif item_id == "missions":
-		get_tree().change_scene("res://games/quiz/scenes/quiz_screen.tscn")
+		get_node("/root/NavigationHistory").call("navigate_to", "res://games/quiz/scenes/quiz_screen.tscn")
 	elif item_id == "profile":
-		get_tree().change_scene("res://app/menus/profile_screen.tscn")
+		get_node("/root/NavigationHistory").call("navigate_to", "res://app/menus/profile_screen.tscn")
 	else:
 		status_label.text = ""

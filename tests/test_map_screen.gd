@@ -4,6 +4,7 @@ const MAP_SCREEN = preload("res://app/menus/map_screen.tscn")
 const MAP_SCREEN_SCRIPT = preload("res://app/menus/map_screen.gd")
 const BOTTOM_NAVIGATION_SCRIPT = preload("res://shared/ui/bottom_navigation.gd")
 const TYPOGRAPHY_SCRIPT = preload("res://shared/ui/typography.gd")
+const TYPOGRAPHY_TEST_UTILS = preload("res://tests/typography_test_utils.gd")
 const PORTRAIT_MAP_BACKGROUND_PATH = "res://shared/map/assets/mapa.png"
 const LANDSCAPE_MAP_BACKGROUND_PATH = "res://shared/map/assets/mapa_horizontal.png"
 const QUIZ_SCENE_PATH = "res://games/quiz/scenes/quiz_screen.tscn"
@@ -37,6 +38,9 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 	screen.anchor_bottom = 0.0
 	screen.rect_size = viewport_size
 	screen._layout_screen(viewport_size)
+	var typography_failures: Array = TYPOGRAPHY_TEST_UTILS.get_uniform_body_size_failures(screen, screen.typography, min(viewport_size.x, viewport_size.y))
+	for typography_failure in typography_failures:
+		_check(false, "%s at %s" % [typography_failure, viewport_size])
 	_check(screen.ui["background"].texture != null, "map illustration loads at %s" % viewport_size)
 	var expected_background_path: String = LANDSCAPE_MAP_BACKGROUND_PATH if viewport_size.x > viewport_size.y else PORTRAIT_MAP_BACKGROUND_PATH
 	_check(screen.active_background_path == expected_background_path, "map illustration matches viewport orientation at %s" % viewport_size)
@@ -52,7 +56,7 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 	_check(header_rect.end.y <= prompt_rect.position.y, "map title and prompt panels do not overlap at %s" % viewport_size)
 	_check(screen.ui["prompt"].text == "Escolha um bairro para aceitar a missão!", "mission prompt stays present at %s" % viewport_size)
 	var typography = TYPOGRAPHY_SCRIPT.new()
-	_check(is_equal_approx(typography.get_role_ratio("body"), 0.035995), "map typography uses the shared greeting text base")
+	_check(is_equal_approx(typography.get_role_ratio("body"), TYPOGRAPHY_SCRIPT.BASE_BODY_RATIO), "map typography uses the shared greeting text base")
 	_check(is_equal_approx(typography.get_role_ratio("prompt"), typography.get_role_ratio("body")), "map prompt matches the greeting body size")
 	_check(is_equal_approx(typography.get_role_ratio("district"), typography.get_role_ratio("body")), "district names match the greeting body size")
 	_check(is_equal_approx(typography.get_role_ratio("district_progress"), typography.get_role_ratio("body")), "district progress matches the greeting body size")

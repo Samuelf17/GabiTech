@@ -99,7 +99,7 @@ func layout_for_viewport(viewport_size: Vector2) -> void:
 		var x: float = safe_x + item_width * index
 		var button_y: float = bar_top + bar_height * 0.06
 		var button_height: float = bar_height * 0.88
-		var scale: float = _font_scale(label, short_side, item_width * 0.92, button_height * 0.40)
+		var scale: float = _font_scale(label, short_side)
 		_place(button, x, button_y, item_width, button_height, scale)
 		_layout_item_content(item_id, short_side, item_width, button_height, scale)
 
@@ -123,16 +123,11 @@ func _layout_item_content(item_id: String, short_side: float, width: float, heig
 	label.rect_size = Vector2(local_width * 0.92, max(0.0, local_height - label_top - local_height * 0.04))
 
 
-func _font_scale(label: Label, short_side: float, width: float, height: float) -> float:
+func _font_scale(label: Label, short_side: float) -> float:
 	var font: Font = label.get_font("font")
 	if font == null:
 		return 1.0
-	var scale: float = typography.get_target_height("navigation", short_side) / font.get_height()
-	var widest_line: float = font.get_string_size(label.text).x
-	if widest_line > 0.0:
-		scale = min(scale, width / widest_line)
-	scale = min(scale, height / font.get_height())
-	return max(0.01, scale)
+	return typography.get_target_height("body", short_side) / font.get_height()
 
 
 func _place(control: Control, x: float, y: float, width: float, height: float, scale: float) -> void:

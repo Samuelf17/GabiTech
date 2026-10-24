@@ -1,7 +1,7 @@
 extends Reference
 
 # Base taken from the adaptive body text "Pronto para proteger a cidade digital?".
-const BASE_BODY_RATIO: float = 0.035995
+const BASE_BODY_RATIO: float = 0.04
 const ROLE_MULTIPLIERS = {
 	"icon": 1.089040,
 	"brand": 1.347409,
@@ -31,6 +31,8 @@ const ROLE_MULTIPLIERS = {
 	"challenge_body": 1.0,
 	"reward_progress": 1.0
 }
+const TITLE_ROLES = ["brand_title", "brand_secondary", "heading", "title", "challenge"]
+const DECORATIVE_ROLES = ["icon", "brand"]
 
 
 func has_role(role: String) -> bool:
@@ -45,3 +47,15 @@ func get_role_ratio(role: String) -> float:
 
 func get_target_height(role: String, viewport_basis: float) -> float:
 	return viewport_basis * get_role_ratio(role)
+
+
+func is_title_role(role: String) -> bool:
+	return TITLE_ROLES.has(role)
+
+
+func is_decorative_role(role: String) -> bool:
+	return DECORATIVE_ROLES.has(role)
+
+
+func is_uniform_body_role(role: String) -> bool:
+	return not is_title_role(role) and not is_decorative_role(role)

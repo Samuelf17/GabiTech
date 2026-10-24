@@ -282,7 +282,9 @@ func _place(control: Control, x: float, y: float, width: float, height: float, f
 		var font: Font = control.get_font("font")
 		var role: String = control.get_meta("font_role")
 		if font != null and typography.has_role(role):
-			scale = min(typography.get_target_height(role, font_basis) / font.get_height(), _fit_text_scale(control, font, width, height))
+			scale = typography.get_target_height("body", font_basis) / font.get_height()
+			if not typography.is_uniform_body_role(role):
+				scale = min(typography.get_target_height(role, font_basis) / font.get_height(), _fit_text_scale(control, font, width, height))
 	control.anchor_left = 0.0
 	control.anchor_top = 0.0
 	control.anchor_right = 0.0
@@ -300,11 +302,21 @@ func _fit_text_scale(control: Control, font: Font, width: float, height: float) 
 		text = (control as Label).text
 	elif control is Button:
 		text = (control as Button).text
-	var widest_line: float = 0.0
-	for line in text.split("\n"):
-		widest_line = max(widest_line, font.get_string_size(line).x)
-	var line_count: int = max(1, text.split("\n").size())
-	return max(0.01, min(width / max(1.0, widest_line), height / max(1.0, font.get_height() * line_count)))
+	var scale: float = 1.0
+	if control is Button:
+		var widest_line: float = 0.0
+		for line in text.split("\n"):
+			widest_line = max(widest_line, font.get_string_size(line).x)
+		if widest_line > 0.0:
+			scale = min(scale, min(width / widest_line, height / font.get_height()))
+	else:
+		for _iteration in range(3):
+			var wrapped_size: Vector2 = font.get_wordwrap_string_size(text, width / scale)
+			var rendered_height: float = wrapped_size.y * scale
+			if rendered_height <= height or rendered_height <= 0.0:
+				break
+			scale *= height / rendered_height
+	return max(0.01, scale)
 
 
 func _new_label(text: String, color: Color, role: String, alignment: int = Label.ALIGN_LEFT) -> Label:
@@ -382,11 +394,11 @@ func _on_tab_pressed(tab_name: String) -> void:
 
 func _on_nav_pressed(item_id: String) -> void:
 	if item_id == "home":
-		get_tree().change_scene("res://app/menus/home_screen.tscn")
+		get_node("/root/NavigationHistory").call("navigate_to", "res://app/menus/home_screen.tscn")
 	elif item_id == "map":
-		get_tree().change_scene("res://app/menus/map_screen.tscn")
+		get_node("/root/NavigationHistory").call("navigate_to", "res://app/menus/map_screen.tscn")
 	elif item_id == "missions":
-		get_tree().change_scene("res://games/quiz/scenes/quiz_screen.tscn")
+		get_node("/root/NavigationHistory").call("navigate_to", "res://games/quiz/scenes/quiz_screen.tscn")
 	else:
 		ui["status"].text = ""
 

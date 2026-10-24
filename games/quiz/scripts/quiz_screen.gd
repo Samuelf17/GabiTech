@@ -14,7 +14,10 @@ const WHITE = Color("#f3f7ff")
 const MUTED = Color("#9aa9ce")
 const GREEN = Color("#32bb78")
 const RED = Color("#e95b63")
+const ANSWER_TEXT = Color("#000000")
 const DAILY_LIMIT: int = 5
+const MISSION_TITLE_FONT_SCALE: float = 1.15
+const EXPLANATION_FONT_SCALE: float = 1.25
 
 var ui: Dictionary = {}
 var answer_rows: Array = []
@@ -71,6 +74,8 @@ func _build_screen() -> void:
 	ui["back"].add_child(back_icon)
 	ui["back_icon"] = back_icon
 	ui["mission_title"] = _new_label("MISSÃO: ...", CYAN, "body", Label.ALIGN_LEFT)
+	ui["mission_title"].set_meta("font_scale", MISSION_TITLE_FONT_SCALE)
+	ui["mission_title"].set_meta("title_text", true)
 	ui["shield"] = TextureRect.new()
 	ui["shield"].texture = SHIELD_ICON
 	ui["shield"].expand = true
@@ -80,7 +85,7 @@ func _build_screen() -> void:
 	add_child(ui["shield"])
 
 	ui["progress_panel"] = _new_panel("QuestionProgress", PANEL, Color("#424c91"), 18, 1)
-	ui["progress_text"] = _new_label("PERGUNTA 1 DE 5", MUTED, "caption", Label.ALIGN_CENTER)
+	ui["progress_text"] = _new_label("PERGUNTA 1 DE 5", MUTED, "body", Label.ALIGN_CENTER)
 	ui["progress_segments"] = []
 	for index in range(DAILY_LIMIT):
 		var segment := _new_panel("ProgressSegment%d" % index, PANEL_LIGHT, PANEL_LIGHT, 12, 0)
@@ -103,11 +108,7 @@ func _build_screen() -> void:
 		option_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		remove_child(option_label)
 		row_button.add_child(option_label)
-		var marker := _new_label(str(index + 1), CYAN, "body", Label.ALIGN_CENTER)
-		marker.name = "OptionMarker%d" % index
-		remove_child(marker)
-		row_button.add_child(marker)
-		answer_rows.append({"button": row_button, "label": option_label, "marker": marker})
+		answer_rows.append({"button": row_button, "label": option_label})
 
 	ui["hint_panel"] = _new_panel("SafetyHint", PANEL_LIGHT, Color("#39327a"), 16, 1)
 	ui["hint_icon"] = TextureRect.new()
@@ -117,16 +118,16 @@ func _build_screen() -> void:
 	ui["hint_icon"].modulate = Color("#f4dc70")
 	ui["hint_icon"].mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(ui["hint_icon"])
-	ui["hint"] = _new_label("Leia cada opção com atenção antes de confirmar sua resposta.", WHITE, "support")
-	ui["confirm"] = _new_button("CONFIRMAR RESPOSTA", "button")
+	ui["hint"] = _new_label("Leia cada opção com atenção antes de confirmar sua resposta.", WHITE, "body")
+	ui["confirm"] = _new_button("CONFIRMAR RESPOSTA", "body")
 	ui["confirm"].add_stylebox_override("normal", _stylebox(Color("#f06467"), Color("#f06467"), 18, 0))
 	ui["confirm"].add_stylebox_override("hover", _stylebox(Color("#ff7779"), WHITE, 18, 1))
 	ui["confirm"].add_stylebox_override("focus", _stylebox(Color("#ff7779"), WHITE, 18, 1))
 	ui["confirm"].add_color_override("font_color", WHITE)
 	ui["confirm"].connect("pressed", self, "_on_confirm_pressed")
-	ui["completion_title"] = _new_label("", CYAN, "body", Label.ALIGN_CENTER)
+	ui["completion_title"] = _new_label("", CYAN, "title", Label.ALIGN_CENTER)
 	ui["completion_message"] = _new_label("", WHITE, "body", Label.ALIGN_CENTER)
-	ui["status"] = _new_label("", Color("#ffaaa9"), "caption", Label.ALIGN_CENTER)
+	ui["status"] = _new_label("", Color("#ffaaa9"), "body", Label.ALIGN_CENTER)
 	ui["navigation"] = BOTTOM_NAVIGATION.instance()
 	ui["navigation"].active_item = "missions"
 	ui["navigation"].visible = false
@@ -135,13 +136,13 @@ func _build_screen() -> void:
 
 	ui["next_prompt"] = _new_panel("NextQuestionPrompt", PANEL_LIGHT, Color("#5d62a5"), 18, 2)
 	ui["next_prompt_title"] = _new_label("Quer ir para a próxima questão?", WHITE, "body", Label.ALIGN_CENTER)
-	ui["next_prompt_yes"] = _new_button("SIM, CONTINUAR", "button")
+	ui["next_prompt_yes"] = _new_button("SIM, CONTINUAR", "body")
 	remove_child(ui["next_prompt_yes"])
 	ui["next_prompt_yes"].add_stylebox_override("normal", _stylebox(CYAN, CYAN, 12, 0))
 	ui["next_prompt_yes"].add_stylebox_override("hover", _stylebox(Color("#63f0e9"), WHITE, 12, 1))
 	ui["next_prompt_yes"].add_color_override("font_color", NAVY)
 	ui["next_prompt_yes"].connect("pressed", self, "_on_next_prompt_yes")
-	ui["next_prompt_no"] = _new_button("SAIR", "button")
+	ui["next_prompt_no"] = _new_button("SAIR", "body")
 	remove_child(ui["next_prompt_no"])
 	ui["next_prompt_no"].add_stylebox_override("normal", _stylebox(PANEL, Color("#747fac"), 12, 1))
 	ui["next_prompt_no"].add_stylebox_override("hover", _stylebox(PANEL_LIGHT, WHITE, 12, 1))
@@ -168,15 +169,24 @@ func _build_screen() -> void:
 	ui["explanation_panel"] = _new_panel("ExplanationPanel", Color("#101d4b"), Color("#34dedb"), 24, 2)
 	remove_child(ui["explanation_panel"])
 	ui["explanation_panel"].mouse_filter = Control.MOUSE_FILTER_PASS
-	ui["explanation_title"] = _new_label("EXPLICAÇÃO", CYAN, "body", Label.ALIGN_CENTER)
+	ui["explanation_title"] = _new_label("EXPLICAÇÃO", CYAN, "title", Label.ALIGN_CENTER)
+	ui["explanation_title"].set_meta("font_scale", EXPLANATION_FONT_SCALE)
 	ui["explanation_text"] = _new_label("", WHITE, "body", Label.ALIGN_CENTER)
-	ui["explanation_close_hint"] = _new_label("Toque fora para fechar", MUTED, "caption", Label.ALIGN_CENTER)
+	ui["explanation_close_hint"] = _new_label("Toque fora ou use o botão para fechar.", MUTED, "body", Label.ALIGN_CENTER)
+	ui["explanation_close"] = _new_button("FECHAR", "body")
+	ui["explanation_close"].add_stylebox_override("normal", _stylebox(CYAN, CYAN, 12, 0))
+	ui["explanation_close"].add_stylebox_override("hover", _stylebox(Color("#63f0e9"), WHITE, 12, 1))
+	ui["explanation_close"].add_stylebox_override("focus", _stylebox(Color("#63f0e9"), WHITE, 12, 1))
+	ui["explanation_close"].add_color_override("font_color", NAVY)
+	ui["explanation_close"].connect("pressed", self, "_dismiss_explanation")
 	remove_child(ui["explanation_title"])
 	remove_child(ui["explanation_text"])
 	remove_child(ui["explanation_close_hint"])
+	remove_child(ui["explanation_close"])
 	ui["explanation_panel"].add_child(ui["explanation_title"])
 	ui["explanation_panel"].add_child(ui["explanation_text"])
 	ui["explanation_panel"].add_child(ui["explanation_close_hint"])
+	ui["explanation_panel"].add_child(ui["explanation_close"])
 	ui["explanation_overlay"].add_child(ui["explanation_panel"])
 	add_child(ui["explanation_overlay"])
 	ui["explanation_overlay"].visible = false
@@ -200,7 +210,7 @@ func _layout_screen(viewport_size: Vector2) -> void:
 	_place(ui["frame"], margin * 0.35, height * 0.015, width - margin * 0.70, height * 0.97)
 	_place(ui["back"], margin, height * 0.027, short_side * 0.12, height * 0.064, short_side)
 	_place(ui["mission_title"], margin + short_side * 0.13, height * 0.03, width - margin * 2.0 - short_side * 0.28, height * 0.055, short_side)
-	var shield_size: float = short_side * 0.075
+	var shield_size: float = short_side * 0.075 * 1.10
 	_place(ui["shield"], width - margin - shield_size, height * 0.032, shield_size, shield_size)
 	var progress_y: float = height * 0.105
 	var progress_h: float = height * 0.082
@@ -212,20 +222,40 @@ func _layout_screen(viewport_size: Vector2) -> void:
 	for index in range(DAILY_LIMIT):
 		_place(ui["progress_segments"][index], margin * 1.4 + segment_width * index + segment_gap * index, progress_y + progress_h * 0.52, segment_width, progress_h * 0.30)
 
-	_place(ui["question"], margin * 1.5, height * 0.215, width - margin * 3.0, height * 0.115, short_side)
+	var question_width: float = width - margin * 3.0
+	var question_height: float = height * 0.115
 	_place(ui["instruction"], margin * 1.5, height * 0.325, width - margin * 3.0, height * 0.045, short_side)
 	var option_top: float = height * 0.385
 	var option_height: float = height * 0.091
 	var option_gap: float = height * 0.012
+	var row_width: float = width - margin * 1.8
+	var answer_label_x: float = short_side * 0.015
+	var answer_label_width: float = row_width - answer_label_x - short_side * 0.015
+	var answer_label_height: float = option_height * 0.92
+	var answer_font_scale: float = _get_common_content_font_scale(short_side)
+	_place(
+		ui["question"],
+		margin * 1.5,
+		height * 0.215,
+		question_width,
+		question_height,
+		short_side,
+		answer_font_scale
+	)
 	for index in range(answer_rows.size()):
 		var row: Dictionary = answer_rows[index]
 		var row_y: float = option_top + float(index) * (option_height + option_gap)
 		var row_x: float = margin * 0.9
-		var row_width: float = width - margin * 1.8
 		_place(row["button"], row_x, row_y, row_width, option_height)
-		var badge_size: float = min(option_height * 0.56, short_side * 0.052)
-		_place(row["label"], badge_size + short_side * 0.05, option_height * 0.07, row_width - badge_size - short_side * 0.075, option_height * 0.86, short_side)
-		_place(row["marker"], short_side * 0.025, (option_height - badge_size) * 0.5, badge_size, badge_size, short_side)
+		_place(
+			row["label"],
+			answer_label_x,
+			option_height * 0.04,
+			answer_label_width,
+			answer_label_height,
+			short_side,
+			answer_font_scale
+		)
 	var hint_y: float = height * 0.815
 	var hint_height: float = height * 0.072
 	_place(ui["hint_panel"], margin * 0.9, hint_y, width - margin * 1.8, hint_height)
@@ -263,8 +293,9 @@ func _layout_explanation(viewport_size: Vector2, margin: float) -> void:
 	var y: float = (viewport_size.y - height) * 0.5
 	_place(ui["explanation_panel"], x, y, width, height)
 	_place(ui["explanation_title"], margin, height * 0.10, width - margin * 2.0, height * 0.18, min(viewport_size.x, viewport_size.y))
-	_place(ui["explanation_text"], margin * 1.5, height * 0.32, width - margin * 3.0, height * 0.50, min(viewport_size.x, viewport_size.y))
-	_place(ui["explanation_close_hint"], margin, height * 0.84, width - margin * 2.0, height * 0.10, min(viewport_size.x, viewport_size.y))
+	_place(ui["explanation_text"], margin * 1.5, height * 0.28, width - margin * 3.0, height * 0.40, min(viewport_size.x, viewport_size.y))
+	_place(ui["explanation_close_hint"], margin, height * 0.70, width - margin * 2.0, height * 0.10, min(viewport_size.x, viewport_size.y))
+	_place(ui["explanation_close"], width * 0.28, height * 0.83, width * 0.44, height * 0.13, min(viewport_size.x, viewport_size.y))
 
 
 func _show_next_question() -> void:
@@ -301,16 +332,14 @@ func _show_next_question() -> void:
 	for index in range(answer_rows.size()):
 		var row: Dictionary = answer_rows[index]
 		var button: Button = row["button"]
-		var marker: Label = row["marker"]
+		var default_style := _stylebox(Color("#ffffff"), Color("#d7e3ff"), 16, 1)
 		if index < options.size():
 			button.show()
 			button.disabled = false
 			row["label"].text = String(options[index])
 			row["label"].add_color_override("font_color", NAVY)
-			marker.text = str(index + 1)
-			marker.add_color_override("font_color", CYAN)
-			button.add_stylebox_override("normal", _stylebox(Color("#f2f6ff"), Color("#d7e3ff"), 16, 1))
-			button.add_stylebox_override("hover", _stylebox(Color("#e5f8fa"), CYAN, 16, 2))
+			for state in ["normal", "hover", "focus", "pressed", "disabled"]:
+				button.add_stylebox_override(state, default_style)
 		else:
 			button.hide()
 	if current_viewport_size.x > 0.0 and current_viewport_size.y > 0.0:
@@ -324,10 +353,11 @@ func _on_option_pressed(option_index: int) -> void:
 	selected_option = option_index
 	for index in range(answer_rows.size()):
 		var button: Button = answer_rows[index]["button"]
-		if index == selected_option:
-			button.add_stylebox_override("normal", _stylebox(Color("#dff8f6"), CYAN, 16, 2))
-		else:
-			button.add_stylebox_override("normal", _stylebox(Color("#f2f6ff"), Color("#d7e3ff"), 16, 1))
+		var fill_color: Color = Color("#dff8f6") if index == selected_option else Color("#ffffff")
+		var border_color: Color = CYAN if index == selected_option else Color("#d7e3ff")
+		var style := _stylebox(fill_color, border_color, 16, 2 if index == selected_option else 1)
+		for state in ["normal", "hover", "focus", "pressed", "disabled"]:
+			button.add_stylebox_override(state, style)
 
 
 func _on_confirm_pressed() -> void:
@@ -338,24 +368,29 @@ func _on_confirm_pressed() -> void:
 		return
 	answer_submitted = true
 	var correct_index: int = int(current_question["respostaCorreta"])
-	for index in range(current_question["opcoes"].size()):
+	for index in range(answer_rows.size()):
 		var row: Dictionary = answer_rows[index]
 		var button: Button = row["button"]
 		button.disabled = true
+		row["label"].add_color_override("font_color", ANSWER_TEXT)
 		if index == correct_index:
-			row["label"].add_color_override("font_color", GREEN)
-			button.add_stylebox_override("normal", _stylebox(Color("#e0f7e9"), GREEN, 16, 2))
+			_set_answer_feedback_style(button, GREEN)
 		elif index == selected_option:
-			row["label"].add_color_override("font_color", RED)
-			button.add_stylebox_override("normal", _stylebox(Color("#ffe7e7"), RED, 16, 2))
+			_set_answer_feedback_style(button, RED)
+		else:
+			_set_answer_default_style(button)
 	ui["confirm"].disabled = true
 	ui["progress_text"].text = "PERGUNTAS RESPONDIDAS: %d DE %d" % [daily_progress.get_answered_count(), DAILY_LIMIT]
 	for index in range(DAILY_LIMIT):
 		ui["progress_segments"][index].add_stylebox_override("panel", _stylebox(CYAN if index < daily_progress.get_answered_count() else PANEL_LIGHT, CYAN if index < daily_progress.get_answered_count() else PANEL_LIGHT, 12, 0))
-	ui["explanation_text"].text = String(current_question["explicacao"])
-	ui["explanation_overlay"].visible = true
-	explanation_timer.start(10.0)
-	_layout_screen(current_viewport_size)
+	if selected_option != correct_index:
+		ui["explanation_text"].text = String(current_question["explicacao"])
+		ui["explanation_overlay"].visible = true
+		explanation_timer.start(10.0)
+		_layout_screen(current_viewport_size)
+		ui["explanation_close"].grab_focus()
+	else:
+		_show_next_prompt()
 
 
 func _on_explanation_overlay_input(event: InputEvent) -> void:
@@ -373,21 +408,51 @@ func _on_explanation_timeout() -> void:
 	_dismiss_explanation()
 
 
+func handle_back_request() -> bool:
+	if ui["explanation_overlay"].visible:
+		_dismiss_explanation()
+		return true
+	return false
+
+
 func _dismiss_explanation() -> void:
 	if not ui["explanation_overlay"].visible:
 		return
 	explanation_timer.stop()
 	ui["explanation_overlay"].visible = false
-	if daily_progress.can_answer():
-		ui["next_prompt"].visible = true
-		_layout_screen(current_viewport_size)
-		ui["next_prompt_yes"].grab_focus()
-	else:
-		_show_daily_completion()
+	_show_next_prompt()
+
+
+func _show_next_prompt() -> void:
+	var has_more_questions: bool = daily_progress.can_answer()
+	ui["next_prompt_title"].text = (
+		"Quer ir para a próxima questão?"
+		if has_more_questions
+		else "Você respondeu todas as perguntas de hoje.\nDeseja ver a conclusão?"
+	)
+	ui["next_prompt_yes"].text = "SIM, CONTINUAR" if has_more_questions else "VER CONCLUSÃO"
+	ui["next_prompt"].visible = true
+	_layout_screen(current_viewport_size)
+	ui["next_prompt_yes"].grab_focus()
+
+
+func _set_answer_feedback_style(button: Button, color: Color) -> void:
+	var feedback_style := _stylebox(color, color, 16, 2)
+	for state in ["normal", "hover", "focus", "pressed", "disabled"]:
+		button.add_stylebox_override(state, feedback_style)
+
+
+func _set_answer_default_style(button: Button) -> void:
+	var default_style := _stylebox(Color("#ffffff"), Color("#d7e3ff"), 16, 1)
+	for state in ["normal", "hover", "focus", "pressed", "disabled"]:
+		button.add_stylebox_override(state, default_style)
 
 
 func _on_next_prompt_yes() -> void:
-	_show_next_question()
+	if daily_progress.can_answer():
+		_show_next_question()
+	else:
+		_show_daily_completion()
 
 
 func _show_daily_completion() -> void:
@@ -431,7 +496,7 @@ func _show_error(message: String) -> void:
 
 
 func _on_back_pressed() -> void:
-	get_tree().change_scene("res://app/menus/map_screen.tscn")
+	get_node("/root/NavigationHistory").call("go_back")
 
 
 func _on_navigation_item_selected(item_id: String) -> void:
@@ -443,7 +508,7 @@ func _on_navigation_item_selected(item_id: String) -> void:
 	}
 	if not destinations.has(item_id) or item_id == "missions":
 		return
-	get_tree().change_scene(destinations[item_id])
+	get_node("/root/NavigationHistory").call("navigate_to", destinations[item_id])
 
 
 func _on_viewport_size_changed() -> void:
@@ -495,13 +560,39 @@ func _stylebox(fill: Color, border: Color, radius: int, border_width: int) -> St
 	return style
 
 
-func _place(control: Control, x: float, y: float, width: float, height: float, font_basis: float = 720.0) -> void:
+func _get_common_content_font_scale(font_basis: float) -> float:
+	var content_font: Font = ui["question"].get_font("font")
+	if content_font == null:
+		return 1.0
+	return typography.get_target_height("body", font_basis) / content_font.get_height()
+
+
+func _place(
+	control: Control,
+	x: float,
+	y: float,
+	width: float,
+	height: float,
+	font_basis: float = 720.0,
+	scale_override: float = -1.0
+) -> void:
 	var scale: float = 1.0
 	if control.has_meta("font_role"):
 		var font: Font = control.get_font("font")
 		var role: String = control.get_meta("font_role")
 		if font != null and typography.has_role(role):
-			scale = min(typography.get_target_height(role, font_basis) / font.get_height(), _fit_text_scale(control, font, width, height))
+			var font_scale: float = 1.0
+			if control.has_meta("font_scale") and (control.has_meta("title_text") or not typography.is_uniform_body_role(role)):
+				font_scale = float(control.get_meta("font_scale"))
+			var target_role: String = role
+			if typography.is_uniform_body_role(role) and not control.has_meta("title_text"):
+				target_role = "body"
+			var target_height: float = typography.get_target_height(target_role, font_basis) * font_scale
+			scale = target_height / font.get_height()
+			if not typography.is_uniform_body_role(role) or control.has_meta("title_text"):
+				scale = min(scale, _fit_text_scale(control, font, width, height))
+	if scale_override > 0.0:
+		scale = scale_override
 	control.anchor_left = 0.0
 	control.anchor_top = 0.0
 	control.anchor_right = 0.0
@@ -519,33 +610,48 @@ func _fit_text_scale(control: Control, font: Font, width: float, height: float) 
 		text = (control as Label).text
 	elif control is Button:
 		text = (control as Button).text
+	return _fit_text_string_scale(text, font, width, height, 1.0)
+
+
+func _fit_text_string_scale(
+	text: String,
+	font: Font,
+	width: float,
+	height: float,
+	maximum_scale: float
+) -> float:
+	var fitting_scale: float = 0.01
+	var non_fitting_scale: float = maximum_scale
+	for iteration in range(14):
+		var candidate_scale: float = (fitting_scale + non_fitting_scale) * 0.5
+		if _text_fits_at_scale(text, font, width, height, candidate_scale):
+			fitting_scale = candidate_scale
+		else:
+			non_fitting_scale = candidate_scale
+	return fitting_scale
+
+
+func _text_fits_at_scale(
+	text: String,
+	font: Font,
+	width: float,
+	height: float,
+	scale: float
+) -> bool:
 	var total_lines: int = 0
 	for explicit_line in text.split("\n"):
 		var line_width: float = 0.0
-		var wrapped_lines: int = 1
+		total_lines += 1
 		for word in explicit_line.split(" "):
-			var word_width: float = font.get_string_size(word).x
-			var space_width: float = font.get_string_size(" ").x if line_width > 0.0 else 0.0
+			if word.empty():
+				continue
+			var word_width: float = font.get_string_size(word).x * scale
+			if word_width > width:
+				return false
+			var space_width: float = font.get_string_size(" ").x * scale if line_width > 0.0 else 0.0
 			if line_width > 0.0 and line_width + space_width + word_width > width:
-				wrapped_lines += 1
+				total_lines += 1
 				line_width = word_width
 			else:
 				line_width += space_width + word_width
-		total_lines += wrapped_lines
-	return max(0.01, min(1.0, min(width / max(1.0, _widest_wrapped_line(text, font, width)), height / max(1.0, font.get_height() * total_lines))))
-
-
-func _widest_wrapped_line(text: String, font: Font, width: float) -> float:
-	var widest: float = 0.0
-	for explicit_line in text.split("\n"):
-		var line_width: float = 0.0
-		for word in explicit_line.split(" "):
-			var word_width: float = font.get_string_size(word).x
-			var space_width: float = font.get_string_size(" ").x if line_width > 0.0 else 0.0
-			if line_width > 0.0 and line_width + space_width + word_width > width:
-				widest = max(widest, line_width)
-				line_width = word_width
-			else:
-				line_width += space_width + word_width
-		widest = max(widest, line_width)
-	return widest
+	return font.get_height() * scale * total_lines <= height
