@@ -2,6 +2,8 @@ extends Control
 
 const BOTTOM_NAVIGATION = preload("res://shared/ui/bottom_navigation.tscn")
 const TYPOGRAPHY = preload("res://shared/ui/typography.gd")
+const BADGE_CATALOG = preload("res://shared/progress/badge_catalog.gd")
+const NON_HOME_TITLE_SCALE: float = 1.10
 const SHIELD_ICON = preload("res://shared/ui/assets/icons/shield_icon.svg")
 const NAVY = Color("#071126")
 const PANEL = Color("#0b1735")
@@ -10,14 +12,8 @@ const WHITE = Color("#f3f7ff")
 const MUTED = Color("#a8b5d2")
 const CYAN = Color("#28e3dc")
 const BADGE_ICON_SCALE: float = 1.20
-const BADGES = [
-	{"name": "PRIVACIDADE", "level": "NÍVEL 2", "color": Color("#28dce4")},
-	{"name": "SEGURANÇA", "level": "NÍVEL 3", "color": Color("#83e74c")},
-	{"name": "COMUNICAÇÃO", "level": "NÍVEL 2", "color": Color("#328aff")},
-	{"name": "CONHECIMENTO", "level": "NÍVEL 1", "color": Color("#ffad39")},
-	{"name": "RESPEITO", "level": "NÍVEL 2", "color": Color("#ff6687")},
-	{"name": "ATENÇÃO", "level": "NÍVEL 1", "color": Color("#ad4fe8")}
-]
+const BADGES = BADGE_CATALOG.BADGES
+const LOCKED_BADGE_COLOR = Color("#778196")
 var ui: Dictionary = {}
 var badge_controls: Array = []
 var current_viewport_size := Vector2.ZERO
@@ -90,12 +86,14 @@ func _build_screen() -> void:
 		icon.texture = SHIELD_ICON
 		icon.expand = true
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.modulate = badge["color"]
+		icon.modulate = LOCKED_BADGE_COLOR
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(icon)
 		badge_item["icon"] = icon
-		badge_item["name"] = _new_label(badge["name"], badge["color"], "badge", Label.ALIGN_CENTER)
-		badge_item["level"] = _new_label(badge["level"], MUTED, "badge_level", Label.ALIGN_CENTER)
+		badge_item["name"] = _new_label(badge["name"], LOCKED_BADGE_COLOR, "badge", Label.ALIGN_CENTER)
+		badge_item["level"] = _new_label("NÍVEL 0", LOCKED_BADGE_COLOR, "badge_level", Label.ALIGN_CENTER)
+		badge_item["id"] = badge["id"]
+		badge_item["color"] = badge["color"]
 		badge_controls.append(badge_item)
 
 	ui["challenge_panel"] = _new_panel("WeeklyChallengePanel", Color("#191b4a"), Color("#383474"), 18)
@@ -279,30 +277,33 @@ func _layout_challenge(x: float, y: float, width: float, height: float, short_si
 func _place(control: Control, x: float, y: float, width: float, height: float, font_basis: float = 720.0) -> void:
 	var scale: float = 1.0
 	if control.has_meta("font_role"):
-		var font: Font = control.get_font("font")
+		var font: Font = typography.get_base_font(control)
 		var role: String = control.get_meta("font_role")
 		if font != null and typography.has_role(role):
 			scale = typography.get_target_height("body", font_basis) / font.get_height()
 			if not typography.is_uniform_body_role(role):
-				scale = min(typography.get_target_height(role, font_basis) / font.get_height(), _fit_text_scale(control, font, width, height))
+				var title_scale: float = NON_HOME_TITLE_SCALE if typography.is_title_role(role) else 1.0
+				var target_scale: float = typography.get_target_height(role, font_basis) * title_scale / font.get_height()
+				scale = min(target_scale, _fit_text_scale(control, font, width, height, target_scale))
+		typography.apply_font_scale(control, scale)
 	control.anchor_left = 0.0
 	control.anchor_top = 0.0
 	control.anchor_right = 0.0
 	control.anchor_bottom = 0.0
-	control.rect_scale = Vector2(scale, scale)
+	control.rect_scale = Vector2.ONE
 	control.margin_left = x
 	control.margin_top = y
-	control.margin_right = x + width / scale
-	control.margin_bottom = y + height / scale
+	control.margin_right = x + width
+	control.margin_bottom = y + height
 
 
-func _fit_text_scale(control: Control, font: Font, width: float, height: float) -> float:
+func _fit_text_scale(control: Control, font: Font, width: float, height: float, maximum_scale: float = 1.0) -> float:
 	var text: String = ""
 	if control is Label:
 		text = (control as Label).text
 	elif control is Button:
 		text = (control as Button).text
-	var scale: float = 1.0
+	var scale: float = maximum_scale
 	if control is Button:
 		var widest_line: float = 0.0
 		for line in text.split("\n"):
@@ -365,18 +366,29 @@ func _on_progress_changed(_state: Dictionary) -> void:
 
 
 func _refresh_progress_ui() -> void:
-	if progression_service == null:
-		return
-	var progress: Dictionary = progression_service.get_state()
-	var level: int = int(progress["level"])
-	var current_xp: int = int(progress["experience"])
-	var xp_required: int = progression_service.experience_per_level
-	var total_xp: int = progression_service.get_total_experience()
-	var item_count: int = progress["unlocked_items"].size()
-	ui["points"].text = progression_service.format_number(total_xp)
-	ui["support"].text = "Itens desbloqueados: %d" % item_count
-	ui["level_caption"].text = "NÍVEL %d" % level
-	ui["xp_value"].text = "%s / %s XP" % [progression_service.format_number(current_xp), progression_service.format_number(xp_required)]
+	if progression_service != null:
+		var progress: Dictionary = progression_service.get_state()
+		var level: int = int(progress["level"])
+		var current_xp: int = int(progress["experience"])
+		var xp_required: int = progression_service.experience_per_level
+		var total_xp: int = progression_service.get_total_experience()
+		var item_count: int = progress["unlocked_items"].size()
+		ui["points"].text = progression_service.format_number(total_xp)
+		ui["support"].text = "Itens desbloqueados: %d" % item_count
+		ui["level_caption"].text = "NÍVEL %d" % level
+		ui["xp_value"].text = "%s / %s XP" % [progression_service.format_number(current_xp), progression_service.format_number(xp_required)]
+	_refresh_badges()
+
+
+func _refresh_badges() -> void:
+	for badge in badge_controls:
+		var level: int = progression_service.get_badge_level(badge["id"]) if progression_service != null else 0
+		var unlocked: bool = level > 0
+		var color: Color = badge["color"] if unlocked else LOCKED_BADGE_COLOR
+		badge["icon"].modulate = color
+		badge["name"].add_color_override("font_color", color)
+		badge["level"].text = "NÍVEL %d" % level
+		badge["level"].add_color_override("font_color", color)
 
 
 func _on_tab_pressed(tab_name: String) -> void:

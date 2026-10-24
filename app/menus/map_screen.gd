@@ -2,6 +2,7 @@ extends Control
 
 const BOTTOM_NAVIGATION = preload("res://shared/ui/bottom_navigation.tscn")
 const TYPOGRAPHY = preload("res://shared/ui/typography.gd")
+const NON_HOME_TITLE_SCALE: float = 1.10
 const PORTRAIT_MAP_BACKGROUND_PATH = "res://shared/map/assets/mapa.png"
 const LANDSCAPE_MAP_BACKGROUND_PATH = "res://shared/map/assets/mapa_horizontal.png"
 const NAVY = Color("#071126")
@@ -205,30 +206,33 @@ func _load_background_for_orientation(landscape: bool) -> void:
 func _place(control: Control, x: float, y: float, width: float, height: float, font_basis: float = 720.0) -> void:
 	var scale: float = 1.0
 	if control.has_meta("font_role"):
-		var font: Font = control.get_font("font")
+		var font: Font = typography.get_base_font(control)
 		var role: String = control.get_meta("font_role")
 		if font != null and typography.has_role(role):
 			scale = typography.get_target_height("body", font_basis) / font.get_height()
 			if not typography.is_uniform_body_role(role):
-				scale = min(typography.get_target_height(role, font_basis) / font.get_height(), _fit_text_scale(control, font, width, height))
+				var title_scale: float = NON_HOME_TITLE_SCALE if typography.is_title_role(role) else 1.0
+				var target_scale: float = typography.get_target_height(role, font_basis) * title_scale / font.get_height()
+				scale = min(target_scale, _fit_text_scale(control, font, width, height, target_scale))
+		typography.apply_font_scale(control, scale)
 	control.anchor_left = 0.0
 	control.anchor_top = 0.0
 	control.anchor_right = 0.0
 	control.anchor_bottom = 0.0
-	control.rect_scale = Vector2(scale, scale)
+	control.rect_scale = Vector2.ONE
 	control.margin_left = x
 	control.margin_top = y
-	control.margin_right = x + width / scale
-	control.margin_bottom = y + height / scale
+	control.margin_right = x + width
+	control.margin_bottom = y + height
 
 
-func _fit_text_scale(control: Control, font: Font, width: float, height: float) -> float:
+func _fit_text_scale(control: Control, font: Font, width: float, height: float, maximum_scale: float = 1.0) -> float:
 	var text: String = ""
 	if control is Label:
 		text = (control as Label).text
 	elif control is Button:
 		text = (control as Button).text
-	var scale: float = 1.0
+	var scale: float = maximum_scale
 	if control is Button:
 		var widest_line: float = 0.0
 		for line in text.split("\n"):

@@ -5,6 +5,7 @@ const DAILY_LIMIT: int = 5
 
 var date_key: String = ""
 var answered_question_indices: Array = []
+var correct_question_indices: Array = []
 var last_error: String = ""
 var storage_path: String = SAVE_PATH
 var follows_system_date: bool = true
@@ -14,6 +15,7 @@ func load_progress(question_count: int, date_override: String = "") -> void:
 	follows_system_date = date_override.empty()
 	date_key = date_override if not date_override.empty() else _today_key()
 	answered_question_indices.clear()
+	correct_question_indices.clear()
 	last_error = ""
 	var file := File.new()
 	if not file.file_exists(storage_path):
@@ -53,6 +55,25 @@ func load_progress(question_count: int, date_override: String = "") -> void:
 			answered_question_indices.append(question_index)
 		if answered_question_indices.size() >= DAILY_LIMIT:
 			break
+	var stored_correct_indices = parsed.result.get("correct_question_indices", [])
+	if not stored_correct_indices is Array:
+		last_error = "A lista diária de acertos está inválida e não pôde ser verificada."
+		answered_question_indices.clear()
+		return
+	for value in stored_correct_indices:
+		if (typeof(value) != TYPE_REAL and typeof(value) != TYPE_INT):
+			last_error = "A lista diária salva contém um acerto inválido."
+			answered_question_indices.clear()
+			correct_question_indices.clear()
+			return
+		var question_index: int = int(value)
+		if not answered_question_indices.has(question_index) or question_index < 0 or question_index >= question_count:
+			last_error = "A lista diária de acertos contém uma pergunta inexistente ou não respondida."
+			answered_question_indices.clear()
+			correct_question_indices.clear()
+			return
+		if not correct_question_indices.has(question_index):
+			correct_question_indices.append(question_index)
 
 
 func get_answered_count() -> int:
@@ -64,14 +85,23 @@ func can_answer() -> bool:
 	return get_answered_count() < DAILY_LIMIT
 
 
-func record_answer(question_index: int, question_count: int) -> bool:
+func get_correct_count() -> int:
+	_sync_current_date()
+	return correct_question_indices.size()
+
+
+func record_answer(question_index: int, question_count: int, was_correct: bool = false) -> bool:
 	if not can_answer() or question_index < 0 or question_index >= question_count:
 		return false
 	if answered_question_indices.has(question_index):
 		return false
 	answered_question_indices.append(question_index)
+	if was_correct:
+		correct_question_indices.append(question_index)
 	if not _save_progress():
 		answered_question_indices.pop_back()
+		if was_correct:
+			correct_question_indices.pop_back()
 		return false
 	return true
 
@@ -84,7 +114,8 @@ func _save_progress() -> bool:
 		return false
 	var content: String = JSON.print({
 		"date": date_key,
-		"answered_question_indices": answered_question_indices
+		"answered_question_indices": answered_question_indices,
+		"correct_question_indices": correct_question_indices
 	})
 	file.store_string(content)
 	file.flush()
@@ -108,4 +139,5 @@ func _sync_current_date() -> void:
 	if not date_key.empty() and current_date != date_key:
 		date_key = current_date
 		answered_question_indices.clear()
+		correct_question_indices.clear()
 		last_error = ""

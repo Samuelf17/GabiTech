@@ -56,7 +56,7 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 	_check(header_rect.end.y <= prompt_rect.position.y, "map title and prompt panels do not overlap at %s" % viewport_size)
 	_check(screen.ui["prompt"].text == "Escolha um bairro para aceitar a missão!", "mission prompt stays present at %s" % viewport_size)
 	var typography = TYPOGRAPHY_SCRIPT.new()
-	_check(is_equal_approx(typography.get_role_ratio("body"), TYPOGRAPHY_SCRIPT.BASE_BODY_RATIO), "map typography uses the shared greeting text base")
+	_check(is_equal_approx(typography.get_role_ratio("body"), TYPOGRAPHY_SCRIPT.BASE_BODY_RATIO * TYPOGRAPHY_SCRIPT.BODY_SCALE_ADJUSTMENT), "map typography uses the adjusted shared greeting text base")
 	_check(is_equal_approx(typography.get_role_ratio("prompt"), typography.get_role_ratio("body")), "map prompt matches the greeting body size")
 	_check(is_equal_approx(typography.get_role_ratio("district"), typography.get_role_ratio("body")), "district names match the greeting body size")
 	_check(is_equal_approx(typography.get_role_ratio("district_progress"), typography.get_role_ratio("body")), "district progress matches the greeting body size")
@@ -80,6 +80,9 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		_check(screen.ui[district["id"] + "_progress"].visible, "%s progress is visible at %s" % [district["id"], viewport_size])
 		_check(typography.has_role(screen.ui[district["id"] + "_title"].get_meta("font_role")), "%s title uses shared typography" % district["id"])
 		_check(typography.has_role(screen.ui[district["id"] + "_progress"].get_meta("font_role")), "%s progress uses shared typography" % district["id"])
+	var title: Control = screen.ui["screen_title"]
+	screen._place(title, 0.0, 0.0, 10000.0, 10000.0, 720.0)
+	_check(abs(title.get_font("font").get_height() - typography.get_target_height(title.get_meta("font_role"), 720.0) * 1.10) <= 1.0, "map screen title is enlarged by ten percent")
 	for district_id in ["privacy", "communication", "security", "respect"]:
 		var icon: TextureRect = screen.ui[district_id + "_icon"]
 		_check(icon.texture != null and icon.visible, "%s district icon loads and is visible at %s" % [district_id, viewport_size])

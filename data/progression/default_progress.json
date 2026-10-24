@@ -2,5 +2,17 @@
 	"schema_version": 1,
 	"level": 1,
 	"experience": 0,
-	"unlocked_items": []
+	"unlocked_items": [],
+	"badge_levels": {
+		"privacy": 0,
+		"security": 0,
+		"communication": 0,
+		"knowledge": 0,
+		"respect": 0,
+		"attention": 0
+	},
+	"quiz_correct_answers": 0,
+	"processed_quiz_answer_ids": [],
+	"processed_quiz_sessions": [],
+	"pending_badge_notifications": []
 }

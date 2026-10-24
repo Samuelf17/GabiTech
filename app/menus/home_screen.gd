@@ -58,12 +58,6 @@ func _build_screen() -> void:
 
 	ui["progress_panel"] = _new_panel("ProgressPanel", PANEL, Color("#26385e"), 18)
 	ui["level_badge"] = _new_panel("LevelBadge", Color("#132345"), Color("#16c7d0"), 56)
-	var level_ring := Control.new()
-	level_ring.name = "LevelProgressRing"
-	level_ring.set_script(preload("res://shared/progress/progress_ring.gd"))
-	level_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(level_ring)
-	ui["level_ring"] = level_ring
 	ui["level_caption"] = _new_label("NÍVEL", MUTED, "caption", Label.ALIGN_CENTER)
 	ui["level_number"] = _new_label("1", WHITE, "display_number", Label.ALIGN_CENTER)
 	ui["progress_title"] = _new_label("NÍVEL", MUTED, "caption")
@@ -165,8 +159,6 @@ func _place_progress(x: float, y: float, width: float, height: float, font_basis
 	var badge_x: float = x + padding
 	var badge_y: float = y + (height - badge_size) * 0.5
 	_place(ui["level_badge"], badge_x, badge_y, badge_size, badge_size)
-	var ring_size: float = badge_size * 1.18
-	_place(ui["level_ring"], badge_x - (ring_size - badge_size) * 0.5, badge_y - (ring_size - badge_size) * 0.5, ring_size, ring_size)
 	_place(ui["level_caption"], badge_x + 5, y + height * 0.5 - badge_size * 0.27, badge_size - 10, badge_size * 0.23, font_basis)
 	_place(ui["level_number"], badge_x + 5, y + height * 0.5 - badge_size * 0.02, badge_size - 10, badge_size * 0.45, font_basis)
 
@@ -197,26 +189,27 @@ func _place(control: Control, x: float, y: float, width: float, height: float, f
 	var scale: float = 1.0
 	if control.has_meta("font_role"):
 		var role: String = control.get_meta("font_role")
+		var font: Font = typography.get_base_font(control)
 		if typography.is_uniform_body_role(role):
-			var font: Font = control.get_font("font")
 			if font != null:
 				scale = typography.get_target_height("body", font_basis) / font.get_height()
 		else:
 			scale = _adaptive_font_scale(control, font_basis, width, height)
+		typography.apply_font_scale(control, scale)
 	control.anchor_left = 0.0
 	control.anchor_top = 0.0
 	control.anchor_right = 0.0
 	control.anchor_bottom = 0.0
-	control.rect_scale = Vector2(scale, scale)
+	control.rect_scale = Vector2.ONE
 	control.margin_left = x
 	control.margin_top = y
-	control.margin_right = x + width / scale
-	control.margin_bottom = y + height / scale
+	control.margin_right = x + width
+	control.margin_bottom = y + height
 
 
 func _adaptive_font_scale(control: Control, font_basis: float, width: float, height: float) -> float:
 	var role: String = control.get_meta("font_role")
-	var font: Font = control.get_font("font")
+	var font: Font = typography.get_base_font(control)
 	if font == null or not typography.has_role(role):
 		return 1.0
 	var text: String = ""
@@ -307,7 +300,6 @@ func _refresh_progress_ui() -> void:
 	var current_xp: int = int(progress["experience"])
 	var xp_required: int = progression_service.experience_per_level
 	ui["level_number"].text = str(progress["level"])
-	ui["level_ring"].call("set_progress_ratio", progression_service.get_progress_ratio())
 	ui["progress_value"].text = "%s / %s XP" % [progression_service.format_number(current_xp), progression_service.format_number(xp_required)]
 	ui["progress_hint"].text = "Faltam %s XP para o próximo nível" % progression_service.format_number(xp_required - current_xp)
 

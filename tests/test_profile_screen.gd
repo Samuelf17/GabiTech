@@ -25,8 +25,10 @@ func _run_tests() -> void:
 	yield(self, "idle_frame")
 	for viewport_size in [Vector2(720, 1280), Vector2(1280, 720), Vector2(960, 540), Vector2(360, 800), Vector2(320, 568)]:
 		_test_layout(screen, viewport_size)
+	_test_badge_unlock_display(screen)
 	_test_progress_values(screen)
 	_test_tabs(screen)
+	_remove_progress_test_file("user://screen_progress_test.json")
 	if failures.empty():
 		print("Profile screen tests passed")
 		quit(0)
@@ -57,7 +59,10 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		_check(_fits_viewport(screen.ui[key], viewport_size), "%s stays inside the viewport at %s" % [key, viewport_size])
 	_check(screen.ui["hero_shield"].texture == SHIELD_ICON, "guardian emblem uses the temporary shield asset")
 	var typography = TYPOGRAPHY_SCRIPT.new()
-	_check(is_equal_approx(typography.get_role_ratio("body"), TYPOGRAPHY_SCRIPT.BASE_BODY_RATIO), "profile typography uses the greeting text as its shared base")
+	_check(is_equal_approx(typography.get_role_ratio("body"), TYPOGRAPHY_SCRIPT.BASE_BODY_RATIO * TYPOGRAPHY_SCRIPT.BODY_SCALE_ADJUSTMENT), "profile typography uses the adjusted greeting text base")
+	var profile_title: Control = screen.ui["header"]
+	screen._place(profile_title, 0.0, 0.0, 10000.0, 10000.0, 720.0)
+	_check(abs(profile_title.get_font("font").get_height() - typography.get_target_height(profile_title.get_meta("font_role"), 720.0) * 1.10) <= 1.0, "profile screen title is enlarged by ten percent")
 	_check(is_equal_approx(PROFILE_SCREEN_SCRIPT.BADGE_ICON_SCALE, 1.20), "profile badge icons are 20% larger than their current size")
 	for key in ["header", "points_label", "points", "support", "level_caption", "xp_value", "challenge_title", "challenge_text", "challenge_count"]:
 		_check(typography.has_role(screen.ui[key].get_meta("font_role")), "%s uses the shared typography scale" % key)
@@ -67,6 +72,8 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		_check(typography.has_role(badge["name"].get_meta("font_role")), "%s name uses shared typography" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(typography.has_role(badge["level"].get_meta("font_role")), "%s level uses shared typography" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(badge["icon"].texture == SHIELD_ICON, "%s uses the temporary shield icon" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
+		_check(badge["level"].text == "NÍVEL 0", "%s starts at level zero" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
+		_check(badge["icon"].modulate == PROFILE_SCREEN_SCRIPT.LOCKED_BADGE_COLOR, "%s starts grayscale" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(_fits_viewport(badge["icon"], viewport_size), "%s badge icon stays inside the viewport at %s" % [PROFILE_SCREEN_SCRIPT.BADGES[index]["name"], viewport_size])
 		var previous_size: float = badge["icon"].get_meta("size_before_current_increase")
 		_check(is_equal_approx(badge["icon"].rect_size.x, previous_size * PROFILE_SCREEN_SCRIPT.BADGE_ICON_SCALE), "%s badge artwork is enlarged by 20%% at %s" % [PROFILE_SCREEN_SCRIPT.BADGES[index]["name"], viewport_size])
@@ -77,6 +84,19 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		_check(screen.ui["tabs"][tab_name].focus_mode == Control.FOCUS_ALL, "%s tab supports focus navigation" % tab_name)
 		_check(typography.has_role(screen.ui["tabs"][tab_name].get_meta("font_role")), "%s tab uses shared typography" % tab_name)
 		_check(_fits_viewport(screen.ui["tabs"][tab_name], viewport_size), "%s tab stays inside the viewport at %s" % [tab_name, viewport_size])
+
+
+func _test_badge_unlock_display(screen) -> void:
+	for index in range(3):
+		_check(progression.record_quiz_correct_answer("profile_badge_test:%d" % index), "profile test records a correct quiz answer")
+	var knowledge_badge: Dictionary = screen.badge_controls[3]
+	_check(knowledge_badge["id"] == "knowledge", "knowledge badge is linked to its progress identifier")
+	_check(knowledge_badge["level"].text == "NÍVEL 1", "knowledge badge shows level one after three correct answers")
+	_check(knowledge_badge["icon"].modulate == knowledge_badge["color"], "knowledge badge becomes colored when unlocked")
+	for index in [0, 1, 2, 4, 5]:
+		var locked_badge: Dictionary = screen.badge_controls[index]
+		_check(locked_badge["level"].text == "NÍVEL 0", "%s remains at level zero without an unlock rule" % locked_badge["id"])
+		_check(locked_badge["icon"].modulate == PROFILE_SCREEN_SCRIPT.LOCKED_BADGE_COLOR, "%s remains grayscale without an unlock rule" % locked_badge["id"])
 
 
 func _test_tabs(screen) -> void:
@@ -130,6 +150,7 @@ func _fits_viewport(control: Control, viewport_size: Vector2) -> bool:
 
 func _setup_progression() -> void:
 	progression = get_root().get_node("Progression")
+	_remove_progress_test_file("user://screen_progress_test.json")
 	progression.set("storage_path", "user://screen_progress_test.json")
 	progression.load_progress()
 

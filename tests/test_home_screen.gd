@@ -49,7 +49,8 @@ func _test_layout(screen, viewport_size: Vector2, layout_name: String) -> void:
 	screen.rect_size = viewport_size
 	screen._layout_screen(viewport_size)
 
-	for key in ["start", "greeting_panel", "progress_panel", "level_ring", "mascot"]:
+	_check(not screen.ui.has("level_ring"), "%s: level badge has no surrounding progress ring" % layout_name)
+	for key in ["start", "greeting_panel", "progress_panel", "level_badge", "mascot"]:
 		var control: Control = screen.ui[key]
 		_check(control.visible, "%s: %s is visible" % [layout_name, key])
 		_check(control.rect_size.x > 0.0 and control.rect_size.y > 0.0, "%s: %s has positive size" % [layout_name, key])
@@ -89,18 +90,18 @@ func _test_layout(screen, viewport_size: Vector2, layout_name: String) -> void:
 
 func _test_adaptive_font_sizes(screen) -> void:
 	screen._layout_screen(Vector2(720, 1280))
-	var large_portrait_scale: float = screen.ui["brand_top"].rect_scale.x
+	var large_portrait_size: float = screen.ui["brand_top"].get_font("font").get_height()
 	screen._layout_screen(Vector2(360, 800))
-	var narrow_portrait_scale: float = screen.ui["brand_top"].rect_scale.x
+	var narrow_portrait_size: float = screen.ui["brand_top"].get_font("font").get_height()
 	screen._layout_screen(Vector2(1280, 720))
-	var tv_landscape_scale: float = screen.ui["brand_top"].rect_scale.x
+	var tv_landscape_size: float = screen.ui["brand_top"].get_font("font").get_height()
 	screen._layout_screen(Vector2(960, 540))
-	var compact_landscape_scale: float = screen.ui["brand_top"].rect_scale.x
-	_check(narrow_portrait_scale < large_portrait_scale, "font size decreases with a smaller portrait viewport")
-	_check(compact_landscape_scale < tv_landscape_scale, "font size decreases with a smaller landscape viewport")
-	_check(narrow_portrait_scale > 0.0 and compact_landscape_scale > 0.0, "adaptive font sizes remain positive in portrait and landscape")
+	var compact_landscape_size: float = screen.ui["brand_top"].get_font("font").get_height()
+	_check(narrow_portrait_size < large_portrait_size, "font size decreases with a smaller portrait viewport")
+	_check(compact_landscape_size < tv_landscape_size, "font size decreases with a smaller landscape viewport")
+	_check(narrow_portrait_size > 0.0 and compact_landscape_size > 0.0, "adaptive font sizes remain positive in portrait and landscape")
 	var typography = TYPOGRAPHY_SCRIPT.new()
-	_check(is_equal_approx(typography.get_role_ratio("body"), TYPOGRAPHY_SCRIPT.BASE_BODY_RATIO), "greeting message remains the shared typography base")
+	_check(is_equal_approx(typography.get_role_ratio("body"), TYPOGRAPHY_SCRIPT.BASE_BODY_RATIO * TYPOGRAPHY_SCRIPT.BODY_SCALE_ADJUSTMENT), "greeting message keeps the shared base after the three percent reduction")
 	_check(is_equal_approx(typography.get_role_ratio("navigation"), typography.get_role_ratio("body")), "shared menu typography matches the greeting body size")
 	_check(typography.is_title_role("brand_title"), "main brand name remains a title")
 	_check(is_equal_approx(typography.get_role_ratio("brand"), TYPOGRAPHY_SCRIPT.BASE_BODY_RATIO * TYPOGRAPHY_SCRIPT.ROLE_MULTIPLIERS["brand"]), "brand icon keeps its shared role")
@@ -112,17 +113,16 @@ func _test_adaptive_font_sizes(screen) -> void:
 	screen._layout_screen(Vector2(720, 1280))
 	var navigation = screen.ui["navigation"]
 	navigation.layout_for_viewport(Vector2(720, 1280))
-	var large_nav_label_scale: float = navigation.buttons["home"].rect_scale.x
+	var large_nav_label_size: float = navigation.labels["home"].get_font("font").get_height()
 	screen._layout_screen(Vector2(320, 568))
 	navigation.layout_for_viewport(Vector2(320, 568))
-	var compact_nav_label_scale: float = navigation.buttons["home"].rect_scale.x
-	_check(compact_nav_label_scale < large_nav_label_scale, "shared bottom menu font adapts to a compact viewport")
+	var compact_nav_label_size: float = navigation.labels["home"].get_font("font").get_height()
+	_check(compact_nav_label_size < large_nav_label_size, "shared bottom menu font adapts to a compact viewport")
 
 
 func _test_progress_values(screen) -> void:
 	var progress: Dictionary = progression.get_state()
 	_check(screen.ui["level_number"].text == str(progress["level"]), "home level number comes from saved progress")
-	_check(abs(screen.ui["level_ring"].get("progress_ratio") - progression.get_progress_ratio()) < 0.0001, "home level ring reflects saved XP progress")
 	_check(screen.ui["progress_value"].text == "%s / %s XP" % [progression.format_number(progress["experience"]), progression.format_number(progression.experience_per_level)], "home XP value comes from saved progress")
 	_check(screen.ui["progress_hint"].text == "Faltam %s XP para o próximo nível" % progression.format_number(progression.experience_per_level - progress["experience"]), "home XP hint comes from saved progress")
 	var original_path: String = progression.storage_path
@@ -131,12 +131,11 @@ func _test_progress_values(screen) -> void:
 	progression.storage_path = test_path
 	progression.load_progress()
 	progression.add_experience(500)
-	_check(abs(screen.ui["level_ring"].get("progress_ratio") - 0.25) < 0.0001, "home level ring updates after a partial XP change")
+	_check(screen.ui["progress_value"].text == "500 / 2.000 XP", "home XP value updates after a partial XP change")
 	progression.add_experience(1500)
 	_check(screen.ui["level_number"].text == "2", "home level display updates after a level-up signal")
 	_check(screen.ui["progress_value"].text == "0 / 2.000 XP", "home XP display updates after a level-up signal")
 	_check(abs(progression.get_progress_ratio()) < 0.0001, "level-up resets the XP progress ratio")
-	_check(abs(screen.ui["level_ring"].get("progress_ratio")) < 0.0001, "level-up resets the home level ring")
 	progression.storage_path = original_path
 	progression.load_progress()
 	_remove_progress_test_file(test_path)
@@ -154,7 +153,7 @@ func _test_landscape_greeting_hierarchy(screen) -> void:
 		screen._layout_screen(viewport_size)
 		var title: Control = screen.ui["greeting_title"]
 		var message: Control = screen.ui["greeting_text"]
-		_check(title.rect_scale.x > message.rect_scale.x, "landscape greeting title remains distinct from its message at %s" % viewport_size)
+		_check(title.get_font("font").get_height() > message.get_font("font").get_height(), "landscape greeting title remains distinct from its message at %s" % viewport_size)
 		_check(_text_fits_control(title), "landscape greeting title fits at %s" % viewport_size)
 		_check(_text_fits_control(message), "landscape greeting message fits at %s" % viewport_size)
 
@@ -223,14 +222,13 @@ func _text_fits_control(control: Control) -> bool:
 	if text.empty():
 		return true
 	var font: Font = control.get_font("font")
-	var scale: float = control.rect_scale.x
 	if control is Button:
 		var max_line_width: float = 0.0
 		for line in text.split("\n"):
 			max_line_width = max(max_line_width, font.get_string_size(line).x)
-		return max_line_width * scale <= control.rect_size.x * scale + 1.0
+		return max_line_width <= control.rect_size.x + 1.0
 	var wrapped_size: Vector2 = font.get_wordwrap_string_size(text, control.rect_size.x)
-	return wrapped_size.x * scale <= control.rect_size.x * scale + 1.0 and wrapped_size.y * scale <= control.rect_size.y * scale + 1.0
+	return wrapped_size.x <= control.rect_size.x + 1.0 and wrapped_size.y <= control.rect_size.y + 1.0
 
 
 func _test_action_feedback(screen) -> void:

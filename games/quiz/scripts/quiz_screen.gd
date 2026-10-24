@@ -4,6 +4,7 @@ const TYPOGRAPHY = preload("res://shared/ui/typography.gd")
 const BOTTOM_NAVIGATION = preload("res://shared/ui/bottom_navigation.tscn")
 const QUESTION_REPOSITORY = preload("res://games/quiz/scripts/quiz_question_repository.gd")
 const DAILY_PROGRESS = preload("res://games/quiz/scripts/quiz_daily_progress.gd")
+const BADGE_UNLOCK_POPUP = preload("res://shared/ui/badge_unlock_popup.gd")
 const SHIELD_ICON = preload("res://shared/ui/assets/icons/shield_icon.svg")
 const ARROW_BACK_ICON = preload("res://shared/ui/assets/icons/arrow_back_icon.svg")
 const NAVY = Color("#071126")
@@ -15,7 +16,8 @@ const MUTED = Color("#9aa9ce")
 const GREEN = Color("#32bb78")
 const RED = Color("#e95b63")
 const ANSWER_TEXT = Color("#000000")
-const DAILY_LIMIT: int = 5
+const DAILY_LIMIT: int = DAILY_PROGRESS.DAILY_LIMIT
+const NON_HOME_TITLE_SCALE: float = 1.10
 const MISSION_TITLE_FONT_SCALE: float = 1.15
 const EXPLANATION_FONT_SCALE: float = 1.25
 
@@ -28,11 +30,15 @@ var current_question: Dictionary = {}
 var current_question_index: int = -1
 var selected_option: int = -1
 var answer_submitted: bool = false
+var last_answer_was_correct: bool = false
 var current_viewport_size := Vector2.ZERO
 var explanation_timer: Timer
+var progression_service: Node
+var badge_popup: CanvasLayer
 
 
 func _ready() -> void:
+	progression_service = get_node_or_null("/root/Progression")
 	_build_screen()
 	get_viewport().connect("size_changed", self, "_on_viewport_size_changed")
 	_layout_screen(get_viewport_rect().size)
@@ -43,10 +49,12 @@ func _ready() -> void:
 	if not daily_progress.last_error.empty():
 		_show_error(daily_progress.last_error)
 		return
+	_reconcile_correct_answers()
 	if daily_progress.can_answer():
 		_show_next_question()
 	else:
 		_show_daily_completion()
+	call_deferred("_show_next_pending_badge_notification")
 
 
 func _build_screen() -> void:
@@ -150,8 +158,9 @@ func _build_screen() -> void:
 	ui["next_prompt_no"].connect("pressed", self, "_on_back_pressed")
 	remove_child(ui["next_prompt_title"])
 	ui["next_prompt"].add_child(ui["next_prompt_title"])
-	ui["next_prompt"].add_child(ui["next_prompt_yes"])
 	ui["next_prompt"].add_child(ui["next_prompt_no"])
+	ui["next_prompt"].add_child(ui["next_prompt_yes"])
+	ui["next_prompt_no"].visible = false
 	ui["next_prompt"].visible = false
 
 	ui["explanation_overlay"] = Control.new()
@@ -282,8 +291,12 @@ func _layout_next_prompt(viewport_size: Vector2, margin: float) -> void:
 	var button_y: float = prompt_height * 0.54
 	var button_gap: float = margin * 0.45
 	var button_width: float = (width - margin * 2.0 - button_gap * 3.0) / 2.0
-	_place(ui["next_prompt_yes"], button_gap, button_y, button_width, prompt_height * 0.34, min(width, height))
-	_place(ui["next_prompt_no"], button_gap * 2.0 + button_width, button_y, button_width, prompt_height * 0.34, min(width, height))
+	if ui["next_prompt_no"].visible:
+		_place(ui["next_prompt_no"], button_gap, button_y, button_width, prompt_height * 0.34, min(width, height))
+		_place(ui["next_prompt_yes"], button_gap * 2.0 + button_width, button_y, button_width, prompt_height * 0.34, min(width, height))
+	else:
+		var combined_button_width: float = button_width * 2.0 + button_gap
+		_place(ui["next_prompt_yes"], button_gap, button_y, combined_button_width, prompt_height * 0.34, min(width, height))
 
 
 func _layout_explanation(viewport_size: Vector2, margin: float) -> void:
@@ -309,6 +322,7 @@ func _show_next_question() -> void:
 	current_question = repository.questions[current_question_index]
 	selected_option = -1
 	answer_submitted = false
+	last_answer_was_correct = false
 	ui["mission_title"].text = "MISSÃO: " + String(current_question["tema"]).to_upper()
 	ui["progress_text"].text = "PERGUNTA %d DE %d" % [daily_progress.get_answered_count() + 1, DAILY_LIMIT]
 	for progress_index in range(DAILY_LIMIT):
@@ -363,11 +377,17 @@ func _on_option_pressed(option_index: int) -> void:
 func _on_confirm_pressed() -> void:
 	if answer_submitted or selected_option < 0:
 		return
-	if not daily_progress.record_answer(current_question_index, repository.questions.size()):
+	var correct_index: int = int(current_question["respostaCorreta"])
+	var was_correct: bool = selected_option == correct_index
+	last_answer_was_correct = was_correct
+	if not daily_progress.record_answer(current_question_index, repository.questions.size(), was_correct):
 		ui["status"].text = daily_progress.last_error if not daily_progress.last_error.empty() else "Não foi possível registrar sua resposta. Tente novamente."
 		return
 	answer_submitted = true
-	var correct_index: int = int(current_question["respostaCorreta"])
+	if was_correct:
+		_record_correct_answer(current_question_index)
+	if daily_progress.get_answered_count() >= DAILY_LIMIT:
+		_finalize_quiz_session()
 	for index in range(answer_rows.size()):
 		var row: Dictionary = answer_rows[index]
 		var button: Button = row["button"]
@@ -391,6 +411,7 @@ func _on_confirm_pressed() -> void:
 		ui["explanation_close"].grab_focus()
 	else:
 		_show_next_prompt()
+		_show_next_pending_badge_notification()
 
 
 func _on_explanation_overlay_input(event: InputEvent) -> void:
@@ -425,15 +446,19 @@ func _dismiss_explanation() -> void:
 
 func _show_next_prompt() -> void:
 	var has_more_questions: bool = daily_progress.can_answer()
-	ui["next_prompt_title"].text = (
-		"Quer ir para a próxima questão?"
-		if has_more_questions
-		else "Você respondeu todas as perguntas de hoje.\nDeseja ver a conclusão?"
-	)
-	ui["next_prompt_yes"].text = "SIM, CONTINUAR" if has_more_questions else "VER CONCLUSÃO"
+	if has_more_questions:
+		ui["next_prompt_title"].text = "Acertou!!!" if last_answer_was_correct else "Que pena!"
+		ui["next_prompt_title"].add_color_override("font_color", GREEN if last_answer_was_correct else RED)
+		ui["next_prompt_yes"].text = "SIM, CONTINUAR"
+	else:
+		ui["next_prompt_title"].text = "Você respondeu todas as perguntas de hoje.\nDeseja ver a conclusão?"
+		ui["next_prompt_title"].add_color_override("font_color", WHITE)
+		ui["next_prompt_yes"].text = "Continuar"
+	ui["next_prompt_no"].visible = has_more_questions
 	ui["next_prompt"].visible = true
 	_layout_screen(current_viewport_size)
 	ui["next_prompt_yes"].grab_focus()
+	_show_next_pending_badge_notification()
 
 
 func _set_answer_feedback_style(button: Button, color: Color) -> void:
@@ -456,6 +481,7 @@ func _on_next_prompt_yes() -> void:
 
 
 func _show_daily_completion() -> void:
+	var points_saved: bool = _finalize_quiz_session()
 	ui["next_prompt"].visible = false
 	ui["question"].visible = false
 	ui["instruction"].visible = false
@@ -466,7 +492,11 @@ func _show_daily_completion() -> void:
 	for row in answer_rows:
 		row["button"].visible = false
 	ui["completion_title"].text = "MISSÃO CONCLUÍDA POR HOJE"
-	ui["completion_message"].text = "As perguntas de hoje foram respondidas.\nVolte amanhã para mais!"
+	ui["completion_message"].text = (
+		"As perguntas de hoje foram respondidas.\nVolte amanhã para mais!"
+		if points_saved
+		else "Não foi possível salvar os pontos agora.\nReabra a missão para tentar novamente."
+	)
 	ui["completion_title"].visible = true
 	ui["completion_message"].visible = true
 	ui["back"].visible = false
@@ -475,6 +505,52 @@ func _show_daily_completion() -> void:
 	for index in range(DAILY_LIMIT):
 		ui["progress_segments"][index].add_stylebox_override("panel", _stylebox(CYAN, CYAN, 12, 0))
 	ui["navigation"].buttons["missions"].grab_focus()
+	_show_next_pending_badge_notification()
+
+
+func _record_correct_answer(question_index: int) -> void:
+	if progression_service == null:
+		push_error("O serviço de progressão não está disponível; o acerto será reconciliado ao reabrir o quiz.")
+		return
+	var answer_id: String = "%s:%d" % [daily_progress.date_key, question_index]
+	if not progression_service.record_quiz_correct_answer(answer_id):
+		push_error("Não foi possível salvar o acerto do quiz; ele será reconciliado ao reabrir a missão.")
+
+
+func _reconcile_correct_answers() -> void:
+	if progression_service == null:
+		return
+	for question_index in daily_progress.correct_question_indices:
+		_record_correct_answer(int(question_index))
+
+
+func _finalize_quiz_session() -> bool:
+	if progression_service == null:
+		return false
+	return progression_service.complete_quiz_session(daily_progress.date_key, daily_progress.get_correct_count())
+
+
+func _show_next_pending_badge_notification() -> void:
+	if progression_service == null or badge_popup != null:
+		return
+	var notifications: Array = progression_service.get_pending_badge_notifications()
+	if notifications.empty():
+		return
+	badge_popup = BADGE_UNLOCK_POPUP.new()
+	badge_popup.connect("dismissed", self, "_on_badge_popup_dismissed")
+	add_child(badge_popup)
+	if not badge_popup.present(notifications[0]):
+		badge_popup.queue_free()
+		badge_popup = null
+
+
+func _on_badge_popup_dismissed(event_id: String) -> void:
+	var acknowledged: bool = progression_service != null and progression_service.acknowledge_badge_notification(event_id)
+	if badge_popup != null:
+		badge_popup.queue_free()
+		badge_popup = null
+	if acknowledged:
+		call_deferred("_show_next_pending_badge_notification")
 
 
 func _show_error(message: String) -> void:
@@ -561,7 +637,7 @@ func _stylebox(fill: Color, border: Color, radius: int, border_width: int) -> St
 
 
 func _get_common_content_font_scale(font_basis: float) -> float:
-	var content_font: Font = ui["question"].get_font("font")
+	var content_font: Font = typography.get_base_font(ui["question"])
 	if content_font == null:
 		return 1.0
 	return typography.get_target_height("body", font_basis) / content_font.get_height()
@@ -578,7 +654,7 @@ func _place(
 ) -> void:
 	var scale: float = 1.0
 	if control.has_meta("font_role"):
-		var font: Font = control.get_font("font")
+		var font: Font = typography.get_base_font(control)
 		var role: String = control.get_meta("font_role")
 		if font != null and typography.has_role(role):
 			var font_scale: float = 1.0
@@ -588,29 +664,33 @@ func _place(
 			if typography.is_uniform_body_role(role) and not control.has_meta("title_text"):
 				target_role = "body"
 			var target_height: float = typography.get_target_height(target_role, font_basis) * font_scale
+			if control.has_meta("title_text") or typography.is_title_role(role):
+				target_height *= NON_HOME_TITLE_SCALE
 			scale = target_height / font.get_height()
 			if not typography.is_uniform_body_role(role) or control.has_meta("title_text"):
-				scale = min(scale, _fit_text_scale(control, font, width, height))
+				scale = min(scale, _fit_text_scale(control, font, width, height, scale))
 	if scale_override > 0.0:
 		scale = scale_override
+	if control.has_meta("font_role"):
+		typography.apply_font_scale(control, scale)
 	control.anchor_left = 0.0
 	control.anchor_top = 0.0
 	control.anchor_right = 0.0
 	control.anchor_bottom = 0.0
-	control.rect_scale = Vector2(scale, scale)
+	control.rect_scale = Vector2.ONE
 	control.margin_left = x
 	control.margin_top = y
-	control.margin_right = x + width / scale
-	control.margin_bottom = y + height / scale
+	control.margin_right = x + width
+	control.margin_bottom = y + height
 
 
-func _fit_text_scale(control: Control, font: Font, width: float, height: float) -> float:
+func _fit_text_scale(control: Control, font: Font, width: float, height: float, maximum_scale: float = 1.0) -> float:
 	var text: String = ""
 	if control is Label:
 		text = (control as Label).text
 	elif control is Button:
 		text = (control as Button).text
-	return _fit_text_string_scale(text, font, width, height, 1.0)
+	return _fit_text_string_scale(text, font, width, height, maximum_scale)
 
 
 func _fit_text_string_scale(

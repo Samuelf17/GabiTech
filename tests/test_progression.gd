@@ -49,6 +49,7 @@ func _run_tests() -> void:
 	_check(reloaded.state["level"] == 4 and reloaded.state["experience"] == 500, "saved level and XP load from JSON")
 	_check(reloaded.state["unlocked_items"].size() == 3, "unlocked item IDs load from JSON")
 	_check(_saved_json_is_valid(), "runtime save is valid JSON")
+	_test_quiz_rewards(progression, reloaded)
 	_test_invalid_saved_data(progression)
 	_test_failed_save(progression)
 
@@ -60,6 +61,58 @@ func _run_tests() -> void:
 		for failure in failures:
 			push_error(failure)
 		quit(1)
+
+
+func _test_quiz_rewards(progression: Node, reloaded: Node) -> void:
+	_check(progression.get_badge_level("knowledge") == 0, "knowledge badge starts locked at level zero")
+	_check(progression.get_badge_level("privacy") == 0, "badges without unlock rules stay at level zero")
+	for index in range(3):
+		_check(progression.record_quiz_correct_answer("2026-02-01:%d" % index), "correct quiz answer %d is persisted" % (index + 1))
+	_check(progression.state["quiz_correct_answers"] == 3, "correct quiz answers accumulate across sessions")
+	_check(progression.get_badge_level("knowledge") == 1, "three correct quiz answers unlock knowledge level one")
+	var notifications: Array = progression.get_pending_badge_notifications()
+	_check(notifications.size() == 1 and notifications[0]["kind"] == "unlocked", "first knowledge level queues an unlock notification")
+	_check(progression.record_quiz_correct_answer("2026-02-01:2"), "replayed answer event is accepted idempotently")
+	_check(progression.state["quiz_correct_answers"] == 3, "replayed correct answer is not counted twice")
+	_check(progression.complete_quiz_session("2026-02-01", 3), "finished quiz session grants its XP")
+	_check(progression.get_total_experience() == 6800, "each correct answer grants 100 XP after session completion")
+	_check(progression.complete_quiz_session("2026-02-01", 3), "finished quiz session can be retried safely")
+	_check(progression.get_total_experience() == 6800, "retrying a finished session does not grant duplicate XP")
+	for index in range(3, 6):
+		_check(progression.record_quiz_correct_answer("2026-02-02:%d" % index), "additional correct answer is persisted")
+	_check(progression.get_badge_level("knowledge") == 1, "three more answers bring the total to six without raising knowledge to level two")
+	for index in range(6, 9):
+		_check(progression.record_quiz_correct_answer("2026-02-03:%d" % index), "correct answer toward the nine-answer threshold is persisted")
+	_check(progression.get_badge_level("knowledge") == 2, "nine total correct answers raise knowledge to level two")
+	notifications = progression.get_pending_badge_notifications()
+	_check(notifications.size() == 2 and notifications[1]["kind"] == "level_up", "higher badge level queues a level-up notification")
+	_check(progression.acknowledge_badge_notification("knowledge:1"), "unlock popup can be acknowledged")
+	_check(progression.get_pending_badge_notifications()[0]["level"] == 2, "level-up popup stays queued after the unlock popup")
+	reloaded.load_progress()
+	_check(reloaded.get_badge_level("knowledge") == 2, "badge level persists after reloading progression")
+	_check(reloaded.get_pending_badge_notifications().size() == 1, "unseen badge notification persists after reloading progression")
+	for index in range(9, 17):
+		_check(progression.record_quiz_correct_answer("2026-02-04:%d" % index), "correct answer before the level-three threshold is persisted")
+	_check(progression.get_badge_level("knowledge") == 2, "17 total correct answers do not reach knowledge level three")
+	_check(progression.record_quiz_correct_answer("2026-02-04:17"), "18th correct answer is persisted")
+	_check(progression.get_badge_level("knowledge") == 3, "18 total correct answers raise knowledge to level three")
+	var legacy_state: Dictionary = {
+		"schema_version": 1,
+		"level": 1,
+		"experience": 0,
+		"unlocked_items": [],
+		"quiz_correct_answers": 6,
+		"badge_levels": {"knowledge": 2},
+		"pending_badge_notifications": [{
+			"event_id": "knowledge:2",
+			"badge_id": "knowledge",
+			"level": 2,
+			"kind": "level_up"
+		}]
+	}
+	var normalized_legacy: Dictionary = progression._normalize_state(legacy_state)
+	_check(normalized_legacy["badge_levels"]["knowledge"] == 1, "legacy progress is normalized to the new cumulative level threshold")
+	_check(normalized_legacy["pending_badge_notifications"].empty(), "legacy notifications above the normalized badge level are discarded")
 
 
 func _saved_json_is_valid() -> bool:
