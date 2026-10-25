@@ -3,6 +3,8 @@ extends Control
 const BOTTOM_NAVIGATION = preload("res://shared/ui/bottom_navigation.tscn")
 const TYPOGRAPHY = preload("res://shared/ui/typography.gd")
 const BADGE_CATALOG = preload("res://shared/progress/badge_catalog.gd")
+const QUESTION_REPOSITORY = preload("res://games/quiz/scripts/quiz_question_repository.gd")
+const DAILY_PROGRESS = preload("res://games/quiz/scripts/quiz_daily_progress.gd")
 const NON_HOME_TITLE_SCALE: float = 1.10
 const SHIELD_ICON = preload("res://shared/ui/assets/icons/shield_icon.svg")
 const NAVY = Color("#071126")
@@ -20,6 +22,8 @@ var current_viewport_size := Vector2.ZERO
 var selected_tab: String = "DISTINTIVOS"
 var typography = TYPOGRAPHY.new()
 var progression_service: Node
+var daily_progress = DAILY_PROGRESS.new()
+var daily_progress_storage_path: String = DAILY_PROGRESS.SAVE_PATH
 
 
 func _ready() -> void:
@@ -28,6 +32,7 @@ func _ready() -> void:
 	if progression_service != null:
 		progression_service.connect("progress_changed", self, "_on_progress_changed")
 	_refresh_progress_ui()
+	_refresh_daily_quiz_ui()
 	get_viewport().connect("size_changed", self, "_on_viewport_size_changed")
 	_layout_screen(get_viewport_rect().size)
 
@@ -63,7 +68,7 @@ func _build_screen() -> void:
 
 	ui["tabs_panel"] = _new_panel("BadgeTabs", PANEL, Color("#202e54"), 14)
 	ui["tabs"] = {}
-	for tab_name in ["DISTINTIVOS", "CONQUISTAS", "COLEÇÃO"]:
+	for tab_name in ["DISTINTIVOS", "COLEÇÃO"]:
 		var tab := Button.new()
 		tab.name = "Tab_" + tab_name.to_lower()
 		tab.text = tab_name
@@ -96,12 +101,13 @@ func _build_screen() -> void:
 		badge_item["color"] = badge["color"]
 		badge_controls.append(badge_item)
 
-	ui["challenge_panel"] = _new_panel("WeeklyChallengePanel", Color("#191b4a"), Color("#383474"), 18)
-	ui["challenge_title"] = _new_label("★  DESAFIO SEMANAL", Color("#c06bff"), "challenge")
-	ui["challenge_text"] = _new_label("Complete 3 missões desta semana", WHITE, "challenge_body")
-	ui["challenge_count"] = _new_label("2 / 3", WHITE, "reward_progress", Label.ALIGN_CENTER)
-	ui["challenge_track"] = _new_panel("ChallengeTrack", Color("#30265b"), Color("#30265b"), 10)
-	ui["challenge_fill"] = _new_panel("ChallengeFill", Color("#a951ed"), Color("#a951ed"), 10)
+	ui["challenge_panel"] = _new_panel("DailyQuizPanel", Color("#191b4a"), Color("#383474"), 18)
+	ui["challenge_title"] = _new_label("★  QUIZ DIÁRIO", Color("#c06bff"), "challenge")
+	ui["challenge_text"] = _new_label("Perguntas respondidas hoje", WHITE, "challenge_body")
+	ui["challenge_count"] = _new_label("0 / 5", WHITE, "reward_progress", Label.ALIGN_CENTER)
+	ui["challenge_track"] = _new_panel("DailyQuizTrack", Color("#30265b"), Color("#30265b"), 10)
+	ui["challenge_fill"] = _new_panel("DailyQuizFill", Color("#a951ed"), Color("#a951ed"), 10)
+
 	ui["status"] = _new_label("", CYAN, "support", Label.ALIGN_CENTER)
 
 	var navigation = BOTTOM_NAVIGATION.instance()
@@ -212,9 +218,9 @@ func _layout_level(x: float, y: float, width: float, height: float, short_side: 
 
 func _layout_tabs(x: float, y: float, width: float, height: float, short_side: float) -> void:
 	_place(ui["tabs_panel"], x, y, width, height)
-	var tab_width: float = (width - short_side * 0.024) / 3.0
+	var tab_width: float = (width - short_side * 0.024) / float(ui["tabs"].size())
 	for tab_name in ui["tabs"]:
-		var tab_index: int = ["DISTINTIVOS", "CONQUISTAS", "COLEÇÃO"].find(tab_name)
+		var tab_index: int = ["DISTINTIVOS", "COLEÇÃO"].find(tab_name)
 		_place(ui["tabs"][tab_name], x + short_side * 0.012 + tab_width * tab_index, y + height * 0.08, tab_width, height * 0.84, short_side)
 
 
@@ -271,7 +277,8 @@ func _layout_challenge(x: float, y: float, width: float, height: float, short_si
 	var track_width: float = max(0.0, width - (track_x - x) - short_side * 0.04)
 	var track_height: float = max(3.0, height * 0.12)
 	_place(ui["challenge_track"], track_x, track_y, track_width, track_height)
-	_place(ui["challenge_fill"], track_x, track_y, track_width * (2.0 / 3.0), track_height)
+	var progress_ratio: float = float(daily_progress.get_answered_count()) / float(DAILY_PROGRESS.DAILY_LIMIT)
+	_place(ui["challenge_fill"], track_x, track_y, track_width * progress_ratio, track_height)
 
 
 func _place(control: Control, x: float, y: float, width: float, height: float, font_basis: float = 720.0) -> void:
@@ -380,6 +387,25 @@ func _refresh_progress_ui() -> void:
 	_refresh_badges()
 
 
+func _refresh_daily_quiz_ui() -> void:
+	var repository = QUESTION_REPOSITORY.new()
+	if not repository.load_questions():
+		ui["challenge_text"].text = "Progresso do quiz indisponível."
+		ui["challenge_count"].text = "— / %d" % DAILY_PROGRESS.DAILY_LIMIT
+		return
+	daily_progress.storage_path = daily_progress_storage_path
+	daily_progress.load_progress(repository.questions.size())
+	if not daily_progress.last_error.empty():
+		ui["challenge_text"].text = "Progresso do quiz indisponível."
+		ui["challenge_count"].text = "— / %d" % DAILY_PROGRESS.DAILY_LIMIT
+		return
+	var answered_count: int = daily_progress.get_answered_count()
+	ui["challenge_count"].text = "%d / %d" % [answered_count, DAILY_PROGRESS.DAILY_LIMIT]
+	ui["challenge_text"].text = "Parabéns! Você completou o quiz de hoje!" if answered_count >= DAILY_PROGRESS.DAILY_LIMIT else "Perguntas respondidas hoje"
+	if current_viewport_size.x > 0.0:
+		_layout_screen(current_viewport_size)
+
+
 func _refresh_badges() -> void:
 	for badge in badge_controls:
 		var level: int = progression_service.get_badge_level(badge["id"]) if progression_service != null else 0
@@ -396,8 +422,6 @@ func _on_tab_pressed(tab_name: String) -> void:
 		if tab_name == "COLEÇÃO":
 			var item_count: int = progression_service.get_state()["unlocked_items"].size()
 			ui["status"].text = "%d item(ns) desbloqueado(s); nomes e artes serão cadastrados depois." % item_count
-		else:
-			ui["status"].text = "A aba %s estará disponível em breve." % tab_name.to_lower().capitalize()
 		return
 	selected_tab = tab_name
 	ui["status"].text = ""

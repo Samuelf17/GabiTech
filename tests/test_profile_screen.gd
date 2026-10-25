@@ -7,6 +7,9 @@ const TYPOGRAPHY_SCRIPT = preload("res://shared/ui/typography.gd")
 const TYPOGRAPHY_TEST_UTILS = preload("res://tests/typography_test_utils.gd")
 const SHIELD_ICON = preload("res://shared/ui/assets/icons/shield_icon.svg")
 const QUIZ_SCENE_PATH = "res://games/quiz/scenes/quiz_screen.tscn"
+const DAILY_PROGRESS_SCRIPT = preload("res://games/quiz/scripts/quiz_daily_progress.gd")
+const QUESTION_REPOSITORY_SCRIPT = preload("res://games/quiz/scripts/quiz_question_repository.gd")
+const DAILY_TEST_PATH = "user://profile_daily_quiz_test.json"
 
 const PROGRESSION_SCRIPT = preload("res://shared/progress/progression_service.gd")
 
@@ -20,15 +23,19 @@ func _initialize() -> void:
 
 func _run_tests() -> void:
 	_setup_progression()
+	_seed_daily_quiz_progress(2)
 	var screen = PROFILE_SCREEN.instance()
+	screen.daily_progress_storage_path = DAILY_TEST_PATH
 	get_root().add_child(screen)
 	yield(self, "idle_frame")
 	for viewport_size in [Vector2(720, 1280), Vector2(1280, 720), Vector2(960, 540), Vector2(360, 800), Vector2(320, 568)]:
 		_test_layout(screen, viewport_size)
 	_test_badge_unlock_display(screen)
 	_test_progress_values(screen)
+	_test_daily_quiz_progress(screen)
 	_test_tabs(screen)
 	_remove_progress_test_file("user://screen_progress_test.json")
+	_remove_progress_test_file(DAILY_TEST_PATH)
 	if failures.empty():
 		print("Profile screen tests passed")
 		quit(0)
@@ -57,6 +64,9 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		_check(_fits_viewport(navigation.buttons[item_id], viewport_size), "%s navigation control fits at %s" % [item_id, viewport_size])
 	for key in ["header", "hero_panel", "hero_shield", "points_label", "points", "support", "level_panel", "level_caption", "xp_value", "xp_track", "tabs_panel", "challenge_panel", "challenge_title", "challenge_text", "challenge_count", "challenge_track", "status"]:
 		_check(_fits_viewport(screen.ui[key], viewport_size), "%s stays inside the viewport at %s" % [key, viewport_size])
+	_check(screen.ui.has("challenge_panel"), "daily quiz progress section is present")
+	_check(screen.ui["tabs"].size() == 2, "profile keeps only Distintivos and Coleção tabs")
+	_check(not screen.ui["tabs"].has("CONQUISTAS"), "Conquistas tab is removed")
 	_check(screen.ui["hero_shield"].texture == SHIELD_ICON, "guardian emblem uses the temporary shield asset")
 	var typography = TYPOGRAPHY_SCRIPT.new()
 	_check(is_equal_approx(typography.get_role_ratio("body"), TYPOGRAPHY_SCRIPT.BASE_BODY_RATIO * TYPOGRAPHY_SCRIPT.BODY_SCALE_ADJUSTMENT), "profile typography uses the adjusted greeting text base")
@@ -80,7 +90,7 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		_check(is_equal_approx(typography.get_role_ratio(badge["name"].get_meta("font_role")), typography.get_role_ratio("body")), "%s badge name uses the shared body size" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(is_equal_approx(typography.get_role_ratio(badge["level"].get_meta("font_role")), typography.get_role_ratio("body")), "%s badge level uses the shared body size" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(_fits_viewport(badge["name"], viewport_size), "%s badge name stays inside the viewport at %s" % [PROFILE_SCREEN_SCRIPT.BADGES[index]["name"], viewport_size])
-	for tab_name in ["DISTINTIVOS", "CONQUISTAS", "COLEÇÃO"]:
+	for tab_name in ["DISTINTIVOS", "COLEÇÃO"]:
 		_check(screen.ui["tabs"][tab_name].focus_mode == Control.FOCUS_ALL, "%s tab supports focus navigation" % tab_name)
 		_check(typography.has_role(screen.ui["tabs"][tab_name].get_meta("font_role")), "%s tab uses shared typography" % tab_name)
 		_check(_fits_viewport(screen.ui["tabs"][tab_name], viewport_size), "%s tab stays inside the viewport at %s" % [tab_name, viewport_size])
@@ -100,12 +110,40 @@ func _test_badge_unlock_display(screen) -> void:
 
 
 func _test_tabs(screen) -> void:
-	screen._on_tab_pressed("CONQUISTAS")
-	_check(screen.ui["status"].text == "A aba Conquistas estará disponível em breve.", "unimplemented reward tabs give feedback")
+	screen._on_tab_pressed("COLEÇÃO")
+	_check(screen.ui["status"].text.find("item(ns) desbloqueado(s)") >= 0, "collection tab gives feedback about unlocked items")
 	screen._on_tab_pressed("DISTINTIVOS")
 	_check(screen.ui["status"].text.empty(), "badge tab clears temporary feedback")
 	_check(screen.selected_tab == "DISTINTIVOS", "badge tab remains selected")
 	_check(ResourceLoader.exists(QUIZ_SCENE_PATH), "Missions destination scene exists")
+
+
+func _seed_daily_quiz_progress(answer_count: int) -> void:
+	_remove_progress_test_file(DAILY_TEST_PATH)
+	var repository = QUESTION_REPOSITORY_SCRIPT.new()
+	if not repository.load_questions():
+		_check(false, "daily quiz question data loads for Profile tests")
+		return
+	var daily_progress = DAILY_PROGRESS_SCRIPT.new()
+	daily_progress.storage_path = DAILY_TEST_PATH
+	daily_progress.load_progress(repository.questions.size())
+	for index in range(answer_count):
+		_check(daily_progress.record_answer(index, repository.questions.size(), false), "test stores a daily quiz answer")
+
+
+func _test_daily_quiz_progress(screen) -> void:
+	_check(screen.ui["challenge_title"].text == "★  QUIZ DIÁRIO", "profile reward section is relabeled for the daily quiz")
+	_check(screen.ui["challenge_count"].text == "2 / 5", "profile shows the number of quiz questions answered today")
+	_check(screen.ui["challenge_text"].text == "Perguntas respondidas hoje", "profile describes the daily answer count")
+	_check(is_equal_approx(screen.ui["challenge_fill"].rect_size.x / screen.ui["challenge_track"].rect_size.x, 0.4), "daily quiz progress bar matches two of five answers")
+	var repository = QUESTION_REPOSITORY_SCRIPT.new()
+	_check(repository.load_questions(), "daily quiz data loads for the completion check")
+	for index in range(2, DAILY_PROGRESS_SCRIPT.DAILY_LIMIT):
+		_check(screen.daily_progress.record_answer(index, repository.questions.size(), false), "test stores another daily answer")
+	screen._refresh_daily_quiz_ui()
+	_check(screen.ui["challenge_count"].text == "5 / 5", "profile shows all five daily answers")
+	_check(screen.ui["challenge_text"].text == "Parabéns! Você completou o quiz de hoje!", "profile congratulates the user after finishing today's quiz")
+	_check(is_equal_approx(screen.ui["challenge_fill"].rect_size.x / screen.ui["challenge_track"].rect_size.x, 1.0), "daily quiz progress bar reaches full after five answers")
 
 
 func _test_progress_values(screen) -> void:

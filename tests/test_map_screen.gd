@@ -59,7 +59,6 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 	_check(is_equal_approx(typography.get_role_ratio("body"), TYPOGRAPHY_SCRIPT.BASE_BODY_RATIO * TYPOGRAPHY_SCRIPT.BODY_SCALE_ADJUSTMENT), "map typography uses the adjusted shared greeting text base")
 	_check(is_equal_approx(typography.get_role_ratio("prompt"), typography.get_role_ratio("body")), "map prompt matches the greeting body size")
 	_check(is_equal_approx(typography.get_role_ratio("district"), typography.get_role_ratio("body")), "district names match the greeting body size")
-	_check(is_equal_approx(typography.get_role_ratio("district_progress"), typography.get_role_ratio("body")), "district progress matches the greeting body size")
 	_check(typography.has_role(screen.ui["screen_title"].get_meta("font_role")), "map title uses the shared typography scale")
 	_check(typography.has_role(screen.ui["prompt"].get_meta("font_role")), "map prompt uses the shared typography scale")
 	_check(typography.has_role(screen.ui["status"].get_meta("font_role")), "map status uses the shared typography scale")
@@ -77,9 +76,8 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		_check(_fits_viewport(button, viewport_size), "%s stays inside the viewport at %s" % [item_id, viewport_size])
 	for district in MAP_SCREEN_SCRIPT.DISTRICTS:
 		_check(screen.ui[district["id"] + "_title"].visible, "%s title is visible at %s" % [district["id"], viewport_size])
-		_check(screen.ui[district["id"] + "_progress"].visible, "%s progress is visible at %s" % [district["id"], viewport_size])
+		_check(not screen.ui.has(district["id"] + "_progress"), "%s has no mission-count label at %s" % [district["id"], viewport_size])
 		_check(typography.has_role(screen.ui[district["id"] + "_title"].get_meta("font_role")), "%s title uses shared typography" % district["id"])
-		_check(typography.has_role(screen.ui[district["id"] + "_progress"].get_meta("font_role")), "%s progress uses shared typography" % district["id"])
 	var title: Control = screen.ui["screen_title"]
 	screen._place(title, 0.0, 0.0, 10000.0, 10000.0, 720.0)
 	_check(abs(title.get_font("font").get_height() - typography.get_target_height(title.get_meta("font_role"), 720.0) * 1.10) <= 1.0, "map screen title is enlarged by ten percent")

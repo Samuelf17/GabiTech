@@ -52,7 +52,7 @@ func _build_screen() -> void:
 	ui["greeting_title"] = _new_label("Olá, Guardião!", CYAN, "heading")
 	ui["greeting_text"] = _new_label("Pronto para proteger\na cidade digital?", WHITE, "body")
 
-	var start_button := _new_button("MissionButton", "COMEÇAR MISSÃO", Color("#ff626f"), WHITE, "button")
+	var start_button := _new_button("MissionButton", "FAZER QUIZ DIÁRIO", Color("#ff626f"), WHITE, "button")
 	start_button.connect("pressed", self, "_open_map_screen")
 	ui["start"] = start_button
 

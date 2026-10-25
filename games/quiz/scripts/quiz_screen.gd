@@ -217,11 +217,11 @@ func _layout_screen(viewport_size: Vector2) -> void:
 	var margin: float = short_side * 0.035
 	_place(ui["background"], 0.0, 0.0, width, height)
 	_place(ui["frame"], margin * 0.35, height * 0.015, width - margin * 0.70, height * 0.97)
-	_place(ui["back"], margin, height * 0.027, short_side * 0.12, height * 0.064, short_side)
-	_place(ui["mission_title"], margin + short_side * 0.13, height * 0.03, width - margin * 2.0 - short_side * 0.28, height * 0.055, short_side)
+	_place(ui["back"], margin, height * 0.077, short_side * 0.12, height * 0.064, short_side)
+	_place(ui["mission_title"], margin + short_side * 0.13, height * 0.08, width - margin * 2.0 - short_side * 0.28, height * 0.055, short_side)
 	var shield_size: float = short_side * 0.075 * 1.10
-	_place(ui["shield"], width - margin - shield_size, height * 0.032, shield_size, shield_size)
-	var progress_y: float = height * 0.105
+	_place(ui["shield"], width - margin - shield_size, height * 0.082, shield_size, shield_size)
+	var progress_y: float = height * 0.155
 	var progress_h: float = height * 0.082
 	_place(ui["progress_panel"], margin, progress_y, width - margin * 2.0, progress_h)
 	_place(ui["progress_text"], margin * 1.4, progress_y + progress_h * 0.04, width - margin * 2.8, progress_h * 0.34, short_side)

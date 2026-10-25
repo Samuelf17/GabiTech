@@ -16,11 +16,11 @@ const DISTRICT_ICON_PATHS = {
 	"respect": "res://shared/ui/assets/icons/groups_icon.svg"
 }
 const DISTRICTS = [
-	{"id": "privacy", "name": "BAIRRO DA\nPRIVACIDADE", "progress": "3/5 MISSÕES", "color": Color("#a95aff")},
-	{"id": "communication", "name": "BAIRRO DA\nCOMUNICAÇÃO", "progress": "3/5 MISSÕES", "color": Color("#23e2e7")},
-	{"id": "security", "name": "BAIRRO DA\nSEGURANÇA", "progress": "3/5 MISSÕES", "color": Color("#81ea48")},
-	{"id": "knowledge", "name": "BAIRRO DO\nCONHECIMENTO", "progress": "1/3 MISSÕES", "color": Color("#ffc34f")},
-	{"id": "respect", "name": "BAIRRO DO\nRESPEITO", "progress": "3/5 MISSÕES", "color": Color("#ff6687")}
+	{"id": "privacy", "name": "BAIRRO DA\nPRIVACIDADE", "color": Color("#a95aff")},
+	{"id": "communication", "name": "BAIRRO DA\nCOMUNICAÇÃO", "color": Color("#23e2e7")},
+	{"id": "security", "name": "BAIRRO DA\nSEGURANÇA", "color": Color("#81ea48")},
+	{"id": "knowledge", "name": "BAIRRO DO\nCONHECIMENTO", "color": Color("#ffc34f")},
+	{"id": "respect", "name": "BAIRRO DO\nRESPEITO", "color": Color("#ff6687")}
 ]
 
 var ui: Dictionary = {}
@@ -73,9 +73,7 @@ func _build_screen() -> void:
 
 	for district in DISTRICTS:
 		var title := _new_label(district["name"], WHITE, "district", Label.ALIGN_CENTER)
-		var progress := _new_label(district["progress"], WHITE, "district_progress", Label.ALIGN_CENTER)
 		ui[district["id"] + "_title"] = title
-		ui[district["id"] + "_progress"] = progress
 		if DISTRICT_ICON_PATHS.has(district["id"]):
 			var district_icon := TextureRect.new()
 			district_icon.name = "DistrictIcon_" + district["id"]
@@ -175,10 +173,8 @@ func _layout_screen(viewport_size: Vector2) -> void:
 		var center: Vector2 = region["center"]
 		var size: Vector2 = region["size"]
 		var name_key: String = DISTRICTS[index]["id"] + "_title"
-		var progress_key: String = DISTRICTS[index]["id"] + "_progress"
 		var title_y: float = center.y * height - size.y * 0.12
 		_place(ui[name_key], center.x * width - size.x * 0.5, title_y, size.x, size.y * 0.32, font_basis)
-		_place(ui[progress_key], center.x * width - size.x * 0.5, center.y * height + size.y * 0.22, size.x, size.y * 0.18, font_basis)
 		var icon_key: String = DISTRICTS[index]["id"] + "_icon"
 		if ui.has(icon_key):
 			var icon_size: float = min(min(width, height) * 0.07, size.y * 0.20)

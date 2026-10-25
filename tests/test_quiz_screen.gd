@@ -119,6 +119,10 @@ func _test_screen_flow() -> void:
 			is_equal_approx(screen.ui["shield"].rect_size.x, short_side * 0.075 * 1.10),
 			"mission shield is enlarged by 10% at %s" % viewport_size
 		)
+		_check(is_equal_approx(screen.ui["back"].rect_position.y, viewport_size.y * 0.077), "back icon has five percent added top spacing at %s" % viewport_size)
+		_check(is_equal_approx(screen.ui["mission_title"].rect_position.y, viewport_size.y * 0.08), "mission title has five percent added top spacing at %s" % viewport_size)
+		_check(is_equal_approx(screen.ui["shield"].rect_position.y, viewport_size.y * 0.082), "shield has five percent added top spacing at %s" % viewport_size)
+		_check(is_equal_approx(screen.ui["progress_panel"].rect_position.y, viewport_size.y * 0.155), "question progress stays below the shifted quiz header at %s" % viewport_size)
 		var title_right: float = screen.ui["mission_title"].rect_position.x + screen.ui["mission_title"].rect_size.x * screen.ui["mission_title"].rect_scale.x
 		_check(title_right < screen.ui["shield"].rect_position.x, "mission title does not overlap the shield at %s" % viewport_size)
 		var question_font_height: float = screen.ui["question"].get_font("font").get_height()
@@ -296,6 +300,7 @@ func _test_badge_popup_layout(popup: CanvasLayer) -> void:
 		popup._layout_popup(viewport_size)
 		_check(popup.get_node_or_null("BadgePanel") == null, "badge popup has no square panel at %s" % viewport_size)
 		_check(popup.title_label.get_parent() == popup.overlay, "badge popup message is displayed directly over the screen at %s" % viewport_size)
+		_check(popup.overlay.rect_size == viewport_size, "badge popup overlay fills the viewport at %s" % viewport_size)
 		_check(is_equal_approx(popup.title_label.rect_scale.x, 1.0) and is_equal_approx(popup.title_label.rect_scale.y, 1.0), "badge popup title uses font size without control scaling at %s" % viewport_size)
 		var title_bottom: float = popup.title_label.rect_position.y + popup.title_label.rect_size.y * popup.title_label.rect_scale.y
 		if popup.badge_name_label.visible:
@@ -303,16 +308,28 @@ func _test_badge_popup_layout(popup: CanvasLayer) -> void:
 			_check(abs(popup.title_label.rect_position.y - viewport_size.y * 0.20) < 0.1, "level-up title has twenty percent space above it at %s" % viewport_size)
 			_check(popup.title_label.valign == Label.VALIGN_TOP, "level-up title text aligns to the top of its area at %s" % viewport_size)
 		else:
-			_check(popup.title_label.rect_position.y < viewport_size.y * 0.10, "badge unlock message stays near the top of %s" % viewport_size)
+			_check(popup.title_label.rect_position.y >= 0.0, "badge unlock title stays inside the viewport at %s" % viewport_size)
 		_check(title_bottom <= viewport_size.y, "badge popup message ends inside the viewport at %s" % viewport_size)
-		_check(title_bottom <= popup.badge_icon.rect_position.y, "badge popup message appears before the icon at %s" % viewport_size)
-		_check(popup.badge_icon.rect_position.y - title_bottom >= viewport_size.y * 0.03, "badge popup message has a clear gap above the icon at %s" % viewport_size)
 		var title_font: Font = popup.title_label.get_font("font")
 		var title_text_size: Vector2 = title_font.get_wordwrap_string_size(popup.title_label.text, popup.title_label.rect_size.x)
 		_check(title_text_size.y <= popup.title_label.rect_size.y, "badge popup message text fits inside its area at %s" % viewport_size)
 		var badge_center: Vector2 = popup.badge_icon.rect_position + popup.badge_icon.rect_size * 0.5
 		_check(abs(badge_center.x - viewport_size.x * 0.5) < 0.1, "badge image stays centered horizontally at %s" % viewport_size)
-		_check(abs(badge_center.y - viewport_size.y * 0.5) < 0.1, "badge image stays centered vertically at %s" % viewport_size)
+		if popup.badge_name_label.visible:
+			_check(abs(badge_center.y - viewport_size.y * 0.5) < 0.1, "level-up badge stays centered vertically at %s" % viewport_size)
+		else:
+			var badge_extent: float = popup.badge_icon.rect_size.y * (0.5 - popup.BADGE_ART_VERTICAL_INSET)
+			var badge_art_top: float = badge_center.y - badge_extent
+			var badge_art_bottom: float = badge_center.y + badge_extent
+			var title_badge_gap: float = badge_art_top - title_bottom
+			_check(is_equal_approx(title_badge_gap, viewport_size.y * 0.12), "unlock title and visible badge artwork keep a twelve percent gap at %s" % viewport_size)
+			var group_center_y: float = (popup.title_label.rect_position.y + badge_art_bottom) * 0.5
+			_check(abs(group_center_y - viewport_size.y * 0.5) < 0.1, "unlock title and badge are centered together at %s" % viewport_size)
+			var pulse_extent: float = badge_extent * popup.unlock_pulse_scale
+			var pulse_visual_top: float = badge_center.y - pulse_extent
+			var pulse_visual_bottom: float = badge_center.y + pulse_extent
+			_check(pulse_visual_top >= title_bottom, "unlock badge pulse does not overlap the title at %s" % viewport_size)
+			_check(pulse_visual_bottom <= viewport_size.y * 0.97, "unlock badge pulse stays inside the screen at %s" % viewport_size)
 		if popup.badge_name_label.visible:
 			var name_right: float = popup.badge_name_label.rect_position.x + popup.badge_name_label.rect_size.x * popup.badge_name_label.rect_scale.x
 			var name_bottom: float = popup.badge_name_label.rect_position.y + popup.badge_name_label.rect_size.y * popup.badge_name_label.rect_scale.y

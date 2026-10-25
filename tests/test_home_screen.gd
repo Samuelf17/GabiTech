@@ -61,7 +61,7 @@ func _test_layout(screen, viewport_size: Vector2, layout_name: String) -> void:
 	_check(mascot.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED, "%s: mascot sprite preserves its aspect ratio" % layout_name)
 
 	var start_button: Button = screen.ui["start"]
-	_check(not start_button.text.empty(), "%s: mission button text is present" % layout_name)
+	_check(start_button.text == "FAZER QUIZ DIÁRIO", "%s: home button invites the user to take the daily quiz" % layout_name)
 	_check(start_button.icon == null, "%s: mission button has no icon" % layout_name)
 	_check(start_button.align == Button.ALIGN_CENTER, "%s: mission button text is centered" % layout_name)
 	_check(start_button.has_meta("font_role"), "%s: mission button uses an adaptive font role" % layout_name)

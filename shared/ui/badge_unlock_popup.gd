@@ -8,6 +8,7 @@ const SHIELD_ICON = preload("res://shared/ui/assets/icons/shield_icon.svg")
 const CYAN = Color("#28e3dc")
 const WHITE = Color("#f3f7ff")
 const LOCKED_COLOR = Color("#778196")
+const BADGE_ART_VERTICAL_INSET: float = 79.0 / 960.0
 const DISPLAY_SECONDS: float = 5.0
 const TITLE_SCALE: float = 1.10
 const LEVEL_UP_ROTATIONS: int = 3
@@ -23,6 +24,7 @@ var badge_name_label: Label
 var timer: Timer
 var tween: Tween
 var displayed: bool = false
+var unlock_pulse_scale: float = 1.18
 
 
 func _ready() -> void:
@@ -118,27 +120,42 @@ func _layout_popup(viewport_size: Vector2) -> void:
 func _layout_unlock_popup(viewport_size: Vector2) -> void:
 	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
 		return
-	title_label.valign = Label.VALIGN_CENTER
-	overlay.rect_size = viewport_size
+	title_label.valign = Label.VALIGN_TOP
+	_set_overlay_rect(viewport_size)
 	var width: float = viewport_size.x
 	var height: float = viewport_size.y
 	var short_side: float = min(width, height)
-	var title_height: float = min(height * 0.20, short_side * 0.24)
-	_layout_title(width, height, short_side, max(short_side * 0.05, height * 0.04), title_height)
+	var title_width: float = width - short_side * 0.10
+	title_label.rect_position = Vector2(short_side * 0.05, 0.0)
+	title_label.rect_size = Vector2(title_width, height * 0.20)
+	_place_label(title_label, short_side, "heading", true)
+	var title_font: Font = title_label.get_font("font")
+	var title_text_size: Vector2 = title_font.get_wordwrap_string_size(title_label.text, title_width)
+	title_label.rect_size.y = max(title_text_size.y, 1.0)
+	var title_bottom: float = title_label.rect_position.y + title_label.rect_size.y
+	var content_gap: float = height * 0.12
 	var icon_size: float = min(short_side * 0.36, height * 0.42)
+	icon_size = max(1.0, icon_size)
 	var icon_left: float = (width - icon_size) * 0.5
-	var icon_top: float = (height - icon_size) * 0.5
+	var badge_content_extent: float = icon_size * (0.5 - BADGE_ART_VERTICAL_INSET)
+	var group_height: float = title_label.rect_size.y + content_gap + badge_content_extent * 2.0
+	title_label.rect_position.y = (height - group_height) * 0.5
+	title_bottom = title_label.rect_position.y + title_label.rect_size.y
+	var group_art_top: float = title_bottom + content_gap
+	var pulse_clearance: float = min(0.18, content_gap * 0.95 / badge_content_extent)
+	unlock_pulse_scale = 1.0 + pulse_clearance
+	var icon_center_y: float = group_art_top + badge_content_extent
+	var icon_top: float = icon_center_y - icon_size * 0.5
 	badge_icon.rect_size = Vector2(icon_size, icon_size)
 	badge_icon.rect_position = Vector2(icon_left, icon_top)
 	badge_icon.rect_pivot_offset = Vector2(icon_size, icon_size) * 0.5
-	_layout_badge_name(width, height, short_side, icon_top, icon_size, short_side * 0.025)
 
 
 func _layout_level_up_popup(viewport_size: Vector2) -> void:
 	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
 		return
 	title_label.valign = Label.VALIGN_TOP
-	overlay.rect_size = viewport_size
+	_set_overlay_rect(viewport_size)
 	var width: float = viewport_size.x
 	var height: float = viewport_size.y
 	var short_side: float = min(width, height)
@@ -157,6 +174,17 @@ func _layout_title(width: float, height: float, short_side: float, title_margin:
 	title_label.rect_position = Vector2(short_side * 0.05, title_margin)
 	title_label.rect_size = Vector2(width - short_side * 0.10, title_height)
 	_place_label(title_label, short_side, "heading", true)
+
+
+func _set_overlay_rect(viewport_size: Vector2) -> void:
+	overlay.anchor_left = 0.0
+	overlay.anchor_top = 0.0
+	overlay.anchor_right = 0.0
+	overlay.anchor_bottom = 0.0
+	overlay.margin_left = 0.0
+	overlay.margin_top = 0.0
+	overlay.margin_right = viewport_size.x
+	overlay.margin_bottom = viewport_size.y
 
 
 func _layout_badge_name(width: float, height: float, short_side: float, icon_top: float, icon_size: float, content_gap: float) -> void:
@@ -191,19 +219,20 @@ func _start_badge_animation(is_first_unlock: bool) -> void:
 		add_child(tween)
 	tween.repeat = false
 	if is_first_unlock:
+		var pulse_target := Vector2(unlock_pulse_scale, unlock_pulse_scale)
 		tween.interpolate_property(
 			badge_icon,
 			"rect_scale",
 			Vector2(0.72, 0.72),
-			Vector2(1.18, 1.18),
+			pulse_target,
 			0.45,
-			Tween.TRANS_BACK,
+			Tween.TRANS_SINE,
 			Tween.EASE_OUT
 		)
 		tween.interpolate_property(
 			badge_icon,
 			"rect_scale",
-			Vector2(1.18, 1.18),
+			pulse_target,
 			Vector2.ONE,
 			0.35,
 			Tween.TRANS_SINE,
@@ -259,6 +288,8 @@ func _on_timer_timeout() -> void:
 func _on_viewport_size_changed() -> void:
 	if displayed:
 		_layout_popup(get_viewport().get_visible_rect().size)
+		if not badge_name_label.visible:
+			_start_badge_animation(true)
 
 
 func _input(event: InputEvent) -> void:
