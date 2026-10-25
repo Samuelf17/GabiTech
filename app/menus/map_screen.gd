@@ -20,7 +20,7 @@ const DISTRICTS = [
 	{"id": "communication", "name": "BAIRRO DA\nCOMUNICAÇÃO", "color": Color("#23e2e7")},
 	{"id": "security", "name": "BAIRRO DA\nSEGURANÇA", "color": Color("#81ea48")},
 	{"id": "knowledge", "name": "BAIRRO DO\nCONHECIMENTO", "color": Color("#ffc34f")},
-	{"id": "respect", "name": "BAIRRO DO\nRESPEITO", "color": Color("#ff6687")}
+	{"id": "respect", "name": "BAIRRO DO\nRESPEITO", "color": Color("#ff6687"), "scene": "res://games/anti_bullying/scenes/anti_bullying_screen.tscn"}
 ]
 
 var ui: Dictionary = {}
@@ -289,10 +289,10 @@ func _district_at_point(point: Vector2) -> int:
 
 func _on_area_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == BUTTON_LEFT:
-		_select_district(_district_at_point((event as InputEventMouseButton).position))
+		_activate_district(_district_at_point((event as InputEventMouseButton).position))
 		ui["areas"].accept_event()
 	elif event is InputEventScreenTouch and event.pressed:
-		_select_district(_district_at_point((event as InputEventScreenTouch).position))
+		_activate_district(_district_at_point((event as InputEventScreenTouch).position))
 		ui["areas"].accept_event()
 	elif event is InputEventKey and event.pressed:
 		var key: int = (event as InputEventKey).scancode
@@ -303,7 +303,7 @@ func _on_area_input(event: InputEvent) -> void:
 			selected_district = posmod(selected_district + 1, DISTRICTS.size())
 			ui["areas"].update()
 		elif (key == KEY_ENTER or key == KEY_KP_ENTER or key == KEY_SPACE) and selected_district >= 0:
-			_select_district(selected_district)
+			_activate_district(selected_district)
 		ui["areas"].accept_event()
 
 
@@ -313,6 +313,15 @@ func _select_district(index: int) -> void:
 	selected_district = index
 	ui["areas"].update()
 	ui["status"].text = DISTRICTS[index]["name"].replace("\n", " ") + " selecionado."
+
+
+func _activate_district(index: int) -> void:
+	if index < 0 or index >= DISTRICTS.size():
+		return
+	_select_district(index)
+	var district: Dictionary = DISTRICTS[index]
+	if district.has("scene"):
+		get_node("/root/NavigationHistory").call("navigate_to", district["scene"])
 
 
 

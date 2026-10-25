@@ -24,6 +24,9 @@ func _run_tests() -> void:
 		_test_layout(screen, viewport_size)
 	_test_district_selection(screen)
 	_test_navigation(screen)
+	yield(self, "idle_frame")
+	var launched_scene: Node = get_current_scene()
+	_check(launched_scene != null and launched_scene.filename == "res://games/anti_bullying/scenes/anti_bullying_screen.tscn", "activating Respect opens the anti-bullying minigame")
 	if failures.empty():
 		print("Map screen tests passed")
 		quit(0)
@@ -124,6 +127,8 @@ func _test_district_selection(screen) -> void:
 
 func _test_navigation(screen) -> void:
 	_check(ResourceLoader.exists(QUIZ_SCENE_PATH), "Missions destination scene exists")
+	_check(ResourceLoader.exists(MAP_SCREEN_SCRIPT.DISTRICTS[4].get("scene", "")), "Respect district destination scene exists")
+	screen._activate_district(4)
 
 
 func _fits_viewport(control: Control, viewport_size: Vector2) -> bool:

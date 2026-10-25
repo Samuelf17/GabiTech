@@ -1,0 +1,74 @@
+{
+  "situations": [
+    {
+      "id": "humilhacao_no_grupo",
+      "conversation": [
+        {"speaker": "Leo", "text": "Olha o vídeo que fizeram da Nina."},
+        {"speaker": "Nina", "text": "Estão rindo de mim no grupo. Por favor, parem."}
+      ],
+      "options": [
+        {"text": "Encaminhar o vídeo para mais pessoas", "correct": false, "consequence": "O vídeo alcança mais gente e a humilhação aumenta."},
+        {"text": "Fingir que não viu e sair do grupo", "correct": false, "consequence": "A Nina continua sozinha diante das mensagens."},
+        {"text": "Apoiar a Nina e pedir que parem", "correct": true, "consequence": "A Nina percebe que tem apoio, e o grupo recebe um limite claro."},
+        {"text": "Denunciar a mensagem ofensiva ao responsável", "correct": true, "consequence": "Um adulto responsável pode interromper a agressão e ajudar o grupo."}
+      ],
+      "explanation": "Não compartilhe conteúdo que humilha alguém. Apoie a pessoa e peça ajuda a um adulto de confiança."
+    },
+    {
+      "id": "apelido_ofensivo",
+      "conversation": [
+        {"speaker": "Bia", "text": "Estão chamando o Caio por um apelido que ele detesta."},
+        {"speaker": "Caio", "text": "Já pedi para pararem, mas continuam."}
+      ],
+      "options": [
+        {"text": "Usar o apelido também para entrar na brincadeira", "correct": false, "consequence": "A repetição mostra ao Caio que ninguém respeitou o pedido dele."},
+        {"text": "Dizer que a brincadeira deve parar e usar o nome dele", "correct": true, "consequence": "O grupo recebe um pedido respeitoso e o Caio é tratado pelo nome."},
+        {"text": "Criar um apelido ainda pior para quem começou", "correct": false, "consequence": "Uma ofensa gera outra e o conflito cresce."},
+        {"text": "Conversar com um adulto se continuarem", "correct": true, "consequence": "Pedir ajuda é uma forma segura de interromper a situação."}
+      ],
+      "explanation": "Quando alguém pede para parar, respeite o limite. Se a ofensa continuar, conte a um adulto de confiança."
+    },
+    {
+      "id": "exclusao_no_chat",
+      "conversation": [
+        {"speaker": "Rafa", "text": "Vamos combinar de excluir a Júlia do grupo novo."},
+        {"speaker": "Júlia", "text": "Vi as mensagens e fiquei triste por me deixarem de fora."}
+      ],
+      "options": [
+        {"text": "Ajudar a excluir a Júlia e esconder o grupo", "correct": false, "consequence": "A exclusão fica maior e a Júlia continua magoada."},
+        {"text": "Convidar a Júlia e dizer que ela pode participar", "correct": true, "consequence": "A Júlia recebe uma oportunidade de participar com respeito."},
+        {"text": "Perguntar em particular como ela está", "correct": true, "consequence": "Ouvir a Júlia mostra cuidado e ajuda a entender o que ela precisa."},
+        {"text": "Publicar a conversa para todos rirem", "correct": false, "consequence": "Expor a conversa pode aumentar o constrangimento."}
+      ],
+      "explanation": "Exclusão também machuca. Inclua as pessoas e converse com respeito, sem expor ninguém."
+    },
+    {
+      "id": "ameaca_online",
+      "conversation": [
+        {"speaker": "Duda", "text": "Uma pessoa está ameaçando o Pedro por mensagem."},
+        {"speaker": "Pedro", "text": "Estou com medo e não sei o que fazer."}
+      ],
+      "options": [
+        {"text": "Responder com outra ameaça", "correct": false, "consequence": "A discussão pode ficar mais perigosa para todos."},
+        {"text": "Guardar a mensagem e contar a um adulto de confiança", "correct": true, "consequence": "Um adulto pode ajudar e a mensagem serve para explicar o que houve."},
+        {"text": "Apoiar o Pedro e perguntar se ele está seguro", "correct": true, "consequence": "O Pedro sabe que não está sozinho enquanto recebe ajuda."},
+        {"text": "Compartilhar a ameaça como fofoca", "correct": false, "consequence": "A ameaça se espalha e pode deixar o Pedro ainda mais exposto."}
+      ],
+      "explanation": "Ameaças devem ser levadas a sério. Não revide nem espalhe; guarde a mensagem e peça ajuda a um adulto."
+    },
+    {
+      "id": "foto_sem_permissao",
+      "conversation": [
+        {"speaker": "Gui", "text": "Postaram uma foto da Lara sem perguntar."},
+        {"speaker": "Lara", "text": "Não gostei. Quero que tirem a foto."}
+      ],
+      "options": [
+        {"text": "Compartilhar a foto para fazer uma brincadeira", "correct": false, "consequence": "Mais pessoas veem a imagem sem a permissão da Lara."},
+        {"text": "Apagar a cópia e pedir que removam a publicação", "correct": true, "consequence": "A imagem deixa de circular e o pedido da Lara é respeitado."},
+        {"text": "Perguntar à Lara como pode ajudar", "correct": true, "consequence": "A Lara pode escolher o apoio que considera mais seguro."},
+        {"text": "Dizer que ela está exagerando", "correct": false, "consequence": "Desconsiderar o pedido pode aumentar a tristeza e a exposição."}
+      ],
+      "explanation": "Fotos e mensagens precisam de consentimento. Respeite o pedido para remover e não compartilhe a imagem."
+    }
+  ]
+}

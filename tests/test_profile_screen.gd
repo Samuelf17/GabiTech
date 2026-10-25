@@ -5,7 +5,7 @@ const PROFILE_SCREEN_SCRIPT = preload("res://app/menus/profile_screen.gd")
 const BOTTOM_NAVIGATION_SCRIPT = preload("res://shared/ui/bottom_navigation.gd")
 const TYPOGRAPHY_SCRIPT = preload("res://shared/ui/typography.gd")
 const TYPOGRAPHY_TEST_UTILS = preload("res://tests/typography_test_utils.gd")
-const SHIELD_ICON = preload("res://shared/ui/assets/icons/shield_icon.svg")
+const RESPECT_BADGE_TEXTURE = preload("res://shared/progress/assets/badges/respect.png")
 const QUIZ_SCENE_PATH = "res://games/quiz/scenes/quiz_screen.tscn"
 const DAILY_PROGRESS_SCRIPT = preload("res://games/quiz/scripts/quiz_daily_progress.gd")
 const QUESTION_REPOSITORY_SCRIPT = preload("res://games/quiz/scripts/quiz_question_repository.gd")
@@ -67,19 +67,22 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		_check(navigation.labels[item_id].text == BOTTOM_NAVIGATION_SCRIPT.ITEM_LABELS[index], "%s label is present at %s" % [item_id, viewport_size])
 		_check(navigation.icons[item_id].texture != null, "%s icon loads at %s" % [item_id, viewport_size])
 		_check(_fits_viewport(navigation.buttons[item_id], viewport_size), "%s navigation control fits at %s" % [item_id, viewport_size])
-	for key in ["header", "hero_panel", "hero_shield", "points_label", "points", "support", "level_panel", "level_caption", "xp_value", "xp_track", "tabs_panel", "challenge_panel", "challenge_title", "challenge_text", "challenge_count", "challenge_track", "status"]:
+	for key in ["header", "hero_panel", "hero_shield", "user_name", "points_label", "points", "support", "level_panel", "level_caption", "xp_value", "xp_track", "tabs_panel", "challenge_panel", "challenge_title", "challenge_text", "challenge_count", "challenge_track", "status"]:
 		_check(_fits_viewport(screen.ui[key], viewport_size), "%s stays inside the viewport at %s" % [key, viewport_size])
 	_check(screen.ui.has("challenge_panel"), "daily quiz progress section is present")
 	_check(screen.ui["tabs"].size() == 2, "profile keeps only Distintivos and Coleção tabs")
 	_check(not screen.ui["tabs"].has("CONQUISTAS"), "Conquistas tab is removed")
-	_check(screen.ui["hero_shield"].texture == SHIELD_ICON, "guardian emblem uses the temporary shield asset")
+	_check(screen.ui["hero_shield"].texture == RESPECT_BADGE_TEXTURE, "profile avatar uses the Respect badge artwork")
+	_check(screen.ui["hero_shield"].modulate == Color.white, "profile avatar keeps the badge artwork in color")
+	_check(screen.ui["user_name"].text == "Gabivara" and screen.ui["user_name"].visible, "profile displays the Gabivara name")
+	_check(screen.ui["user_name"].get_global_rect().end.y <= screen.ui["points_label"].get_global_rect().position.y, "profile name stays above the experience summary")
 	var typography = TYPOGRAPHY_SCRIPT.new()
 	_check(is_equal_approx(typography.get_role_ratio("body"), TYPOGRAPHY_SCRIPT.BASE_BODY_RATIO * TYPOGRAPHY_SCRIPT.BODY_SCALE_ADJUSTMENT), "profile typography uses the adjusted greeting text base")
 	var profile_title: Control = screen.ui["header"]
 	screen._place(profile_title, 0.0, 0.0, 10000.0, 10000.0, 720.0)
 	_check(abs(profile_title.get_font("font").get_height() - typography.get_target_height(profile_title.get_meta("font_role"), 720.0) * 1.10) <= 1.0, "profile screen title is enlarged by ten percent")
 	_check(is_equal_approx(PROFILE_SCREEN_SCRIPT.BADGE_ICON_SCALE, 1.20), "profile badge icons are 20% larger than their current size")
-	for key in ["header", "points_label", "points", "support", "level_caption", "xp_value", "challenge_title", "challenge_text", "challenge_count"]:
+	for key in ["header", "user_name", "points_label", "points", "support", "level_caption", "xp_value", "challenge_title", "challenge_text", "challenge_count"]:
 		_check(typography.has_role(screen.ui[key].get_meta("font_role")), "%s uses the shared typography scale" % key)
 	_check(screen.badge_controls.size() == 6, "six reward badges are displayed")
 	for index in range(screen.badge_controls.size()):
@@ -87,6 +90,8 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		_check(typography.has_role(badge["name"].get_meta("font_role")), "%s name uses shared typography" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(typography.has_role(badge["level"].get_meta("font_role")), "%s level uses shared typography" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(badge["icon"].texture == PROFILE_SCREEN_SCRIPT.BADGES[index]["texture"], "%s uses its dedicated badge artwork" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
+		_check(badge["icon"].texture != null and badge["icon"].texture.get_width() > 0 and badge["icon"].texture.get_height() > 0, "%s artwork is fully loaded" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
+		_check(badge["icon"].visible, "%s appears on the profile screen" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(badge["level"].text == "NÍVEL 0", "%s starts at level zero" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(is_equal_approx(badge["material"].get_shader_param("grayscale_amount"), 1.0), "%s starts grayscale" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(_fits_viewport(badge["icon"], viewport_size), "%s badge icon stays inside the viewport at %s" % [PROFILE_SCREEN_SCRIPT.BADGES[index]["name"], viewport_size])

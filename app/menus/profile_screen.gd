@@ -8,7 +8,7 @@ const QUESTION_REPOSITORY = preload("res://games/quiz/scripts/quiz_question_repo
 const DAILY_PROGRESS = preload("res://games/quiz/scripts/quiz_daily_progress.gd")
 const BACKGROUND_TEXTURE = preload("res://shared/ui/assets/backgrounds/fundo.png")
 const NON_HOME_TITLE_SCALE: float = 1.10
-const SHIELD_ICON = preload("res://shared/ui/assets/icons/shield_icon.svg")
+const RESPECT_BADGE_TEXTURE = preload("res://shared/progress/assets/badges/respect.png")
 const NAVY = Color("#071126")
 const PANEL = Color("#0b1735")
 const PANEL_LIGHT = Color("#14254a")
@@ -54,14 +54,15 @@ func _build_screen() -> void:
 	ui["header"] = _new_label("RECOMPENSAS", WHITE, "title", Label.ALIGN_CENTER)
 	ui["hero_panel"] = _new_panel("GuardianPointsPanel", PANEL, Color("#12375c"), 20)
 	var hero_shield := TextureRect.new()
-	hero_shield.name = "GuardianShield"
-	hero_shield.texture = SHIELD_ICON
+	hero_shield.name = "ProfileAvatarRespectBadge"
+	hero_shield.texture = RESPECT_BADGE_TEXTURE
 	hero_shield.expand = true
 	hero_shield.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	hero_shield.modulate = CYAN
+	hero_shield.modulate = Color.white
 	hero_shield.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(hero_shield)
 	ui["hero_shield"] = hero_shield
+	ui["user_name"] = _new_label("Gabivara", WHITE, "body")
 	ui["points_label"] = _new_label("EXPERIÊNCIA TOTAL", MUTED, "points_label")
 	ui["points"] = _new_label("0", WHITE, "points")
 	ui["support"] = _new_label("Itens desbloqueados: 0", Color("#a6e85d"), "support")
@@ -208,9 +209,10 @@ func _layout_hero(x: float, y: float, width: float, height: float, short_side: f
 	_place(ui["hero_shield"], x + width * 0.06, y + (height - icon_size) * 0.5, icon_size, icon_size)
 	var points_x: float = x + width * 0.38
 	var points_width: float = width * 0.57
-	_place(ui["points_label"], points_x, y + height * 0.08, points_width, height * 0.24, short_side)
-	_place(ui["points"], points_x, y + height * 0.31, points_width, height * 0.41, short_side)
-	_place(ui["support"], points_x, y + height * 0.74, points_width, height * 0.22, short_side)
+	_place(ui["user_name"], points_x, y + height * 0.035, points_width, height * 0.22, short_side)
+	_place(ui["points_label"], points_x, y + height * 0.27, points_width, height * 0.18, short_side)
+	_place(ui["points"], points_x, y + height * 0.45, points_width, height * 0.34, short_side)
+	_place(ui["support"], points_x, y + height * 0.80, points_width, height * 0.16, short_side)
 
 
 func _layout_level(x: float, y: float, width: float, height: float, short_side: float, viewport_width: float) -> void:
