@@ -3,8 +3,10 @@ extends Control
 const BOTTOM_NAVIGATION = preload("res://shared/ui/bottom_navigation.tscn")
 const TYPOGRAPHY = preload("res://shared/ui/typography.gd")
 const BADGE_CATALOG = preload("res://shared/progress/badge_catalog.gd")
+const BADGE_GRAYSCALE_SHADER = preload("res://shared/ui/assets/shaders/badge_grayscale.shader")
 const QUESTION_REPOSITORY = preload("res://games/quiz/scripts/quiz_question_repository.gd")
 const DAILY_PROGRESS = preload("res://games/quiz/scripts/quiz_daily_progress.gd")
+const BACKGROUND_TEXTURE = preload("res://shared/ui/assets/backgrounds/fundo.png")
 const NON_HOME_TITLE_SCALE: float = 1.10
 const SHIELD_ICON = preload("res://shared/ui/assets/icons/shield_icon.svg")
 const NAVY = Color("#071126")
@@ -38,12 +40,16 @@ func _ready() -> void:
 
 
 func _build_screen() -> void:
-	var background := ColorRect.new()
-	background.color = NAVY
+	var background := TextureRect.new()
+	background.name = "ProfileBackground"
+	background.texture = BACKGROUND_TEXTURE
+	background.expand = true
+	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	background.anchor_right = 1.0
 	background.anchor_bottom = 1.0
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(background)
+	ui["background"] = background
 
 	ui["header"] = _new_label("RECOMPENSAS", WHITE, "title", Label.ALIGN_CENTER)
 	ui["hero_panel"] = _new_panel("GuardianPointsPanel", PANEL, Color("#12375c"), 20)
@@ -88,13 +94,17 @@ func _build_screen() -> void:
 		var badge_item := {}
 		var icon := TextureRect.new()
 		icon.name = "BadgeIcon_" + badge["name"].to_lower()
-		icon.texture = SHIELD_ICON
+		icon.texture = badge["texture"]
 		icon.expand = true
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.modulate = LOCKED_BADGE_COLOR
+		var icon_material := ShaderMaterial.new()
+		icon_material.shader = BADGE_GRAYSCALE_SHADER
+		icon_material.set_shader_param("grayscale_amount", 1.0)
+		icon.material = icon_material
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(icon)
 		badge_item["icon"] = icon
+		badge_item["material"] = icon_material
 		badge_item["name"] = _new_label(badge["name"], LOCKED_BADGE_COLOR, "badge", Label.ALIGN_CENTER)
 		badge_item["level"] = _new_label("NÍVEL 0", LOCKED_BADGE_COLOR, "badge_level", Label.ALIGN_CENTER)
 		badge_item["id"] = badge["id"]
@@ -411,7 +421,8 @@ func _refresh_badges() -> void:
 		var level: int = progression_service.get_badge_level(badge["id"]) if progression_service != null else 0
 		var unlocked: bool = level > 0
 		var color: Color = badge["color"] if unlocked else LOCKED_BADGE_COLOR
-		badge["icon"].modulate = color
+		badge["material"].set_shader_param("grayscale_amount", 0.0 if unlocked else 1.0)
+		badge["icon"].modulate = Color.white
 		badge["name"].add_color_override("font_color", color)
 		badge["level"].text = "NÍVEL %d" % level
 		badge["level"].add_color_override("font_color", color)

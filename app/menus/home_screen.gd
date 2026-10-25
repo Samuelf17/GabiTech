@@ -2,6 +2,21 @@ extends Control
 
 const BOTTOM_NAVIGATION = preload("res://shared/ui/bottom_navigation.tscn")
 const TYPOGRAPHY = preload("res://shared/ui/typography.gd")
+const BACKGROUND_TEXTURE = preload("res://shared/ui/assets/backgrounds/fundo.png")
+const MASCOT_BOTTOM_MARGIN_RATIO: float = 0.28
+const PROGRESS_BOTTOM_GAP_RATIO: float = 0.04
+const MASCOT_LEVEL_TEXTURES = [
+	preload("res://shared/mascot/levels/1.png"),
+	preload("res://shared/mascot/levels/2.png"),
+	preload("res://shared/mascot/levels/3.png"),
+	preload("res://shared/mascot/levels/4.png"),
+	preload("res://shared/mascot/levels/5.png"),
+	preload("res://shared/mascot/levels/6.png"),
+	preload("res://shared/mascot/levels/7.png"),
+	preload("res://shared/mascot/levels/8.png"),
+	preload("res://shared/mascot/levels/9.png"),
+	preload("res://shared/mascot/levels/10.png")
+]
 const NAVY = Color("#071126")
 const PANEL = Color("#101d3c")
 const PANEL_LIGHT = Color("#17284c")
@@ -13,6 +28,7 @@ var typography = TYPOGRAPHY.new()
 var progression_service: Node
 var status_label: Label
 var current_viewport_size: Vector2
+var current_mascot_level: int = 0
 
 
 func _ready() -> void:
@@ -26,12 +42,16 @@ func _ready() -> void:
 
 
 func _build_screen() -> void:
-	var background := ColorRect.new()
-	background.color = NAVY
+	var background := TextureRect.new()
+	background.name = "HomeBackground"
+	background.texture = BACKGROUND_TEXTURE
+	background.expand = true
+	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	background.anchor_right = 1.0
 	background.anchor_bottom = 1.0
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(background)
+	ui["background"] = background
 
 	ui["menu"] = _new_label("☰", WHITE, "icon", Label.ALIGN_CENTER)
 	ui["notification"] = _new_label("♧", WHITE, "icon", Label.ALIGN_CENTER)
@@ -41,7 +61,7 @@ func _build_screen() -> void:
 
 	var mascot := TextureRect.new()
 	mascot.name = "MascotSprite"
-	mascot.texture = load("res://shared/mascot/mascote.png")
+	mascot.texture = MASCOT_LEVEL_TEXTURES[0]
 	mascot.expand = true
 	mascot.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	mascot.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -52,15 +72,10 @@ func _build_screen() -> void:
 	ui["greeting_title"] = _new_label("Olá, Guardião!", CYAN, "heading")
 	ui["greeting_text"] = _new_label("Pronto para proteger\na cidade digital?", WHITE, "body")
 
-	var start_button := _new_button("MissionButton", "FAZER QUIZ DIÁRIO", Color("#ff626f"), WHITE, "button")
-	start_button.connect("pressed", self, "_open_map_screen")
-	ui["start"] = start_button
-
 	ui["progress_panel"] = _new_panel("ProgressPanel", PANEL, Color("#26385e"), 18)
-	ui["level_badge"] = _new_panel("LevelBadge", Color("#132345"), Color("#16c7d0"), 56)
 	ui["level_caption"] = _new_label("NÍVEL", MUTED, "caption", Label.ALIGN_CENTER)
-	ui["level_number"] = _new_label("1", WHITE, "display_number", Label.ALIGN_CENTER)
-	ui["progress_title"] = _new_label("NÍVEL", MUTED, "caption")
+	ui["level_number"] = _new_label("1", WHITE, "level_display", Label.ALIGN_CENTER)
+	ui["progress_title"] = _new_label("EXPERIÊNCIA", MUTED, "caption")
 	ui["progress_value"] = _new_label("0 / 2.000 XP", WHITE, "progress_value")
 	ui["progress_track"] = _new_panel("ProgressTrack", Color("#243253"), Color("#243253"), 12)
 	ui["progress_fill"] = _new_panel("ProgressFill", CYAN, CYAN, 10)
@@ -111,11 +126,11 @@ func _layout_portrait(width: float, height: float, safe_x: float, safe_y: float,
 	_place(ui["greeting_title"], greeting_x + 18, greeting_y + 14, greeting_width - 36, 34, font_basis)
 	_place(ui["greeting_text"], greeting_x + 18, greeting_y + 52, greeting_width - 36, greeting_height - 62, font_basis)
 
-	_place(ui["start"], width * 0.06, height * 0.55, width * 0.88, height * 0.068, font_basis)
 	var progress_x := width * 0.05
-	var progress_y := height * 0.63
 	var progress_width := width * 0.90
 	var progress_height := height * 0.18
+	var navigation_top: float = ui["navigation"].get_bar_top(Vector2(width, height))
+	var progress_y: float = navigation_top - height * PROGRESS_BOTTOM_GAP_RATIO - progress_height
 	_place_progress(progress_x, progress_y, progress_width, progress_height, font_basis)
 	_place_status_above_navigation(safe_x, width - safe_x * 2.0, width, height, font_basis)
 
@@ -142,41 +157,40 @@ func _layout_landscape(width: float, height: float, safe_x: float, safe_y: float
 
 	var content_x := width * 0.405
 	var content_width := width * 0.555
-	var mission_height: float = height * 0.12
 	var progress_height: float = height * 0.23
-	var content_gap: float = height * 0.02
-	var group_height: float = mission_height + content_gap + progress_height
-	var group_top: float = greeting_y + (greeting_height - group_height) * 0.5
-	_place(ui["start"], content_x, group_top, content_width, mission_height, font_basis)
-	_place_progress(content_x, group_top + mission_height + content_gap, content_width, progress_height, font_basis)
+	var navigation_top: float = ui["navigation"].get_bar_top(Vector2(width, height))
+	var progress_y: float = navigation_top - height * PROGRESS_BOTTOM_GAP_RATIO - progress_height
+	_place_progress(content_x, progress_y, content_width, progress_height, font_basis)
 	_place_status_above_navigation(content_x, content_width, width, height, font_basis)
 
 
 func _place_progress(x: float, y: float, width: float, height: float, font_basis: float) -> void:
 	_place(ui["progress_panel"], x, y, width, height)
 	var padding: float = min(width, height) * 0.12
-	var badge_size: float = min(height * 0.72, width * 0.22)
-	var badge_x: float = x + padding
-	var badge_y: float = y + (height - badge_size) * 0.5
-	_place(ui["level_badge"], badge_x, badge_y, badge_size, badge_size)
-	_place(ui["level_caption"], badge_x + 5, y + height * 0.5 - badge_size * 0.27, badge_size - 10, badge_size * 0.23, font_basis)
-	_place(ui["level_number"], badge_x + 5, y + height * 0.5 - badge_size * 0.02, badge_size - 10, badge_size * 0.45, font_basis)
+	var level_width: float = width * 0.24
+	var level_x: float = x + padding
+	var level_caption_height: float = height * 0.20
+	var level_group_y: float = y + height * 0.20
+	var level_number_height: float = height * 0.55
+	_place(ui["level_caption"], level_x, level_group_y, level_width, level_caption_height, font_basis)
+	_place(ui["level_number"], level_x, level_group_y + level_caption_height, level_width, level_number_height, font_basis)
 
-	var text_x := x + padding + badge_size + padding * 0.55
+	var text_x: float = level_x + level_width + padding * 0.55
 	var text_width := width - (text_x - x) - padding
-	var title_y: float = y + height * 0.05
-	_place(ui["progress_title"], text_x, title_y, text_width, height * 0.18, font_basis)
-	_place(ui["progress_value"], text_x, title_y + height * 0.20, text_width, height * 0.23, font_basis)
-	var track_y: float = y + height * 0.52
+	var title_y: float = y + height * 0.20
+	_place(ui["progress_title"], text_x, title_y, text_width, height * 0.14, font_basis)
+	_place(ui["progress_value"], text_x, title_y + height * 0.15, text_width, height * 0.17, font_basis)
+	var track_y: float = y + height * 0.54
 	var track_height: float = max(14.0, height * 0.11)
 	_place(ui["progress_track"], text_x, track_y, text_width, track_height)
 	var progress_width: float = max(0.0, (text_width - 4.0) * progression_service.get_progress_ratio())
 	_place(ui["progress_fill"], text_x + 2, track_y + 2, progress_width, track_height - 4.0)
-	_place(ui["progress_hint"], text_x, track_y + track_height + 4.0, text_width, height * 0.30, font_basis)
+	_place(ui["progress_hint"], text_x, track_y + track_height + 4.0, text_width, height * 0.24, font_basis)
 
 
 func _place_mascot(x: float, y: float, width: float, height: float) -> void:
-	_place(ui["mascot"], x, y, width, height)
+	var bottom_margin: float = height * MASCOT_BOTTOM_MARGIN_RATIO
+	_place(ui["mascot"], x, y, width, height - bottom_margin)
 
 
 func _place_status_above_navigation(x: float, width: float, viewport_width: float, height: float, font_basis: float) -> void:
@@ -297,11 +311,25 @@ func _refresh_progress_ui() -> void:
 	if progression_service == null:
 		return
 	var progress: Dictionary = progression_service.get_state()
+	var current_level: int = int(progress["level"])
 	var current_xp: int = int(progress["experience"])
 	var xp_required: int = progression_service.experience_per_level
-	ui["level_number"].text = str(progress["level"])
+	ui["level_number"].text = str(current_level)
 	ui["progress_value"].text = "%s / %s XP" % [progression_service.format_number(current_xp), progression_service.format_number(xp_required)]
 	ui["progress_hint"].text = "Faltam %s XP para o próximo nível" % progression_service.format_number(xp_required - current_xp)
+	_refresh_mascot_for_level(current_level)
+
+
+func _refresh_mascot_for_level(level: int) -> void:
+	var mascot_level: int = clamp(level, 1, MASCOT_LEVEL_TEXTURES.size())
+	if mascot_level == current_mascot_level:
+		return
+	var mascot_texture: Texture = MASCOT_LEVEL_TEXTURES[mascot_level - 1]
+	if mascot_texture == null:
+		push_error("Não foi possível carregar a capivara do nível %d." % mascot_level)
+		return
+	ui["mascot"].texture = mascot_texture
+	current_mascot_level = mascot_level
 
 
 func _on_action_pressed(message: String) -> void:

@@ -27,10 +27,11 @@ func _run_tests() -> void:
 	_test_layout(screen, Vector2(960, 540), "compact landscape")
 	_test_layout(screen, Vector2(360, 800), "narrow portrait")
 	_test_layout(screen, Vector2(320, 568), "compact portrait")
+	_test_mascot_level_mapping(screen)
 	_test_progress_values(screen)
 	_test_adaptive_font_sizes(screen)
 	_test_landscape_greeting_hierarchy(screen)
-	_test_landscape_action_and_level_alignment(screen)
+	_test_landscape_progress_alignment(screen)
 	_test_text_fits_controls(screen)
 	_test_action_feedback(screen)
 
@@ -49,8 +50,14 @@ func _test_layout(screen, viewport_size: Vector2, layout_name: String) -> void:
 	screen.rect_size = viewport_size
 	screen._layout_screen(viewport_size)
 
-	_check(not screen.ui.has("level_ring"), "%s: level badge has no surrounding progress ring" % layout_name)
-	for key in ["start", "greeting_panel", "progress_panel", "level_badge", "mascot"]:
+	_check(not screen.ui.has("level_badge") and not screen.ui.has("level_ring"), "%s: level is displayed without a badge or ring" % layout_name)
+	_check(not screen.ui.has("start"), "%s: daily quiz button is temporarily removed from home" % layout_name)
+	var background: TextureRect = screen.ui["background"]
+	_check(background.texture != null, "%s: test background image loads" % layout_name)
+	_check(background.texture.resource_path == "res://shared/ui/assets/backgrounds/fundo.png", "%s: home uses the permanent background image" % layout_name)
+	_check(background.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED, "%s: test background covers both screen orientations" % layout_name)
+	_check(_fits_viewport(background, viewport_size), "%s: test background covers the viewport" % layout_name)
+	for key in ["greeting_panel", "progress_panel", "level_caption", "level_number", "mascot"]:
 		var control: Control = screen.ui[key]
 		_check(control.visible, "%s: %s is visible" % [layout_name, key])
 		_check(control.rect_size.x > 0.0 and control.rect_size.y > 0.0, "%s: %s has positive size" % [layout_name, key])
@@ -59,12 +66,16 @@ func _test_layout(screen, viewport_size: Vector2, layout_name: String) -> void:
 	var mascot: TextureRect = screen.ui["mascot"]
 	_check(mascot.texture != null, "%s: mascot sprite texture is loaded" % layout_name)
 	_check(mascot.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED, "%s: mascot sprite preserves its aspect ratio" % layout_name)
+	var mascot_area_height: float = viewport_size.y * (0.50 if viewport_size.x > viewport_size.y else 0.345)
+	_check(is_equal_approx(mascot.rect_size.y, mascot_area_height * (1.0 - screen.MASCOT_BOTTOM_MARGIN_RATIO)), "%s: mascot keeps 28 percent bottom spacing" % layout_name)
+	_check(mascot.texture.resource_path == "res://shared/mascot/levels/%d.png" % clamp(int(progression.get_state()["level"]), 1, 10), "%s: mascot art matches the saved user level" % layout_name)
 
-	var start_button: Button = screen.ui["start"]
-	_check(start_button.text == "FAZER QUIZ DIÁRIO", "%s: home button invites the user to take the daily quiz" % layout_name)
-	_check(start_button.icon == null, "%s: mission button has no icon" % layout_name)
-	_check(start_button.align == Button.ALIGN_CENTER, "%s: mission button text is centered" % layout_name)
-	_check(start_button.has_meta("font_role"), "%s: mission button uses an adaptive font role" % layout_name)
+	_check(screen.ui["level_caption"].text == "NÍVEL", "%s: level caption appears above the level number" % layout_name)
+	_check(screen.ui["progress_title"].text == "EXPERIÊNCIA", "%s: XP progress uses the EXPERIÊNCIA caption" % layout_name)
+	var progress_panel: Control = screen.ui["progress_panel"]
+	_check(is_equal_approx(screen.ui["level_caption"].rect_position.y - progress_panel.rect_position.y, progress_panel.rect_size.y * 0.20), "%s: level caption has 20 percent top spacing" % layout_name)
+	_check(is_equal_approx(screen.ui["progress_title"].rect_position.y - progress_panel.rect_position.y, progress_panel.rect_size.y * 0.20), "%s: experience caption has 20 percent top spacing" % layout_name)
+	_check(screen.ui["level_number"].get_font("font").get_height() > screen.ui["progress_value"].get_font("font").get_height(), "%s: level number is larger than the XP value" % layout_name)
 
 	_check(not screen.ui.has("nav_games"), "%s: old shortcut buttons are removed" % layout_name)
 	_check(not screen.ui.has("nav_missions_title"), "%s: separate shortcut labels are removed" % layout_name)
@@ -73,6 +84,8 @@ func _test_layout(screen, viewport_size: Vector2, layout_name: String) -> void:
 	_check(navigation.active_item == "home", "%s: home is the active menu item" % layout_name)
 	var progress_rect: Rect2 = screen.ui["progress_panel"].get_global_rect()
 	var nav_background_rect: Rect2 = navigation.background.get_global_rect()
+	var expected_progress_bottom: float = navigation.get_bar_top(viewport_size) - viewport_size.y * screen.PROGRESS_BOTTOM_GAP_RATIO
+	_check(is_equal_approx(progress_rect.end.y, expected_progress_bottom), "%s: level progress sits at the lowest safe position above the menu" % layout_name)
 	_check(nav_background_rect.position.y >= progress_rect.end.y, "%s: bottom menu does not overlap progress" % layout_name)
 	_check(_fits_viewport(navigation.background, viewport_size), "%s: bottom menu background stays inside the viewport" % layout_name)
 	for item_id in BOTTOM_NAVIGATION_SCRIPT.ITEM_IDS:
@@ -110,6 +123,8 @@ func _test_adaptive_font_sizes(screen) -> void:
 	_check(is_equal_approx(typography.get_role_ratio("button"), typography.get_role_ratio("body")), "main action matches the greeting body size")
 	for role in ["caption", "display_number", "progress_value", "progress_caption", "prompt", "district", "district_progress", "status", "points_label", "points", "support", "level", "tab", "badge", "badge_level", "challenge_body", "reward_progress"]:
 		_check(is_equal_approx(typography.get_role_ratio(role), typography.get_role_ratio("body")), "%s matches the greeting body size" % role)
+	_check(typography.is_title_role("level_display"), "home level numeral uses its dedicated responsive display role")
+	_check(is_equal_approx(typography.get_role_ratio("level_display"), TYPOGRAPHY_SCRIPT.BASE_BODY_RATIO * 1.55 * 1.5), "home level numeral is 50 percent larger than its previous display size")
 	screen._layout_screen(Vector2(720, 1280))
 	var navigation = screen.ui["navigation"]
 	navigation.layout_for_viewport(Vector2(720, 1280))
@@ -134,11 +149,21 @@ func _test_progress_values(screen) -> void:
 	_check(screen.ui["progress_value"].text == "500 / 2.000 XP", "home XP value updates after a partial XP change")
 	progression.add_experience(1500)
 	_check(screen.ui["level_number"].text == "2", "home level display updates after a level-up signal")
+	_check(screen.ui["mascot"].texture.resource_path == "res://shared/mascot/levels/2.png", "home mascot changes to the level two artwork after leveling up")
 	_check(screen.ui["progress_value"].text == "0 / 2.000 XP", "home XP display updates after a level-up signal")
 	_check(abs(progression.get_progress_ratio()) < 0.0001, "level-up resets the XP progress ratio")
 	progression.storage_path = original_path
 	progression.load_progress()
 	_remove_progress_test_file(test_path)
+
+
+func _test_mascot_level_mapping(screen) -> void:
+	for level in range(1, 11):
+		screen._refresh_mascot_for_level(level)
+		_check(screen.ui["mascot"].texture.resource_path == "res://shared/mascot/levels/%d.png" % level, "home mascot selects artwork for level %d" % level)
+	screen._refresh_mascot_for_level(20)
+	_check(screen.ui["mascot"].texture.resource_path == "res://shared/mascot/levels/10.png", "home mascot uses level ten artwork above the available range")
+	screen._refresh_progress_ui()
 
 
 func _remove_progress_test_file(path: String) -> void:
@@ -158,23 +183,19 @@ func _test_landscape_greeting_hierarchy(screen) -> void:
 		_check(_text_fits_control(message), "landscape greeting message fits at %s" % viewport_size)
 
 
-func _test_landscape_action_and_level_alignment(screen) -> void:
+func _test_landscape_progress_alignment(screen) -> void:
 	for viewport_size in [Vector2(1280, 720), Vector2(960, 540)]:
 		screen._layout_screen(viewport_size)
-		var start_rect: Rect2 = _layout_rect(screen.ui["start"])
 		var progress_rect: Rect2 = _layout_rect(screen.ui["progress_panel"])
-		var greeting_rect: Rect2 = _layout_rect(screen.ui["greeting_panel"])
-		var group_center_y: float = (start_rect.position.y + progress_rect.end.y) * 0.5
-		var greeting_center_y: float = greeting_rect.position.y + greeting_rect.size.y * 0.5
-		var gap: float = progress_rect.position.y - start_rect.end.y
-		_check(gap >= -1.0 and gap <= viewport_size.y * 0.05, "landscape mission button gap %.2f fits at %s" % [gap, viewport_size])
-		_check(abs(group_center_y - greeting_center_y) <= 1.0, "landscape action and level group centers on the mascot speech area at %s" % viewport_size)
+		var navigation = screen.ui["navigation"]
+		var expected_progress_bottom: float = navigation.get_bar_top(viewport_size) - viewport_size.y * screen.PROGRESS_BOTTOM_GAP_RATIO
+		_check(is_equal_approx(progress_rect.end.y, expected_progress_bottom), "landscape progress sits at the lowest safe position above the menu at %s" % viewport_size)
 
 
 func _test_text_fits_controls(screen) -> void:
 	for viewport_size in [Vector2(720, 1280), Vector2(1280, 720), Vector2(960, 540), Vector2(360, 800), Vector2(320, 568)]:
 		screen._layout_screen(viewport_size)
-		for key in ["menu", "notification", "logo_icon", "brand_top", "brand_bottom", "greeting_title", "greeting_text", "start", "level_caption", "level_number", "progress_title", "progress_value", "progress_hint", "status"]:
+		for key in ["menu", "notification", "logo_icon", "brand_top", "brand_bottom", "greeting_title", "greeting_text", "level_caption", "level_number", "progress_title", "progress_value", "progress_hint", "status"]:
 			var control: Control = screen.ui[key]
 			_check(control.has_meta("font_role"), "%s uses an adaptive font role at %s" % [key, viewport_size])
 			_check(screen.typography.has_role(control.get_meta("font_role")), "%s uses the shared typography scale at %s" % [key, viewport_size])

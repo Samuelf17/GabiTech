@@ -4,10 +4,10 @@ signal dismissed(event_id)
 
 const TYPOGRAPHY = preload("res://shared/ui/typography.gd")
 const BADGE_CATALOG = preload("res://shared/progress/badge_catalog.gd")
-const SHIELD_ICON = preload("res://shared/ui/assets/icons/shield_icon.svg")
+const BADGE_GRAYSCALE_SHADER = preload("res://shared/ui/assets/shaders/badge_grayscale.shader")
 const CYAN = Color("#28e3dc")
 const WHITE = Color("#f3f7ff")
-const LOCKED_COLOR = Color("#778196")
+const LOCKED_GRAYSCALE_AMOUNT: float = 1.0
 const BADGE_ART_VERTICAL_INSET: float = 79.0 / 960.0
 const DISPLAY_SECONDS: float = 5.0
 const TITLE_SCALE: float = 1.10
@@ -16,10 +16,10 @@ const LEVEL_UP_HALF_TURN_DURATION: float = 0.32
 
 var typography = TYPOGRAPHY.new()
 var event_id: String = ""
-var badge_color: Color = WHITE
 var overlay: Control
 var title_label: Label
 var badge_icon: TextureRect
+var badge_material: ShaderMaterial
 var badge_name_label: Label
 var timer: Timer
 var tween: Tween
@@ -39,7 +39,6 @@ func present(notification: Dictionary) -> bool:
 	if badge.empty() or not notification.has("event_id") or not notification.has("level"):
 		return false
 	event_id = String(notification["event_id"])
-	badge_color = badge["color"]
 	var is_first_unlock: bool = notification.get("kind", "") == "unlocked"
 	title_label.text = (
 		"Distintivo %s desbloqueado!" % badge["display_name"]
@@ -48,7 +47,9 @@ func present(notification: Dictionary) -> bool:
 	)
 	badge_name_label.text = badge["name"]
 	badge_name_label.visible = not is_first_unlock
-	badge_icon.modulate = LOCKED_COLOR if is_first_unlock else badge_color
+	badge_icon.texture = badge["texture"]
+	badge_material.set_shader_param("grayscale_amount", LOCKED_GRAYSCALE_AMOUNT if is_first_unlock else 0.0)
+	badge_icon.modulate = WHITE
 	badge_icon.rect_scale = Vector2.ONE if not is_first_unlock else Vector2(0.72, 0.72)
 	badge_icon.rect_rotation = 0.0
 	visible = true
@@ -86,7 +87,10 @@ func _build_popup() -> void:
 
 	badge_icon = TextureRect.new()
 	badge_icon.name = "BadgeIcon"
-	badge_icon.texture = SHIELD_ICON
+	badge_material = ShaderMaterial.new()
+	badge_material.shader = BADGE_GRAYSCALE_SHADER
+	badge_material.set_shader_param("grayscale_amount", LOCKED_GRAYSCALE_AMOUNT)
+	badge_icon.material = badge_material
 	badge_icon.expand = true
 	badge_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	badge_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -240,10 +244,10 @@ func _start_badge_animation(is_first_unlock: bool) -> void:
 			0.45
 		)
 		tween.interpolate_property(
-			badge_icon,
-			"modulate",
-			LOCKED_COLOR,
-			badge_color,
+			badge_material,
+			"shader_param/grayscale_amount",
+			LOCKED_GRAYSCALE_AMOUNT,
+			0.0,
 			0.80,
 			Tween.TRANS_SINE,
 			Tween.EASE_IN_OUT

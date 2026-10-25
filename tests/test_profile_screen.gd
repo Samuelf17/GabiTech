@@ -55,6 +55,11 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		_check(false, "%s at %s" % [typography_failure, viewport_size])
 	var expected_header_y: float = viewport_size.y * (0.055 if viewport_size.x > viewport_size.y else 0.045)
 	_check(is_equal_approx(screen.ui["header"].rect_position.y, expected_header_y), "Recompensas has two percent more top spacing at %s" % viewport_size)
+	var background: TextureRect = screen.ui["background"]
+	_check(background.texture != null, "profile test background image loads at %s" % viewport_size)
+	_check(background.texture.resource_path == "res://shared/ui/assets/backgrounds/fundo.png", "profile uses the permanent background image at %s" % viewport_size)
+	_check(background.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED, "profile test background covers both screen orientations at %s" % viewport_size)
+	_check(_fits_viewport(background, viewport_size), "profile test background covers the viewport at %s" % viewport_size)
 	var navigation = screen.ui["navigation"]
 	_check(navigation.active_item == "profile", "Profile is the active menu item at %s" % viewport_size)
 	for index in range(BOTTOM_NAVIGATION_SCRIPT.ITEM_IDS.size()):
@@ -81,9 +86,9 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		var badge: Dictionary = screen.badge_controls[index]
 		_check(typography.has_role(badge["name"].get_meta("font_role")), "%s name uses shared typography" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(typography.has_role(badge["level"].get_meta("font_role")), "%s level uses shared typography" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
-		_check(badge["icon"].texture == SHIELD_ICON, "%s uses the temporary shield icon" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
+		_check(badge["icon"].texture == PROFILE_SCREEN_SCRIPT.BADGES[index]["texture"], "%s uses its dedicated badge artwork" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(badge["level"].text == "NÍVEL 0", "%s starts at level zero" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
-		_check(badge["icon"].modulate == PROFILE_SCREEN_SCRIPT.LOCKED_BADGE_COLOR, "%s starts grayscale" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
+		_check(is_equal_approx(badge["material"].get_shader_param("grayscale_amount"), 1.0), "%s starts grayscale" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(_fits_viewport(badge["icon"], viewport_size), "%s badge icon stays inside the viewport at %s" % [PROFILE_SCREEN_SCRIPT.BADGES[index]["name"], viewport_size])
 		var previous_size: float = badge["icon"].get_meta("size_before_current_increase")
 		_check(is_equal_approx(badge["icon"].rect_size.x, previous_size * PROFILE_SCREEN_SCRIPT.BADGE_ICON_SCALE), "%s badge artwork is enlarged by 20%% at %s" % [PROFILE_SCREEN_SCRIPT.BADGES[index]["name"], viewport_size])
@@ -102,11 +107,11 @@ func _test_badge_unlock_display(screen) -> void:
 	var knowledge_badge: Dictionary = screen.badge_controls[3]
 	_check(knowledge_badge["id"] == "knowledge", "knowledge badge is linked to its progress identifier")
 	_check(knowledge_badge["level"].text == "NÍVEL 1", "knowledge badge shows level one after three correct answers")
-	_check(knowledge_badge["icon"].modulate == knowledge_badge["color"], "knowledge badge becomes colored when unlocked")
+	_check(is_equal_approx(knowledge_badge["material"].get_shader_param("grayscale_amount"), 0.0), "knowledge badge shows its full color artwork when unlocked")
 	for index in [0, 1, 2, 4, 5]:
 		var locked_badge: Dictionary = screen.badge_controls[index]
 		_check(locked_badge["level"].text == "NÍVEL 0", "%s remains at level zero without an unlock rule" % locked_badge["id"])
-		_check(locked_badge["icon"].modulate == PROFILE_SCREEN_SCRIPT.LOCKED_BADGE_COLOR, "%s remains grayscale without an unlock rule" % locked_badge["id"])
+		_check(is_equal_approx(locked_badge["material"].get_shader_param("grayscale_amount"), 1.0), "%s remains grayscale without an unlock rule" % locked_badge["id"])
 
 
 func _test_tabs(screen) -> void:

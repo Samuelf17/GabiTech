@@ -9,6 +9,7 @@ const ROLE_MULTIPLIERS = {
 	"brand_title": 1.751632,
 	"brand_secondary": 1.372413,
 	"heading": 1.063898,
+	"level_display": 2.325,
 	"body": 1.0,
 	"button": 1.0,
 	"caption": 1.0,
@@ -32,7 +33,7 @@ const ROLE_MULTIPLIERS = {
 	"challenge_body": 1.0,
 	"reward_progress": 1.0
 }
-const TITLE_ROLES = ["brand_title", "brand_secondary", "heading", "title", "challenge"]
+const TITLE_ROLES = ["brand_title", "brand_secondary", "heading", "title", "challenge", "level_display"]
 const DECORATIVE_ROLES = ["icon", "brand"]
 
 var resized_font_cache: Dictionary = {}

@@ -88,6 +88,8 @@ func _test_screen_flow() -> void:
 	_check(screen.current_question_index >= 0, "screen selects a question on entry")
 	_check(screen.ui["mission_title"].text.find(String(screen.current_question["tema"]).to_upper()) >= 0, "screen displays the question topic")
 	_check(screen.explanation_timer.wait_time == 10.0, "explanation popup closes after ten seconds")
+	_check(screen.ui["background"] is ColorRect, "quiz uses a solid background without an image")
+	_check(screen.ui["background"].color == Color("#071126"), "quiz background keeps the original navy color")
 	_check(screen.ui["back_icon"].texture.resource_path == ARROW_BACK_PATH, "quiz question screen uses the shared arrow back asset")
 	_check(ResourceLoader.exists("res://ideias/arrow_back_icon.svg"), "original arrow back reference remains in ideas")
 	_check(not screen.ui["navigation"].visible and screen.ui["back"].visible, "question screen preserves its back button and hides completion navigation")
@@ -98,6 +100,7 @@ func _test_screen_flow() -> void:
 	for viewport_size in [Vector2(720, 1280), Vector2(1280, 720), Vector2(960, 540), Vector2(360, 800), Vector2(320, 568)]:
 		screen.rect_size = viewport_size
 		screen._layout_screen(viewport_size)
+		_check(_fits_viewport(screen.ui["background"], viewport_size), "quiz solid background fills the viewport at %s" % viewport_size)
 		var prompt_margin: float = min(viewport_size.x, viewport_size.y) * 0.035
 		screen.ui["next_prompt_no"].visible = true
 		screen._layout_next_prompt(viewport_size, prompt_margin)
@@ -217,14 +220,19 @@ func _test_screen_flow() -> void:
 	_check(screen.ui["next_prompt_yes"].rect_size.x * screen.ui["next_prompt_yes"].rect_scale.x > screen.ui["next_prompt_no"].rect_size.x * screen.ui["next_prompt_no"].rect_scale.x * 1.9, "last-answer Continue button spans the former two-button area")
 	screen._on_next_prompt_yes()
 	_check(screen.ui["completion_title"].visible, "fifth answer shows the daily completion message")
+	_check(screen.ui["background"].visible, "quiz completion screen retains its solid background")
+	_check(screen.ui["background"] is ColorRect, "quiz completion remains image-free")
 	_check(screen.ui["completion_message"].text.find("Volte amanhã") >= 0, "completion message points to tomorrow")
 	_check(screen.daily_progress.get_answered_count() == 5, "screen stops after five answers")
 	_check(progression.get_total_experience() == 300, "quiz grants 100 XP for each correct answer after all five answers")
 	_check(progression.get_badge_level("knowledge") == 1, "three correct answers unlock knowledge badge level one")
 	_check(screen.badge_popup != null and screen.badge_popup.visible, "knowledge unlock popup overlays the current quiz screen")
 	_check(screen.badge_popup.title_label.text == "Distintivo Conhecimento desbloqueado!", "first badge popup uses the unlock message")
+	_check(screen.badge_popup.badge_icon.texture == screen.badge_popup.BADGE_CATALOG.get_badge("knowledge")["texture"], "unlock popup uses the knowledge badge artwork from the shared catalog")
 	_check(not screen.badge_popup.badge_name_label.visible, "unlock popup contains only the message and badge image")
-	_check(screen.badge_popup.badge_icon.modulate != screen.badge_popup.LOCKED_COLOR, "badge popup animates from grayscale toward its unlocked color")
+	_check(is_equal_approx(screen.badge_popup.badge_material.get_shader_param("grayscale_amount"), 1.0), "badge unlock animation begins in grayscale")
+	yield(create_timer(0.2), "timeout")
+	_check(screen.badge_popup.badge_material.get_shader_param("grayscale_amount") < 1.0, "badge popup animates from grayscale toward its full color artwork")
 	_test_badge_popup_layout(screen.badge_popup)
 	_check(screen.ui["navigation"].visible and screen.ui["navigation"].active_item == "missions", "completed quiz shows the shared menu with Missions active")
 	_check(not screen.ui["back"].visible, "completed quiz hides the upper-left back button")
@@ -237,6 +245,7 @@ func _test_screen_flow() -> void:
 	for viewport_size in [Vector2(720, 1280), Vector2(1280, 720), Vector2(960, 540), Vector2(360, 800), Vector2(320, 568)]:
 		screen.rect_size = viewport_size
 		screen._layout_screen(viewport_size)
+		_check(_fits_viewport(screen.ui["background"], viewport_size), "quiz completion solid background fills the viewport at %s" % viewport_size)
 		for item_id in screen.ui["navigation"].buttons:
 			_check(_fits_viewport(screen.ui["navigation"].buttons[item_id], viewport_size), "completion menu %s fits at %s" % [item_id, viewport_size])
 	screen.queue_free()
@@ -260,6 +269,7 @@ func _test_screen_flow() -> void:
 	reopened._show_next_pending_badge_notification()
 	_check(reopened.badge_popup.title_label.text == "Nivel 2 alcançado!!!", "badge level-up popup shows the reached level")
 	_check(reopened.badge_popup.badge_name_label.text == "CONHECIMENTO", "badge level-up popup shows the badge name below the icon")
+	_check(reopened.badge_popup.badge_icon.texture == reopened.badge_popup.BADGE_CATALOG.get_badge("knowledge")["texture"], "level-up popup keeps the same knowledge badge artwork")
 	_check(reopened.badge_popup.badge_name_label.visible, "level-up popup includes the badge name")
 	_check(not reopened.badge_popup.tween.repeat, "badge level-up animation has a finite number of turns")
 	_check(abs(reopened.badge_popup.tween.get_runtime() - 1.92) < 0.01, "badge level-up animation lasts exactly three horizontal turns")
