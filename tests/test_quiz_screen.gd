@@ -1,6 +1,7 @@
 extends SceneTree
 
 const QUIZ_SCREEN = preload("res://games/quiz/scenes/quiz_screen.tscn")
+const QUIZ_SCREEN_SCRIPT = preload("res://games/quiz/scripts/quiz_screen.gd")
 const QUESTION_REPOSITORY = preload("res://games/quiz/scripts/quiz_question_repository.gd")
 const DAILY_PROGRESS = preload("res://games/quiz/scripts/quiz_daily_progress.gd")
 const QUIZ_DATA_PATH = "res://games/quiz/data/perguntas_e_respostas.json"
@@ -118,6 +119,13 @@ func _test_screen_flow() -> void:
 		for typography_failure in typography_failures:
 			_check(false, "%s at %s" % [typography_failure, viewport_size])
 		var short_side: float = min(viewport_size.x, viewport_size.y)
+		var expected_progress_height: float = screen.typography.get_target_height("body", short_side)
+		if viewport_size.x > viewport_size.y:
+			expected_progress_height *= QUIZ_SCREEN_SCRIPT.LANDSCAPE_PROGRESS_FONT_SCALE
+		_check(
+			abs(screen.ui["progress_text"].get_font("font").get_height() - expected_progress_height) <= 1.0,
+			"question progress text is 10% smaller only in landscape at %s" % viewport_size
+		)
 		_check(
 			is_equal_approx(screen.ui["shield"].rect_size.x, short_side * 0.075 * 1.10),
 			"mission shield is enlarged by 10% at %s" % viewport_size
@@ -130,11 +138,17 @@ func _test_screen_flow() -> void:
 		_check(title_right < screen.ui["shield"].rect_position.x, "mission title does not overlap the shield at %s" % viewport_size)
 		var question_font_height: float = screen.ui["question"].get_font("font").get_height()
 		var answer_font_height: float = screen.answer_rows[0]["label"].get_font("font").get_height()
+		var expected_question_height: float = screen.typography.get_target_height("body", short_side)
+		var expected_answer_height: float = expected_question_height
+		if viewport_size.x > viewport_size.y:
+			expected_question_height *= QUIZ_SCREEN_SCRIPT.LANDSCAPE_QUESTION_FONT_SCALE
+		_check(abs(question_font_height - expected_question_height) <= 1.0, "question text uses an additional 10% reduction only in landscape at %s" % viewport_size)
+		_check(abs(answer_font_height - expected_answer_height) <= 1.0, "answer text keeps the standard body scale at %s" % viewport_size)
 		for row in screen.answer_rows:
 			_check(_fits_viewport(row["button"], viewport_size), "answer option fits at %s" % viewport_size)
 			_check(row["button"].focus_mode == Control.FOCUS_ALL, "answer option supports keyboard/controller focus")
 			_check(is_equal_approx(row["label"].get_font("font").get_height(), answer_font_height), "answer text has a uniform font size at %s" % viewport_size)
-			_check(is_equal_approx(question_font_height, answer_font_height), "question and answers share a font size at %s" % viewport_size)
+			_check(is_equal_approx(row["label"].get_font("font").get_height(), answer_font_height), "answer text keeps a uniform font size at %s" % viewport_size)
 			_check(
 				row["label"].rect_size.x / row["button"].rect_size.x > 0.9,
 				"answer text uses over 90% of the button width at %s" % viewport_size
@@ -155,6 +169,7 @@ func _test_screen_flow() -> void:
 	screen._on_option_pressed(wrong_index)
 	screen._on_confirm_pressed()
 	_check(screen.daily_progress.get_answered_count() == 1, "answer submission advances the daily count")
+	_check(progression.get_total_experience() == 0, "quiz awards no XP before all five daily answers are completed")
 	_check(screen.answer_rows[wrong_index]["label"].get_color("font_color") == Color("#000000"), "selected wrong answer text stays black")
 	_check(screen.answer_rows[correct_index]["label"].get_color("font_color") == Color("#000000"), "correct answer text stays black")
 	_check(_answer_fill_color(screen.answer_rows[wrong_index]) == Color("#e95b63"), "selected wrong answer button fills red")
@@ -196,6 +211,7 @@ func _test_screen_flow() -> void:
 	screen._on_option_pressed(second_correct_index)
 	screen._on_confirm_pressed()
 	_check(not screen.ui["explanation_overlay"].visible, "correct answer does not show the explanation popup")
+	_check(progression.get_total_experience() == 0, "a correct answer does not award XP before the fifth daily answer")
 	_check(screen.ui["next_prompt"].visible, "correct answer opens the next-question prompt directly")
 	_check(screen.ui["next_prompt_title"].text == "Acertou!!!", "correct answer prompt shows its feedback")
 	_check(screen.ui["next_prompt_title"].get_color("font_color") == Color("#32bb78"), "correct answer feedback is green")
@@ -224,7 +240,7 @@ func _test_screen_flow() -> void:
 	_check(screen.ui["background"] is ColorRect, "quiz completion remains image-free")
 	_check(screen.ui["completion_message"].text.find("Volte amanhã") >= 0, "completion message points to tomorrow")
 	_check(screen.daily_progress.get_answered_count() == 5, "screen stops after five answers")
-	_check(progression.get_total_experience() == 300, "quiz grants 100 XP for each correct answer after all five answers")
+	_check(progression.get_total_experience() == 180, "quiz grants 60 XP for each correct answer after all five answers")
 	_check(progression.get_badge_level("knowledge") == 1, "three correct answers unlock knowledge badge level one")
 	_check(screen.badge_popup != null and screen.badge_popup.visible, "knowledge unlock popup overlays the current quiz screen")
 	_check(screen.badge_popup.title_label.text == "Distintivo Conhecimento desbloqueado!", "first badge popup uses the unlock message")

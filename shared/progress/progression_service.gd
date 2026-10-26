@@ -6,9 +6,13 @@ const RULES_PATH = "res://data/progression/progression_rules.json"
 const DEFAULT_PROGRESS_PATH = "res://data/progression/default_progress.json"
 const DEFAULT_EXPERIENCE_PER_LEVEL = 2000
 const DEFAULT_REWARD_ID_PREFIX = "level_reward_"
-const QUIZ_XP_PER_CORRECT_ANSWER: int = 100
+const QUIZ_XP_PER_CORRECT_ANSWER: int = 60
 const KNOWLEDGE_BADGE_ID: String = "knowledge"
 const CORRECT_ANSWERS_PER_KNOWLEDGE_LEVEL: int = 3
+const RESPECT_BADGE_ID: String = "respect"
+const RESPECT_CORRECT_ANSWERS_FOR_FIRST_LEVEL: int = 4
+const SECURITY_BADGE_ID: String = "security"
+const SECURITY_DATA_FOR_FIRST_LEVEL: int = 300
 const BADGE_IDS = ["privacy", "security", "communication", "knowledge", "respect", "attention"]
 const DEFAULT_STATE = {
 	"schema_version": 1,
@@ -24,8 +28,12 @@ const DEFAULT_STATE = {
 		"attention": 0
 	},
 	"quiz_correct_answers": 0,
+	"anti_bullying_correct_answers": 0,
+	"protected_data_count": 0,
 	"processed_quiz_answer_ids": [],
 	"processed_quiz_sessions": [],
+	"processed_anti_bullying_sessions": [],
+	"processed_data_protection_sessions": [],
 	"pending_badge_notifications": []
 }
 
@@ -132,6 +140,84 @@ func complete_quiz_session(session_id: String, correct_answer_count: int) -> boo
 	return true
 
 
+func complete_anti_bullying_round(round_id: String, correct_answer_count: int, total_situations: int) -> bool:
+	if round_id.empty() or state.empty() or total_situations < 1 or correct_answer_count < 0 or correct_answer_count > total_situations:
+		return false
+	if state["processed_anti_bullying_sessions"].has(round_id):
+		return true
+	var updated: Dictionary = state.duplicate(true)
+	var correct_total: int = int(updated["anti_bullying_correct_answers"])
+	var old_level: int = int(updated["badge_levels"][RESPECT_BADGE_ID])
+	correct_total += correct_answer_count
+	updated["anti_bullying_correct_answers"] = correct_total
+	var new_level: int = _get_progressive_badge_level(correct_total, RESPECT_CORRECT_ANSWERS_FOR_FIRST_LEVEL, 2)
+	_queue_badge_level_notifications(updated, RESPECT_BADGE_ID, old_level, new_level)
+	var xp_delta: int = correct_answer_count * 100 - (total_situations - correct_answer_count) * 20
+	if xp_delta > 0:
+		updated = _advance_state(updated, xp_delta)
+	updated["processed_anti_bullying_sessions"].append(round_id)
+	if not _save_state(updated):
+		return false
+	state = updated
+	emit_signal("progress_changed", get_state())
+	return true
+
+
+func record_protected_data() -> bool:
+	if state.empty():
+		return false
+	var updated: Dictionary = state.duplicate(true)
+	var protected_data_count: int = int(updated["protected_data_count"]) + 1
+	var old_level: int = int(updated["badge_levels"][SECURITY_BADGE_ID])
+	updated["protected_data_count"] = protected_data_count
+	var new_level: int = _get_progressive_badge_level(protected_data_count, SECURITY_DATA_FOR_FIRST_LEVEL, 200)
+	_queue_badge_level_notifications(updated, SECURITY_BADGE_ID, old_level, new_level)
+	updated = _advance_state(updated, 5)
+	if not _save_state(updated):
+		return false
+	state = updated
+	emit_signal("progress_changed", get_state())
+	return true
+
+
+func complete_data_protection_round(round_id: String, won: bool) -> bool:
+	if round_id.empty() or state.empty():
+		return false
+	if state["processed_data_protection_sessions"].has(round_id):
+		return true
+	var updated: Dictionary = state.duplicate(true)
+	if won:
+		updated = _advance_state(updated, 200)
+	updated["processed_data_protection_sessions"].append(round_id)
+	if not _save_state(updated):
+		return false
+	state = updated
+	emit_signal("progress_changed", get_state())
+	return true
+
+
+func _get_progressive_badge_level(progress_count: int, first_level_requirement: int, requirement_step: int) -> int:
+	var level: int = 0
+	var remaining_progress: int = progress_count
+	while remaining_progress >= first_level_requirement + level * requirement_step:
+		remaining_progress -= first_level_requirement + level * requirement_step
+		level += 1
+	return level
+
+
+func _queue_badge_level_notifications(updated: Dictionary, badge_id: String, old_level: int, new_level: int) -> void:
+	if new_level <= old_level:
+		return
+	for level in range(old_level + 1, new_level + 1):
+		updated["pending_badge_notifications"].append({
+			"event_id": "%s:%d" % [badge_id, level],
+			"badge_id": badge_id,
+			"level": level,
+			"kind": "unlocked" if level == 1 else "level_up"
+		})
+	updated["badge_levels"][badge_id] = new_level
+
+
 func acknowledge_badge_notification(event_id: String) -> bool:
 	if state.empty() or state["pending_badge_notifications"].empty():
 		return false
@@ -212,11 +298,15 @@ func _normalize_state(data: Dictionary) -> Dictionary:
 	var item_values = data.get("unlocked_items", [])
 	var badge_level_values = data.get("badge_levels", {})
 	var quiz_correct_answers_value = data.get("quiz_correct_answers", 0)
+	var anti_bullying_correct_answers_value = data.get("anti_bullying_correct_answers", 0)
+	var protected_data_count_value = data.get("protected_data_count", 0)
 	var processed_answer_values = data.get("processed_quiz_answer_ids", [])
 	var processed_session_values = data.get("processed_quiz_sessions", [])
+	var processed_anti_bullying_values = data.get("processed_anti_bullying_sessions", [])
+	var processed_data_protection_values = data.get("processed_data_protection_sessions", [])
 	var pending_notification_values = data.get("pending_badge_notifications", [])
 	var schema_version = data.get("schema_version", 1)
-	if not _is_number(level_value) or not _is_number(experience_value) or not _is_number(schema_version) or not _is_number(quiz_correct_answers_value):
+	if not _is_number(level_value) or not _is_number(experience_value) or not _is_number(schema_version) or not _is_number(quiz_correct_answers_value) or not _is_number(anti_bullying_correct_answers_value) or not _is_number(protected_data_count_value):
 		return {}
 	var level: int = int(level_value)
 	var experience: int = int(experience_value)
@@ -224,11 +314,11 @@ func _normalize_state(data: Dictionary) -> Dictionary:
 		return {}
 	if not item_values is Array:
 		return {}
-	if int(quiz_correct_answers_value) < 0 or not badge_level_values is Dictionary:
+	if int(quiz_correct_answers_value) < 0 or int(anti_bullying_correct_answers_value) < 0 or int(protected_data_count_value) < 0 or not badge_level_values is Dictionary:
 		return {}
-	if not processed_answer_values is Array or not processed_session_values is Array or not pending_notification_values is Array:
+	if not processed_answer_values is Array or not processed_session_values is Array or not processed_anti_bullying_values is Array or not processed_data_protection_values is Array or not pending_notification_values is Array:
 		return {}
-	if not _is_valid_string_array(processed_answer_values) or not _is_valid_string_array(processed_session_values):
+	if not _is_valid_string_array(processed_answer_values) or not _is_valid_string_array(processed_session_values) or not _is_valid_string_array(processed_anti_bullying_values) or not _is_valid_string_array(processed_data_protection_values):
 		return {}
 	var clean_items: Array = []
 	for item_id in item_values:
@@ -245,6 +335,8 @@ func _normalize_state(data: Dictionary) -> Dictionary:
 			return {}
 		clean_badge_levels[badge_id] = int(badge_level_value)
 	clean_badge_levels[KNOWLEDGE_BADGE_ID] = _get_knowledge_level_for_correct_answers(int(quiz_correct_answers_value))
+	clean_badge_levels[RESPECT_BADGE_ID] = _get_progressive_badge_level(int(anti_bullying_correct_answers_value), RESPECT_CORRECT_ANSWERS_FOR_FIRST_LEVEL, 2)
+	clean_badge_levels[SECURITY_BADGE_ID] = _get_progressive_badge_level(int(protected_data_count_value), SECURITY_DATA_FOR_FIRST_LEVEL, 200)
 	var clean_notifications: Array = []
 	for notification in pending_notification_values:
 		if not notification is Dictionary:
@@ -259,7 +351,7 @@ func _normalize_state(data: Dictionary) -> Dictionary:
 			return {}
 		if notification_kind != "unlocked" and notification_kind != "level_up":
 			return {}
-		if badge_id == KNOWLEDGE_BADGE_ID and int(notification_level) > int(clean_badge_levels[KNOWLEDGE_BADGE_ID]):
+		if int(notification_level) > int(clean_badge_levels[badge_id]):
 			continue
 		clean_notifications.append({
 			"event_id": event_id,
@@ -274,8 +366,12 @@ func _normalize_state(data: Dictionary) -> Dictionary:
 		"unlocked_items": clean_items,
 		"badge_levels": clean_badge_levels,
 		"quiz_correct_answers": int(quiz_correct_answers_value),
+		"anti_bullying_correct_answers": int(anti_bullying_correct_answers_value),
+		"protected_data_count": int(protected_data_count_value),
 		"processed_quiz_answer_ids": clean_answer_ids,
 		"processed_quiz_sessions": clean_session_ids,
+		"processed_anti_bullying_sessions": _normalize_string_array(processed_anti_bullying_values),
+		"processed_data_protection_sessions": _normalize_string_array(processed_data_protection_values),
 		"pending_badge_notifications": clean_notifications
 	}
 

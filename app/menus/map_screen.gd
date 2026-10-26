@@ -18,7 +18,7 @@ const DISTRICT_ICON_PATHS = {
 const DISTRICTS = [
 	{"id": "privacy", "name": "BAIRRO DA\nPRIVACIDADE", "color": Color("#a95aff")},
 	{"id": "communication", "name": "BAIRRO DA\nCOMUNICAÇÃO", "color": Color("#23e2e7")},
-	{"id": "security", "name": "BAIRRO DA\nSEGURANÇA", "color": Color("#81ea48")},
+	{"id": "security", "name": "BAIRRO DA\nSEGURANÇA", "color": Color("#81ea48"), "scene": "res://games/data_protection/scenes/data_protection_screen.tscn"},
 	{"id": "knowledge", "name": "BAIRRO DO\nCONHECIMENTO", "color": Color("#ffc34f")},
 	{"id": "respect", "name": "BAIRRO DO\nRESPEITO", "color": Color("#ff6687"), "scene": "res://games/anti_bullying/scenes/anti_bullying_screen.tscn"}
 ]

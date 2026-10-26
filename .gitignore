@@ -13,3 +13,5 @@ export_presets.cfg
 #Cache e metadados gerados pelo editor
 .mono/
 data_*/
+!games/data_protection/
+!games/data_protection/**

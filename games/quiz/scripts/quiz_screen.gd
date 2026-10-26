@@ -20,6 +20,8 @@ const DAILY_LIMIT: int = DAILY_PROGRESS.DAILY_LIMIT
 const NON_HOME_TITLE_SCALE: float = 1.10
 const MISSION_TITLE_FONT_SCALE: float = 1.15
 const EXPLANATION_FONT_SCALE: float = 1.25
+const LANDSCAPE_PROGRESS_FONT_SCALE: float = 0.90
+const LANDSCAPE_QUESTION_FONT_SCALE: float = 0.90
 
 var ui: Dictionary = {}
 var answer_rows: Array = []
@@ -224,7 +226,10 @@ func _layout_screen(viewport_size: Vector2) -> void:
 	var progress_y: float = height * 0.155
 	var progress_h: float = height * 0.082
 	_place(ui["progress_panel"], margin, progress_y, width - margin * 2.0, progress_h)
-	_place(ui["progress_text"], margin * 1.4, progress_y + progress_h * 0.04, width - margin * 2.8, progress_h * 0.34, short_side)
+	var progress_font_scale: float = _get_common_content_font_scale(short_side)
+	if width > height:
+		progress_font_scale *= LANDSCAPE_PROGRESS_FONT_SCALE
+	_place(ui["progress_text"], margin * 1.4, progress_y + progress_h * 0.04, width - margin * 2.8, progress_h * 0.34, short_side, progress_font_scale)
 	var segment_gap: float = short_side * 0.012
 	var segments_width: float = width - margin * 2.0 - short_side * 0.10
 	var segment_width: float = (segments_width - segment_gap * 4.0) / 5.0
@@ -241,6 +246,9 @@ func _layout_screen(viewport_size: Vector2) -> void:
 	var answer_label_x: float = short_side * 0.015
 	var answer_label_width: float = row_width - answer_label_x - short_side * 0.015
 	var answer_label_height: float = option_height * 0.92
+	var question_font_scale: float = _get_common_content_font_scale(short_side)
+	if width > height:
+		question_font_scale *= LANDSCAPE_QUESTION_FONT_SCALE
 	var answer_font_scale: float = _get_common_content_font_scale(short_side)
 	_place(
 		ui["question"],
@@ -249,7 +257,7 @@ func _layout_screen(viewport_size: Vector2) -> void:
 		question_width,
 		question_height,
 		short_side,
-		answer_font_scale
+		question_font_scale
 	)
 	for index in range(answer_rows.size()):
 		var row: Dictionary = answer_rows[index]

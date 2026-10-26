@@ -127,6 +127,7 @@ func _test_district_selection(screen) -> void:
 
 func _test_navigation(screen) -> void:
 	_check(ResourceLoader.exists(QUIZ_SCENE_PATH), "Missions destination scene exists")
+	_check(ResourceLoader.exists(MAP_SCREEN_SCRIPT.DISTRICTS[2].get("scene", "")), "Security district destination scene exists")
 	_check(ResourceLoader.exists(MAP_SCREEN_SCRIPT.DISTRICTS[4].get("scene", "")), "Respect district destination scene exists")
 	screen._activate_district(4)
 

@@ -158,8 +158,8 @@ func _layout_landscape(width: float, height: float, safe_x: float, safe_y: float
 	var content_x := width * 0.405
 	var content_width := width * 0.555
 	var progress_height: float = height * 0.23
-	var navigation_top: float = ui["navigation"].get_bar_top(Vector2(width, height))
-	var progress_y: float = navigation_top - height * PROGRESS_BOTTOM_GAP_RATIO - progress_height
+	var speech_center_y: float = greeting_text_y + greeting_text_height * 0.5
+	var progress_y: float = speech_center_y - progress_height * 0.5
 	_place_progress(content_x, progress_y, content_width, progress_height, font_basis)
 	_place_status_above_navigation(content_x, content_width, width, height, font_basis)
 
@@ -172,10 +172,15 @@ func _place_progress(x: float, y: float, width: float, height: float, font_basis
 	var level_caption_height: float = height * 0.20
 	var level_group_y: float = y + height * 0.20
 	var level_number_height: float = height * 0.55
+	var level_area_right: float = x + padding + level_width + padding * 0.55
+	if current_viewport_size.x > current_viewport_size.y:
+		level_x = x + (level_area_right - x - level_width) * 0.5
+		ui["level_caption"].align = Label.ALIGN_CENTER
+		ui["level_number"].align = Label.ALIGN_CENTER
 	_place(ui["level_caption"], level_x, level_group_y, level_width, level_caption_height, font_basis)
 	_place(ui["level_number"], level_x, level_group_y + level_caption_height, level_width, level_number_height, font_basis)
 
-	var text_x: float = level_x + level_width + padding * 0.55
+	var text_x: float = level_area_right
 	var text_width := width - (text_x - x) - padding
 	var title_y: float = y + height * 0.20
 	_place(ui["progress_title"], text_x, title_y, text_width, height * 0.14, font_basis)

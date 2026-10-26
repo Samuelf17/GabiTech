@@ -18,6 +18,7 @@ config/icon="res://icon.png"
 
 NavigationHistory="*res://shared/navigation/navigation_history.gd"
 Progression="*res://shared/progress/progression_service.gd"
+LevelUpNotifications="*res://shared/progress/level_up_notification_service.gd"
 
 [display]
 
@@ -30,7 +31,7 @@ window/stretch/aspect="expand"
 [gui]
 
 common/drop_mouse_on_gui_input_disabled=true
-theme/custom_font="res://shared/ui/inter_regular.tres"
+theme/custom_font="res://shared/ui/jersey_10.tres"
 
 [physics]
 

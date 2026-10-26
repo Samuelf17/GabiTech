@@ -2,6 +2,52 @@
 
 ## Unreleased
 
+- Substituído o ícone do projeto pela arte `ideias/icone_app.png`, copiada para `icon.png` na raiz. A configuração existente `config/icon` já aponta para esse arquivo.
+
+- Aplicada Jersey 10 em todos os textos: fonte padrão global e serviço tipográfico responsivo. Inter é fallback apenas para glifos não disponíveis na Jersey. Testes de tipografia e de todas as telas, exceto duas verificações de conteúdo do tutorial da Defesa dos Dados, passaram.
+
+- Adicionada a Jersey 10 aos títulos de todas as telas e pop-ups por meio de `shared/ui/typography.gd`; os textos comuns continuam em Inter. Tamanho responsivo dos títulos preservado. Copiados o TTF e a licença SIL OFL para os assets compartilhados; testes tipográficos e de Home, Mapa, Perfil, Quiz e minijogos Anti-Bullying passaram.
+
+- Na Defesa dos Dados, swipes só são aceitos quando começam e terminam dentro do labirinto, evitando que o toque usado para abrir o Bairro da Segurança conte como movimento inicial. Voltar reinicia o estado temporário da rodada e gera um labirinto novo antes de navegar; o XP já persistido é preservado. Os testes cobrem abertura, toque sem movimento, swipe válido e reset.
+
+- Em paisagem, centralizado verticalmente o painel completo de nível/experiência da Home com a fala da capivara. No Quiz, reduzidos em 10% tanto a pergunta quanto o indicador “PERGUNTA n DE 5”, somente em paisagem; respostas e layout em retrato mantêm a escala anterior. Viewports retrato, paisagem e compactos passaram nos testes.
+
+- Na Home em paisagem, centralizado o grupo NÍVEL/número em sua coluna. No Perfil, os distintivos agora têm exatamente o mesmo tamanho responsivo dos gadgets; os testes verificam ambos em retrato, paisagem e viewports compactos.
+
+- Corrigida a classificação das respostas do Anti-Bullying: a tela usa explicitamente o booleano `correct`, e os 31 registros agora identificam as opções seguras como corretas. Testes verificam a contagem, cores do feedback, XP e o avanço do distintivo; os 12 scripts passaram.
+
+- Confirmado que o quiz aplica 60 XP por acerto (0–300 por sessão), somente após as cinco respostas, com prevenção de duplicidade por data. Aumentada em 15% a fonte de “Escolha como agir nesta conversa”, “Escolha uma resposta acima...” e “Online” (este último passa de 20% para 38% acima da escala-base). Testes responsivos e suíte completa passaram.
+
+- Adicionado o popup global de subida de nível: fundo escuro, título superior, oito giros rápidos da capivara anterior, explosão azul média e aparição da capivara atual; o popup fecha em cinco segundos e aguarda avisos de distintivo. Doze scripts automatizados passaram, incluindo o teste responsivo da animação.
+
+- Anti-Bullying agora normaliza o campo `feedback` do novo `situations.json` para `explanation` no carregamento, sem editar o arquivo fonte. O início do minijogo foi verificado e a suíte completa de 12 testes passou.
+
+- Atualizado o texto do tutorial de Defesa dos Dados com a mensagem solicitada sobre coletar arquivos e escapar dos spywares; teste verifica o texto integral e o encaixe responsivo do popup.
+
+- Defesa dos Dados restaura as cores originais do olho dos três hackers. O total de XP aparece em rótulo próprio no resultado, com espaço responsivo equivalente a 5% da altura do viewport antes dos botões; testes cobrem retrato, paisagem e viewport compacto.
+
+- Anti-Bullying agora abre com tutorial modal fechável; o status “online” cresceu 20% e o resultado mostra XP bruto ganho/perdido e saldo aplicado. Nos dois minijogos, popups de distintivo aparecem sobre a tela final e o resumo mostra os XP ganhos. Defesa dos Dados usa temporariamente `olho.png` (256×171) derivado de `ideias/olho.svg`, mantendo os dois sprites de hacker anteriores. A suíte completa de onze scripts passou.
+
+- XP atualizado: quiz concede 60 por acerto ao concluir o dia; Anti-Bullying credita o saldo de +100 por acerto e −20 por erro ao fim da rodada se positivo e progride Respeito (4, depois +6, +8…); Defesa dos Dados concede +5 por coleta e +200 na vitória e progride Segurança (300, depois +500, +700…). Respeito e Segurança usam os popups compartilhados de desbloqueio e avanço. Para teste visual, Defesa dos Dados voltou ao sprite antigo `hacker.png`, mantendo `hacker_ideias.png`; os onze scripts automatizados passaram.
+
+- O labirinto usa a arte de `ideias/hacker.svg` extraída para PNG de runtime 256×256, mantém o PNG antigo no projeto e preserva as modulações vermelho/verde/azul. A aba Coleção mostra os nove gadgets dos níveis 2–10, dessaturando os bloqueados até alcançar o nível do arquivo. A capivara agora reverte imediatamente e antecipa curvas em cruzamentos livres para reduzir a espera de resposta. Atualizados testes responsivos e de desbloqueio; os onze scripts passaram.
+
+- Restaurado o sprite PNG anterior do hacker a partir da textura de importação em cache do Godot (128×128). As modulações vermelho, verde e azul foram mantidas; os testes confirmam a textura recuperada.
+
+- Defesa dos Dados voltou a usar `planilha_icon.svg` com tonalidade verde e substituiu os sprites PNG dos hackers pela ilustração vetorial `hacker.svg`; as modulações vermelho, verde e azul foram mantidas. O editor importou os SVGs e os onze scripts de teste passaram.
+
+- Aplicada tonalidade verde à planilha coletável da Defesa dos Dados. Teste direcionado e suíte completa passaram.
+
+- Defesa dos Dados usa `ideias/planilha.svg` como arte dos dados coletáveis, preservando as cores originais; removido o ícone menor anterior. A Missão Anti-Bullying mantém o conjunto de 31 situações do JSON e sorteia cinco sem repetição a cada rodada, inclusive ao jogar novamente. Testes atualizados para seleção, cores de participantes e carregamento da nova arte.
+
+- Substituído o item coletável antigo pelo ícone `planilha_icon.svg` em verde; removidos do projeto o PNG anterior e seu metadado de importação. Testes verificam a referência, a cor e a remoção do arquivo antigo.
+- O popup inicial da Defesa dos Dados agora tem o botão “FECHAR TUTORIAL”. Fechar o tutorial dispensa a janela sem iniciar o jogo; a partida continua aguardando o primeiro movimento válido. Adicionados testes do botão e do estado de espera.
+- Removida a instrução fixa no rodapé e ampliado o labirinto para cerca de 76% da altura. Adicionado popup escurecido de introdução com história e controles; a partida aguarda o primeiro movimento válido e o popup não reaparece ao reiniciar. As telas finais agora explicam a derrota com a contagem de dados protegidos e uma mensagem educativa, ou parabenizam e confirmam a proteção de todos os dados na vitória.
+- O labirinto procedural agora recebe uma nova semente ao abrir o jogo e em cada reinício. A grade adapta dimensões ímpares ao viewport para ocupar aproximadamente 90% da largura e 76% da altura tanto em retrato quanto em paisagem; testes cobrem proporções, orientação e mudança de semente.
+- Defesa dos Dados agora orienta o labirinto verticalmente em retrato e horizontalmente em paisagem. Corrigido o reinício: os nós dos três hackers da rodada anterior são removidos antes de criar os novos; testes cobrem ambas as orientações e a ausência de sprites duplicados.
+- Defesa dos Dados: removida a lógica de perseguição, mantendo os hackers em movimento aleatório; os três agora aparecem em vermelho, verde e azul, e os itens coletáveis usam amarelo. Atualizados os testes para confirmar independência do movimento em relação à posição do jogador e cores aplicadas.
+- Corrigido o carregamento visual dos itens coletáveis e hackers do minijogo Defesa dos Dados: as artes originais eram SVGs com PNG embutido, estrutura que o importador SVG do Godot não renderizava corretamente. Foram criadas versões PNG transparentes 128×128 e o texto do jogo agora chama os itens de “dados”. Testes verificam as duas texturas carregadas e o contador de dados.
+- Criado o minijogo independente Defesa dos Dados, com labirinto procedural inspirado em `ideias/labirinto.jpeg`, capivara conforme nível, coleta de dados, três hackers coloridos, três vidas, controles por arrasto e WASD; o Bairro da Segurança abre o jogo e ele também pode ser executado diretamente no Godot. A suíte completa passou (11 scripts).
 - Padronizado o tamanho efetivo de todos os textos não titulados em Home, Mapa, Perfil, navegação e Quiz pelo tamanho da fala da capivara. Removidas escalas locais de corpo e reorganizado o cartão de progresso da Home em retrato para acomodar a dica; adicionado teste automático da escala efetiva dos textos nos viewports móveis, retrato e paisagem. Os títulos mantêm a hierarquia própria.
 - Revisadas as quatro telas do app para leitura móvel: escala-base compartilhada aumentada para 0,04 do menor lado do viewport e cálculo de ajuste de Mapa/Perfil atualizado para considerar quebra de linha real. Na missão, removida a numeração das opções, ampliados os textos solicitados e o escudo em 10%, com cobertura de retrato, paisagem e tamanhos compactos. A fonte padrão do Godot permanece em uso, pois o repositório não contém uma fonte própria. As nove suítes passaram; validação visual em aparelho ainda pendente.
 - Aumentada a legibilidade móvel da missão: pergunta e respostas agora compartilham uma escala calculada para o conteúdo mais longo do banco inteiro, e o texto ocupa mais de 90% da área dos botões de resposta.

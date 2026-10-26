@@ -2,6 +2,7 @@ extends Reference
 
 const DATA_PATH: String = "res://games/anti_bullying/data/situations.json"
 const OPTIONS_PER_SITUATION: int = 4
+const SITUATIONS_PER_GAME: int = 5
 
 var situations: Array = []
 var load_error: String = ""
@@ -28,12 +29,33 @@ func load_situations(path: String = DATA_PATH) -> bool:
 		load_error = "O arquivo não contém situações."
 		return false
 	for entry in entries:
-		if not _is_valid_situation(entry):
+		var normalized_entry = entry
+		if normalized_entry is Dictionary and str(normalized_entry.get("explanation", "")).strip_edges().empty():
+			normalized_entry["explanation"] = str(normalized_entry.get("feedback", "")).strip_edges()
+		if not _is_valid_situation(normalized_entry):
 			situations.clear()
 			load_error = "Uma situação está incompleta ou inválida."
 			return false
-		situations.append(entry)
+		situations.append(normalized_entry)
 	return true
+
+
+func select_random_situations(count: int = SITUATIONS_PER_GAME, seed_value: int = -1) -> Array:
+	var selected: Array = []
+	if count <= 0 or situations.empty():
+		return selected
+	var pool: Array = situations.duplicate()
+	var rng := RandomNumberGenerator.new()
+	if seed_value < 0:
+		rng.randomize()
+	else:
+		rng.seed = seed_value
+	var selection_count: int = min(count, pool.size())
+	for _index in range(selection_count):
+		var random_index: int = rng.randi_range(0, pool.size() - 1)
+		selected.append(pool[random_index])
+		pool.remove(random_index)
+	return selected
 
 
 func _is_valid_situation(entry) -> bool:

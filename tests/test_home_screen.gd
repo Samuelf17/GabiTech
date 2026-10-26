@@ -84,8 +84,16 @@ func _test_layout(screen, viewport_size: Vector2, layout_name: String) -> void:
 	_check(navigation.active_item == "home", "%s: home is the active menu item" % layout_name)
 	var progress_rect: Rect2 = screen.ui["progress_panel"].get_global_rect()
 	var nav_background_rect: Rect2 = navigation.background.get_global_rect()
-	var expected_progress_bottom: float = navigation.get_bar_top(viewport_size) - viewport_size.y * screen.PROGRESS_BOTTOM_GAP_RATIO
-	_check(is_equal_approx(progress_rect.end.y, expected_progress_bottom), "%s: level progress sits at the lowest safe position above the menu" % layout_name)
+	if viewport_size.x > viewport_size.y:
+		var speech_rect: Rect2 = screen.ui["greeting_text"].get_global_rect()
+		_check(
+			abs(progress_rect.position.y + progress_rect.size.y * 0.5 - (speech_rect.position.y + speech_rect.size.y * 0.5)) <= 1.0,
+			"%s: the full level and experience panel is vertically centered on the mascot speech" % layout_name
+		)
+		_check(progress_rect.end.y < navigation.get_bar_top(viewport_size), "%s: landscape progress stays above the bottom menu" % layout_name)
+	else:
+		var expected_progress_bottom: float = navigation.get_bar_top(viewport_size) - viewport_size.y * screen.PROGRESS_BOTTOM_GAP_RATIO
+		_check(is_equal_approx(progress_rect.end.y, expected_progress_bottom), "%s: portrait level progress sits above the menu" % layout_name)
 	_check(nav_background_rect.position.y >= progress_rect.end.y, "%s: bottom menu does not overlap progress" % layout_name)
 	_check(_fits_viewport(navigation.background, viewport_size), "%s: bottom menu background stays inside the viewport" % layout_name)
 	for item_id in BOTTOM_NAVIGATION_SCRIPT.ITEM_IDS:
@@ -187,9 +195,18 @@ func _test_landscape_progress_alignment(screen) -> void:
 	for viewport_size in [Vector2(1280, 720), Vector2(960, 540)]:
 		screen._layout_screen(viewport_size)
 		var progress_rect: Rect2 = _layout_rect(screen.ui["progress_panel"])
-		var navigation = screen.ui["navigation"]
-		var expected_progress_bottom: float = navigation.get_bar_top(viewport_size) - viewport_size.y * screen.PROGRESS_BOTTOM_GAP_RATIO
-		_check(is_equal_approx(progress_rect.end.y, expected_progress_bottom), "landscape progress sits at the lowest safe position above the menu at %s" % viewport_size)
+		var speech_rect: Rect2 = _layout_rect(screen.ui["greeting_text"])
+		_check(
+			abs(progress_rect.position.y + progress_rect.size.y * 0.5 - (speech_rect.position.y + speech_rect.size.y * 0.5)) <= 1.0,
+			"landscape progress panel aligns with the mascot speech at %s" % viewport_size
+		)
+		var level_caption: Label = screen.ui["level_caption"]
+		var level_number: Label = screen.ui["level_number"]
+		var level_area_center: float = (progress_rect.position.x + screen.ui["progress_title"].rect_position.x) * 0.5
+		var level_group_center: float = level_caption.rect_position.x + level_caption.rect_size.x * 0.5
+		_check(level_caption.align == Label.ALIGN_CENTER and level_number.align == Label.ALIGN_CENTER, "landscape level caption and number are centered at %s" % viewport_size)
+		_check(abs(level_group_center - level_area_center) <= 1.0, "landscape level group is centered in its column at %s" % viewport_size)
+		_check(is_equal_approx(level_caption.rect_position.x, level_number.rect_position.x), "landscape level caption and number share a centered column at %s" % viewport_size)
 
 
 func _test_text_fits_controls(screen) -> void:

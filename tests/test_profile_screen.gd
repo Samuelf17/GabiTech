@@ -81,10 +81,21 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 	var profile_title: Control = screen.ui["header"]
 	screen._place(profile_title, 0.0, 0.0, 10000.0, 10000.0, 720.0)
 	_check(abs(profile_title.get_font("font").get_height() - typography.get_target_height(profile_title.get_meta("font_role"), 720.0) * 1.10) <= 1.0, "profile screen title is enlarged by ten percent")
-	_check(is_equal_approx(PROFILE_SCREEN_SCRIPT.BADGE_ICON_SCALE, 1.20), "profile badge icons are 20% larger than their current size")
 	for key in ["header", "user_name", "points_label", "points", "support", "level_caption", "xp_value", "challenge_title", "challenge_text", "challenge_count"]:
 		_check(typography.has_role(screen.ui[key].get_meta("font_role")), "%s uses the shared typography scale" % key)
 	_check(screen.badge_controls.size() == 6, "six reward badges are displayed")
+	_check(screen.collection_controls.size() == 9, "collection displays the nine gadgets for levels two through ten")
+	for gadget in screen.collection_controls:
+		var gadget_level: int = gadget["required_level"]
+		_check(gadget["icon"].texture != null, "level %d gadget image is loaded" % gadget_level)
+		_check(gadget["icon"].texture.resource_path == "res://shared/progress/assets/gadgets/%d.png" % gadget_level, "level %d gadget comes from its copied runtime asset" % gadget_level)
+		_check(gadget["label"].text == "NÍVEL %d" % gadget_level, "level %d gadget shows its unlock level" % gadget_level)
+		_check(is_equal_approx(gadget["material"].get_shader_param("grayscale_amount"), 1.0), "level %d gadget is grayscale while locked" % gadget_level)
+		_check(not gadget["icon"].visible, "collection items stay hidden on the Distintivos tab")
+		_check(gadget["icon"].texture.get_width() > 0 and gadget["icon"].texture.get_height() > 0, "level %d gadget art is loaded" % gadget_level)
+		_check(_fits_viewport(gadget["icon"], viewport_size), "level %d gadget icon fits the viewport at %s" % [gadget_level, viewport_size])
+		_check(_fits_viewport(gadget["label"], viewport_size), "level %d gadget label fits the viewport at %s" % [gadget_level, viewport_size])
+		_check(is_equal_approx(gadget["icon"].rect_size.x, screen.collection_controls[0]["icon"].rect_size.x), "all gadget icons share the same size at %s" % viewport_size)
 	for index in range(screen.badge_controls.size()):
 		var badge: Dictionary = screen.badge_controls[index]
 		_check(typography.has_role(badge["name"].get_meta("font_role")), "%s name uses shared typography" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
@@ -95,8 +106,9 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		_check(badge["level"].text == "NÍVEL 0", "%s starts at level zero" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(is_equal_approx(badge["material"].get_shader_param("grayscale_amount"), 1.0), "%s starts grayscale" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(_fits_viewport(badge["icon"], viewport_size), "%s badge icon stays inside the viewport at %s" % [PROFILE_SCREEN_SCRIPT.BADGES[index]["name"], viewport_size])
-		var previous_size: float = badge["icon"].get_meta("size_before_current_increase")
-		_check(is_equal_approx(badge["icon"].rect_size.x, previous_size * PROFILE_SCREEN_SCRIPT.BADGE_ICON_SCALE), "%s badge artwork is enlarged by 20%% at %s" % [PROFILE_SCREEN_SCRIPT.BADGES[index]["name"], viewport_size])
+		var gadget_icon: Control = screen.collection_controls[0]["icon"]
+		_check(is_equal_approx(badge["icon"].rect_size.x, gadget_icon.rect_size.x), "%s badge matches gadget width at %s" % [PROFILE_SCREEN_SCRIPT.BADGES[index]["name"], viewport_size])
+		_check(is_equal_approx(badge["icon"].rect_size.y, gadget_icon.rect_size.y), "%s badge matches gadget height at %s" % [PROFILE_SCREEN_SCRIPT.BADGES[index]["name"], viewport_size])
 		_check(is_equal_approx(typography.get_role_ratio(badge["name"].get_meta("font_role")), typography.get_role_ratio("body")), "%s badge name uses the shared body size" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(is_equal_approx(typography.get_role_ratio(badge["level"].get_meta("font_role")), typography.get_role_ratio("body")), "%s badge level uses the shared body size" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(_fits_viewport(badge["name"], viewport_size), "%s badge name stays inside the viewport at %s" % [PROFILE_SCREEN_SCRIPT.BADGES[index]["name"], viewport_size])
@@ -121,10 +133,19 @@ func _test_badge_unlock_display(screen) -> void:
 
 func _test_tabs(screen) -> void:
 	screen._on_tab_pressed("COLEÇÃO")
-	_check(screen.ui["status"].text.find("item(ns) desbloqueado(s)") >= 0, "collection tab gives feedback about unlocked items")
+	_check(screen.selected_tab == "COLEÇÃO", "collection tab becomes active")
+	_check(screen.collection_controls[0]["icon"].visible, "collection items appear after selecting the collection tab")
+	_check(not screen.badge_controls[0]["icon"].visible, "badges are hidden while viewing the collection")
+	_check(screen.ui["status"].text.empty(), "collection tab leaves the status label clear")
+	_check(progression.add_experience(6000), "profile test advances to level four")
+	for gadget in screen.collection_controls:
+		var required_level: int = gadget["required_level"]
+		var expected_grayscale: float = 0.0 if required_level <= 4 else 1.0
+		_check(is_equal_approx(gadget["material"].get_shader_param("grayscale_amount"), expected_grayscale), "level %d gadget color follows the profile level" % required_level)
 	screen._on_tab_pressed("DISTINTIVOS")
 	_check(screen.ui["status"].text.empty(), "badge tab clears temporary feedback")
 	_check(screen.selected_tab == "DISTINTIVOS", "badge tab remains selected")
+	_check(screen.badge_controls[0]["icon"].visible and not screen.collection_controls[0]["icon"].visible, "switching tabs restores badges and hides gadgets")
 	_check(ResourceLoader.exists(QUIZ_SCENE_PATH), "Missions destination scene exists")
 
 

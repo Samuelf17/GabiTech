@@ -3,72 +3,1149 @@
     {
       "id": "humilhacao_no_grupo",
       "conversation": [
-        {"speaker": "Leo", "text": "Olha o vídeo que fizeram da Nina."},
-        {"speaker": "Nina", "text": "Estão rindo de mim no grupo. Por favor, parem."}
+        {
+          "speaker": "Leo",
+          "text": "Olha o vídeo que fizeram da Nina."
+        },
+        {
+          "speaker": "Nina",
+          "text": "Estão rindo de mim no grupo. Por favor, parem."
+        }
       ],
       "options": [
-        {"text": "Encaminhar o vídeo para mais pessoas", "correct": false, "consequence": "O vídeo alcança mais gente e a humilhação aumenta."},
-        {"text": "Fingir que não viu e sair do grupo", "correct": false, "consequence": "A Nina continua sozinha diante das mensagens."},
-        {"text": "Apoiar a Nina e pedir que parem", "correct": true, "consequence": "A Nina percebe que tem apoio, e o grupo recebe um limite claro."},
-        {"text": "Denunciar a mensagem ofensiva ao responsável", "correct": true, "consequence": "Um adulto responsável pode interromper a agressão e ajudar o grupo."}
+        {
+          "text": "“Gente, parem. A Nina já disse que não gostou.”",
+          "correct": true,
+          "consequence": "O vídeo alcança mais gente e a humilhação aumenta."
+        },
+        {
+          "text": "“Kkkkk, manda o vídeo aqui também!”",
+          "correct": false,
+          "consequence": "A Nina continua sozinha diante das mensagens."
+        },
+        {
+          "text": "“Nina, para de exagerar, é só uma brincadeira.”",
+          "correct": false,
+          "consequence": "A Nina percebe que tem apoio, e o grupo recebe um limite claro."
+        },
+        {
+          "text": "“Nina, estou do seu lado. Vamos pedir ajuda a alguém de confiança.”",
+          "correct": true,
+          "consequence": "Um adulto responsável pode interromper a agressão e ajudar o grupo."
+        }
       ],
-      "explanation": "Não compartilhe conteúdo que humilha alguém. Apoie a pessoa e peça ajuda a um adulto de confiança."
+      "prompt": "Você está no grupo. O que responde?",
+      "feedback": "Não compartilhe conteúdo que humilha alguém. Apoie a pessoa e peça ajuda a um adulto de confiança."
     },
     {
       "id": "apelido_ofensivo",
       "conversation": [
-        {"speaker": "Bia", "text": "Estão chamando o Caio por um apelido que ele detesta."},
-        {"speaker": "Caio", "text": "Já pedi para pararem, mas continuam."}
+        {
+          "speaker": "Bia",
+          "text": "Estão chamando o Caio por um apelido que ele detesta."
+        },
+        {
+          "speaker": "Caio",
+          "text": "Já pedi para pararem, mas continuam."
+        }
       ],
       "options": [
-        {"text": "Usar o apelido também para entrar na brincadeira", "correct": false, "consequence": "A repetição mostra ao Caio que ninguém respeitou o pedido dele."},
-        {"text": "Dizer que a brincadeira deve parar e usar o nome dele", "correct": true, "consequence": "O grupo recebe um pedido respeitoso e o Caio é tratado pelo nome."},
-        {"text": "Criar um apelido ainda pior para quem começou", "correct": false, "consequence": "Uma ofensa gera outra e o conflito cresce."},
-        {"text": "Conversar com um adulto se continuarem", "correct": true, "consequence": "Pedir ajuda é uma forma segura de interromper a situação."}
+        {
+          "text": "“Se ele pediu para parar, vamos respeitar e chamar pelo nome.”",
+          "correct": true,
+          "consequence": "A repetição mostra ao Caio que ninguém respeitou o pedido dele."
+        },
+        {
+          "text": "“Vou inventar um apelido pior para ele.”",
+          "correct": false,
+          "consequence": "O grupo recebe um pedido respeitoso e o Caio é tratado pelo nome."
+        },
+        {
+          "text": "“Relaxa, Caio, ninguém vai parar só porque você pediu.”",
+          "correct": false,
+          "consequence": "Uma ofensa gera outra e o conflito cresce."
+        },
+        {
+          "text": "“Caio, isso não é legal. Se continuarem, vamos pedir ajuda.”",
+          "correct": true,
+          "consequence": "Pedir ajuda é uma forma segura de interromper a situação."
+        }
       ],
-      "explanation": "Quando alguém pede para parar, respeite o limite. Se a ofensa continuar, conte a um adulto de confiança."
+      "prompt": "O que você responde no grupo?",
+      "feedback": "Quando alguém pede para parar, respeite o limite. Se a ofensa continuar, conte a um adulto de confiança."
     },
     {
       "id": "exclusao_no_chat",
       "conversation": [
-        {"speaker": "Rafa", "text": "Vamos combinar de excluir a Júlia do grupo novo."},
-        {"speaker": "Júlia", "text": "Vi as mensagens e fiquei triste por me deixarem de fora."}
+        {
+          "speaker": "Rafa",
+          "text": "Vamos combinar de excluir a Júlia do grupo novo."
+        },
+        {
+          "speaker": "Júlia",
+          "text": "Vi as mensagens e fiquei triste por me deixarem de fora."
+        }
       ],
       "options": [
-        {"text": "Ajudar a excluir a Júlia e esconder o grupo", "correct": false, "consequence": "A exclusão fica maior e a Júlia continua magoada."},
-        {"text": "Convidar a Júlia e dizer que ela pode participar", "correct": true, "consequence": "A Júlia recebe uma oportunidade de participar com respeito."},
-        {"text": "Perguntar em particular como ela está", "correct": true, "consequence": "Ouvir a Júlia mostra cuidado e ajuda a entender o que ela precisa."},
-        {"text": "Publicar a conversa para todos rirem", "correct": false, "consequence": "Expor a conversa pode aumentar o constrangimento."}
+        {
+          "text": "“Júlia, sinto muito. Não acho legal excluir você assim.”",
+          "correct": true,
+          "consequence": "A exclusão fica maior e a Júlia continua magoada."
+        },
+        {
+          "text": "“É só um grupo, Júlia. Para de drama.”",
+          "correct": false,
+          "consequence": "A Júlia recebe uma oportunidade de participar com respeito."
+        },
+        {
+          "text": "“Boa! Vamos esconder melhor o grupo para ela não descobrir.”",
+          "correct": false,
+          "consequence": "Ouvir a Júlia mostra cuidado e ajuda a entender o que ela precisa."
+        },
+        {
+          "text": "“Não quero participar disso. Vamos conversar sem excluir ninguém de propósito.”",
+          "correct": true,
+          "consequence": "Expor a conversa pode aumentar o constrangimento."
+        }
       ],
-      "explanation": "Exclusão também machuca. Inclua as pessoas e converse com respeito, sem expor ninguém."
+      "prompt": "O que você diz?",
+      "feedback": "Exclusão também machuca. Inclua as pessoas e converse com respeito, sem expor ninguém."
     },
     {
       "id": "ameaca_online",
       "conversation": [
-        {"speaker": "Duda", "text": "Uma pessoa está ameaçando o Pedro por mensagem."},
-        {"speaker": "Pedro", "text": "Estou com medo e não sei o que fazer."}
+        {
+          "speaker": "Duda",
+          "text": "Uma pessoa está ameaçando o Pedro por mensagem."
+        },
+        {
+          "speaker": "Pedro",
+          "text": "Estou com medo e não sei o que fazer."
+        }
       ],
       "options": [
-        {"text": "Responder com outra ameaça", "correct": false, "consequence": "A discussão pode ficar mais perigosa para todos."},
-        {"text": "Guardar a mensagem e contar a um adulto de confiança", "correct": true, "consequence": "Um adulto pode ajudar e a mensagem serve para explicar o que houve."},
-        {"text": "Apoiar o Pedro e perguntar se ele está seguro", "correct": true, "consequence": "O Pedro sabe que não está sozinho enquanto recebe ajuda."},
-        {"text": "Compartilhar a ameaça como fofoca", "correct": false, "consequence": "A ameaça se espalha e pode deixar o Pedro ainda mais exposto."}
+        {
+          "text": "“Não responde com outra ameaça. Guarda as mensagens e vamos falar com um adulto.”",
+          "correct": true,
+          "consequence": "A discussão pode ficar mais perigosa para todos."
+        },
+        {
+          "text": "“Ameaça de volta para essa pessoa aprender.”",
+          "correct": false,
+          "consequence": "Um adulto pode ajudar e a mensagem serve para explicar o que houve."
+        },
+        {
+          "text": "“Manda o print para todo mundo rir dessa pessoa.”",
+          "correct": false,
+          "consequence": "O Pedro sabe que não está sozinho enquanto recebe ajuda."
+        },
+        {
+          "text": "“Você está seguro agora? Posso ficar com você enquanto procuramos ajuda.”",
+          "correct": true,
+          "consequence": "A ameaça se espalha e pode deixar o Pedro ainda mais exposto."
+        }
       ],
-      "explanation": "Ameaças devem ser levadas a sério. Não revide nem espalhe; guarde a mensagem e peça ajuda a um adulto."
+      "prompt": "O que você responde a Pedro?",
+      "feedback": "Ameaças devem ser levadas a sério. Não revide nem espalhe; guarde a mensagem e peça ajuda a um adulto."
     },
     {
       "id": "foto_sem_permissao",
       "conversation": [
-        {"speaker": "Gui", "text": "Postaram uma foto da Lara sem perguntar."},
-        {"speaker": "Lara", "text": "Não gostei. Quero que tirem a foto."}
+        {
+          "speaker": "Gui",
+          "text": "Postaram uma foto da Lara sem perguntar."
+        },
+        {
+          "speaker": "Lara",
+          "text": "Não gostei. Quero que tirem a foto."
+        }
       ],
       "options": [
-        {"text": "Compartilhar a foto para fazer uma brincadeira", "correct": false, "consequence": "Mais pessoas veem a imagem sem a permissão da Lara."},
-        {"text": "Apagar a cópia e pedir que removam a publicação", "correct": true, "consequence": "A imagem deixa de circular e o pedido da Lara é respeitado."},
-        {"text": "Perguntar à Lara como pode ajudar", "correct": true, "consequence": "A Lara pode escolher o apoio que considera mais seguro."},
-        {"text": "Dizer que ela está exagerando", "correct": false, "consequence": "Desconsiderar o pedido pode aumentar a tristeza e a exposição."}
+        {
+          "text": "“Se a Lara pediu para tirar, vamos respeitar. Não compartilhem a foto.”",
+          "correct": true,
+          "consequence": "Mais pessoas veem a imagem sem a permissão da Lara."
+        },
+        {
+          "text": "“Manda para mim também! Quero ver.”",
+          "correct": false,
+          "consequence": "A imagem deixa de circular e o pedido da Lara é respeitado."
+        },
+        {
+          "text": "“Você postou na internet, então agora não pode reclamar.”",
+          "correct": false,
+          "consequence": "A Lara pode escolher o apoio que considera mais seguro."
+        },
+        {
+          "text": "“Lara, quer que eu te ajude a pedir a remoção da publicação?”",
+          "correct": true,
+          "consequence": "Desconsiderar o pedido pode aumentar a tristeza e a exposição."
+        }
       ],
-      "explanation": "Fotos e mensagens precisam de consentimento. Respeite o pedido para remover e não compartilhe a imagem."
+      "prompt": "O que você diz no grupo?",
+      "feedback": "Fotos e mensagens precisam de consentimento. Respeite o pedido para remover e não compartilhe a imagem."
+    },
+    {
+      "id": "senha_fraca",
+      "conversation": [
+        {
+          "speaker": "Mila",
+          "text": "Minha senha é 123456 porque é fácil de lembrar."
+        },
+        {
+          "speaker": "Ivo",
+          "text": "Será que alguém conseguiria adivinhar?"
+        }
+      ],
+      "options": [
+        {
+          "text": "“É melhor criar uma senha longa e difícil de adivinhar.”",
+          "correct": true,
+          "consequence": "Uma senha simples pode ser descoberta e colocar várias contas em risco."
+        },
+        {
+          "text": "“Usa sua data de nascimento. É fácil e todo mundo lembra.”",
+          "correct": false,
+          "consequence": "Uma senha forte dificulta o acesso de pessoas não autorizadas."
+        },
+        {
+          "text": "“Pode usar a mesma senha em todos os aplicativos.”",
+          "correct": false,
+          "consequence": "Essas informações podem ser conhecidas por outras pessoas."
+        },
+        {
+          "text": "“Peça ajuda a um adulto para criar e guardar suas senhas com segurança.”",
+          "correct": true,
+          "consequence": "Um adulto de confiança pode ajudar a criar e guardar senhas de forma segura."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Use senhas longas e diferentes para cada conta. Não use informações fáceis de descobrir nem compartilhe sua senha com amigos."
+    },
+    {
+      "id": "pedido_de_senha",
+      "conversation": [
+        {
+          "speaker": "Davi",
+          "text": "Meu amigo pediu minha senha para pegar uma recompensa no meu jogo."
+        },
+        {
+          "speaker": "Davi",
+          "text": "Ele disse que devolve a conta depois."
+        }
+      ],
+      "options": [
+        {
+          "text": "“Prefiro não compartilhar minha senha com ninguém.”",
+          "correct": true,
+          "consequence": "A conta pode ser alterada, perdida ou usada sem sua autorização."
+        },
+        {
+          "text": "“Claro! Minha senha é a mesma que uso no meu e-mail.”",
+          "correct": false,
+          "consequence": "A conta continua protegida, mesmo quando a outra pessoa é conhecida."
+        },
+        {
+          "text": "“Só passo se você me der a senha da sua conta também.”",
+          "correct": false,
+          "consequence": "Trocar senhas não torna a conta mais segura."
+        },
+        {
+          "text": "“Se precisar de ajuda, vamos ver juntos as opções oficiais do jogo.”",
+          "correct": true,
+          "consequence": "Um adulto pode ajudar a lidar com a pressão e proteger a conta."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Senhas são secretas. Nem mesmo amigos precisam saber sua senha para provar amizade ou ajudar em um jogo."
+    },
+    {
+      "id": "link_de_recompensa",
+      "conversation": [
+        {
+          "speaker": "Nico",
+          "text": "Você ganhou 10 mil moedas grátis! Clique aqui e entre com sua conta."
+        },
+        {
+          "speaker": "Lia",
+          "text": "O site parece diferente do jogo que eu conheço."
+        }
+      ],
+      "options": [
+        {
+          "text": "“Melhor não abrir. Vamos conferir a promoção no site oficial do jogo.”",
+          "correct": true,
+          "consequence": "O link pode levar a uma página falsa que rouba dados."
+        },
+        {
+          "text": "“Clica logo! A oferta pode acabar a qualquer momento.”",
+          "correct": false,
+          "consequence": "Você evita uma possível fraude e confere a informação em uma fonte confiável."
+        },
+        {
+          "text": "“Digite sua senha só para ver se a recompensa funciona.”",
+          "correct": false,
+          "consequence": "A página pode capturar sua senha."
+        },
+        {
+          "text": "“Vamos mostrar a mensagem a um adulto antes de fazer qualquer coisa.”",
+          "correct": true,
+          "consequence": "Um adulto pode ajudar a avaliar se a mensagem é uma tentativa de golpe."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Desconfie de prêmios inesperados, urgência e pedidos de senha. Confira sempre pelos canais oficiais."
+    },
+    {
+      "id": "codigo_de_verificacao",
+      "conversation": [
+        {
+          "speaker": "ContaPremiada",
+          "text": "Sou do suporte. Me envie o código que acabou de chegar no seu celular."
+        },
+        {
+          "speaker": "Breno",
+          "text": "Recebi um código por SMS. Posso mandar?"
+        }
+      ],
+      "options": [
+        {
+          "text": "“Não envie! Código de verificação é secreto.”",
+          "correct": true,
+          "consequence": "O código pode permitir que outra pessoa entre na sua conta."
+        },
+        {
+          "text": "“Pode mandar, parece ser o suporte.”",
+          "correct": false,
+          "consequence": "Você evita entregar uma chave de acesso a alguém desconhecido."
+        },
+        {
+          "text": "“Posta o código no grupo para todo mundo conferir.”",
+          "correct": false,
+          "consequence": "Outras pessoas também poderiam usar o código para tentar acessar a conta."
+        },
+        {
+          "text": "“Entre no aplicativo oficial para falar com o suporte de verdade.”",
+          "correct": true,
+          "consequence": "Você recebe ajuda para proteger sua conta e denunciar a tentativa."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Códigos de verificação são secretos. O suporte legítimo não precisa que você envie seu código de acesso por mensagem."
+    },
+    {
+      "id": "perfil_publico",
+      "conversation": [
+        {
+          "speaker": "Ana",
+          "text": "Meu perfil está público e tem fotos, escola e lugares que frequento."
+        },
+        {
+          "speaker": "Beto",
+          "text": "Qualquer pessoa consegue ver tudo isso?"
+        }
+      ],
+      "options": [
+        {
+          "text": "“Vamos revisar a privacidade e limitar quem pode ver suas publicações.”",
+          "correct": true,
+          "consequence": "Pessoas desconhecidas podem descobrir detalhes da sua rotina."
+        },
+        {
+          "text": "“Deixa tudo público para ganhar mais seguidores.”",
+          "correct": false,
+          "consequence": "Você controla melhor quem pode acessar suas informações."
+        },
+        {
+          "text": "“Posta também seu endereço para os amigos te visitarem.”",
+          "correct": false,
+          "consequence": "O endereço pode chegar a pessoas que você não conhece."
+        },
+        {
+          "text": "“Converse com um adulto de confiança sobre as configurações do perfil.”",
+          "correct": true,
+          "consequence": "Um adulto pode ajudar a escolher configurações adequadas para sua idade."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Compartilhe apenas o necessário. Revise quem pode ver seu perfil, suas fotos e suas informações pessoais."
+    },
+    {
+      "id": "localizacao_em_tempo_real",
+      "conversation": [
+        {
+          "speaker": "Luna",
+          "text": "Vou postar que estou sozinha na praça e marcar minha localização ao vivo."
+        },
+        {
+          "speaker": "Mari",
+          "text": "Será que todo mundo precisa saber onde você está agora?"
+        }
+      ],
+      "options": [
+        {
+          "text": "“Melhor não publicar sua localização em tempo real para todo mundo.”",
+          "correct": true,
+          "consequence": "Desconhecidos podem descobrir onde você está naquele momento."
+        },
+        {
+          "text": "“Marca também o caminho que você vai fazer para casa.”",
+          "correct": false,
+          "consequence": "Você reduz a exposição da sua localização e mantém alguém de confiança informado."
+        },
+        {
+          "text": "“Manda sua localização para qualquer pessoa que pedir.”",
+          "correct": false,
+          "consequence": "Você pode revelar seu paradeiro a alguém que não é confiável."
+        },
+        {
+          "text": "“Avise um responsável de confiança e revise quais aplicativos acessam sua localização.”",
+          "correct": true,
+          "consequence": "Aplicativos deixam de acessar sua localização sem necessidade."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Sua localização é um dado pessoal. Compartilhe apenas quando necessário e com pessoas confiáveis."
+    },
+    {
+      "id": "dados_no_cadastro",
+      "conversation": [
+        {
+          "speaker": "SiteDeJogos",
+          "text": "Para baixar este jogo grátis, informe nome completo, endereço, escola e CPF."
+        },
+        {
+          "speaker": "Rui",
+          "text": "O jogo precisa mesmo de todos esses dados?"
+        }
+      ],
+      "options": [
+        {
+          "text": "“Não preencha ainda. Vamos verificar se o site é confiável e por que pede esses dados.”",
+          "correct": true,
+          "consequence": "Você pode entregar dados pessoais a um serviço desconhecido sem necessidade."
+        },
+        {
+          "text": "“Preenche tudo logo. Se o site pediu, deve ser necessário.”",
+          "correct": false,
+          "consequence": "Você evita fornecer informações excessivas ou a um serviço suspeito."
+        },
+        {
+          "text": "“Use os dados de outra pessoa para passar pelo cadastro.”",
+          "correct": false,
+          "consequence": "Usar dados de outra pessoa também pode causar problemas e não resolve a dúvida sobre o site."
+        },
+        {
+          "text": "“Vamos procurar uma versão confiável que peça menos informações.”",
+          "correct": true,
+          "consequence": "Você pode escolher um serviço que respeite melhor sua privacidade."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Antes de preencher um cadastro, verifique se o serviço é confiável e se os dados solicitados são realmente necessários. Peça ajuda a um adulto."
+    },
+    {
+      "id": "quiz_sobre_dados",
+      "conversation": [
+        {
+          "speaker": "Tati",
+          "text": "Um quiz promete revelar minha personalidade, mas pede minha data de nascimento, escola e telefone."
+        },
+        {
+          "speaker": "Tati",
+          "text": "É só uma brincadeira. Tem problema?"
+        }
+      ],
+      "options": [
+        {
+          "text": "“Mesmo sendo brincadeira, é melhor não fornecer dados sem saber como serão usados.”",
+          "correct": true,
+          "consequence": "Uma brincadeira pode coletar mais informações do que precisa."
+        },
+        {
+          "text": "“Responde tudo! Quizzes nunca coletam dados de verdade.”",
+          "correct": false,
+          "consequence": "Você evita compartilhar informações sem entender como serão usadas."
+        },
+        {
+          "text": "“Coloca os dados de um amigo para testar.”",
+          "correct": false,
+          "consequence": "Isso pode expor os dados do amigo ao mesmo risco."
+        },
+        {
+          "text": "“Vamos verificar o site e perguntar a um adulto se é confiável.”",
+          "correct": true,
+          "consequence": "Você pode avaliar os riscos antes de decidir."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Mesmo jogos e quizzes podem coletar dados. Pense se a informação é necessária e para que ela será usada."
+    },
+    {
+      "id": "lgpd_dados_excessivos",
+      "conversation": [
+        {
+          "speaker": "Iza",
+          "text": "Um aplicativo de desenho pede acesso aos meus contatos e à minha localização."
+        },
+        {
+          "speaker": "Iza",
+          "text": "Ele só precisa funcionar para eu desenhar. O que faço?"
+        }
+      ],
+      "options": [
+        {
+          "text": "“Negue o que não parece necessário e veja se o app funciona sem essas permissões.”",
+          "correct": true,
+          "consequence": "O aplicativo pode receber dados que não parecem necessários para desenhar."
+        },
+        {
+          "text": "“Permita tudo. Todo aplicativo precisa de todos os dados.”",
+          "correct": false,
+          "consequence": "Você limita o acesso aos dados e recursos do aparelho."
+        },
+        {
+          "text": "“Desative todas as proteções do celular para evitar problemas.”",
+          "correct": false,
+          "consequence": "Não é preciso deixar de usar todos os aplicativos; é melhor avaliar cada permissão."
+        },
+        {
+          "text": "“Vamos revisar as permissões e a política de privacidade com um adulto.”",
+          "correct": true,
+          "consequence": "Você pode entender melhor quais dados são coletados e por quê."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "A LGPD estabelece regras para o tratamento de dados pessoais no Brasil. Aplicativos devem ter uma finalidade para coletar dados, e você pode revisar permissões com ajuda de um responsável."
+    },
+    {
+      "id": "pedido_para_apagar_dados",
+      "conversation": [
+        {
+          "speaker": "Enzo",
+          "text": "Parei de usar um aplicativo e quero apagar minha conta."
+        },
+        {
+          "speaker": "Enzo",
+          "text": "Não encontrei a opção para excluir meus dados."
+        }
+      ],
+      "options": [
+        {
+          "text": "“Vamos procurar o procedimento oficial de exclusão e pedir ajuda a um responsável.”",
+          "correct": true,
+          "consequence": "Você deixa de buscar informações sobre seus direitos e as opções disponíveis."
+        },
+        {
+          "text": "“Não adianta. Nenhum aplicativo permite apagar contas.”",
+          "correct": false,
+          "consequence": "Você pode localizar o procedimento adequado para encerrar a conta e solicitar a exclusão dos dados quando aplicável."
+        },
+        {
+          "text": "“Envie seus documentos para qualquer pessoa que prometa apagar a conta.”",
+          "correct": false,
+          "consequence": "Você pode entregar documentos a alguém que esteja tentando aplicar um golpe."
+        },
+        {
+          "text": "“Vamos consultar a política de privacidade e os canais oficiais do serviço.”",
+          "correct": true,
+          "consequence": "Você descobre como o serviço trata pedidos de exclusão e quais dados podem precisar ser mantidos por obrigação legal."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "A LGPD prevê direitos relacionados aos dados pessoais, incluindo pedidos de eliminação em determinadas situações. O procedimento depende do caso; procure canais oficiais e ajuda de um responsável."
+    },
+    {
+      "id": "aplicativo_pede_camera",
+      "conversation": [
+        {
+          "speaker": "Noah",
+          "text": "Uma calculadora quer acesso à câmera e ao microfone."
+        },
+        {
+          "speaker": "Noah",
+          "text": "Não entendi por que ela precisa disso."
+        }
+      ],
+      "options": [
+        {
+          "text": "“Negue essas permissões por enquanto e confira se há uma explicação confiável.”",
+          "correct": true,
+          "consequence": "Você concede permissões que talvez não sejam necessárias para a função do aplicativo."
+        },
+        {
+          "text": "“Aceite tudo. Aplicativos sempre precisam da câmera e do microfone.”",
+          "correct": false,
+          "consequence": "Você mantém mais controle sobre o acesso à câmera e ao microfone."
+        },
+        {
+          "text": "“Desative a segurança do celular para o app funcionar.”",
+          "correct": false,
+          "consequence": "Nem todo aplicativo é confiável, e as permissões devem fazer sentido."
+        },
+        {
+          "text": "“Peça a um adulto para conferir a origem do aplicativo e as permissões.”",
+          "correct": true,
+          "consequence": "Um adulto pode ajudar a verificar a origem e as permissões do app."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Conceda apenas as permissões necessárias. Você pode revisar ou retirar permissões nas configurações do aparelho."
+    },
+    {
+      "id": "desinformacao",
+      "conversation": [
+        {
+          "speaker": "Vini",
+          "text": "Recebi uma mensagem dizendo que a escola vai fechar amanhã."
+        },
+        {
+          "speaker": "Léo",
+          "text": "Vamos espalhar antes que apaguem!"
+        }
+      ],
+      "options": [
+        {
+          "text": "“Vamos conferir os canais oficiais da escola antes de compartilhar.”",
+          "correct": true,
+          "consequence": "Uma informação falsa pode causar confusão e preocupação."
+        },
+        {
+          "text": "“Encaminha para todo mundo. Não precisamos conferir.”",
+          "correct": false,
+          "consequence": "Você verifica a informação com uma fonte que pode confirmá-la."
+        },
+        {
+          "text": "“Vamos inventar uma confirmação para convencer a turma.”",
+          "correct": false,
+          "consequence": "Comparar fontes ajuda a identificar boatos e informações fora de contexto."
+        },
+        {
+          "text": "“Se não encontrarmos uma fonte confiável, é melhor não espalhar.”",
+          "correct": true,
+          "consequence": "Inventar provas aumenta a desinformação e prejudica a confiança."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Antes de compartilhar uma notícia, confira a fonte, a data e outras fontes confiáveis. Se não conseguir confirmar, não espalhe."
+    },
+    {
+      "id": "adulto_desconhecido",
+      "conversation": [
+        {
+          "speaker": "PerfilNovo",
+          "text": "Tenho sua idade! Vamos conversar em segredo e depois nos encontrar?"
+        },
+        {
+          "speaker": "Sofia",
+          "text": "A pessoa diz que é da minha idade, mas nunca a vi pessoalmente."
+        }
+      ],
+      "options": [
+        {
+          "text": "“Não combine encontro em segredo. Conte isso a um adulto de confiança.”",
+          "correct": true,
+          "consequence": "Você pode se colocar em perigo ao encontrar alguém cuja identidade não conhece."
+        },
+        {
+          "text": "“Vai encontrar a pessoa sem avisar ninguém. Deve ser legal!”",
+          "correct": false,
+          "consequence": "Um adulto pode ajudar a avaliar a situação e proteger você."
+        },
+        {
+          "text": "“Mande seu endereço e sua escola para provar que confia nela.”",
+          "correct": false,
+          "consequence": "Você revela dados que podem ser usados para localizar você."
+        },
+        {
+          "text": "“Se a pessoa insistir, bloqueie e denuncie o perfil com ajuda de um adulto.”",
+          "correct": true,
+          "consequence": "Você interrompe o contato e pode informar a plataforma sobre o comportamento."
+        }
+      ],
+      "prompt": "O que você responde a Sofia?",
+      "feedback": "Pessoas na internet podem não ser quem dizem ser. Não mantenha segredos que deixam você desconfortável nem encontre desconhecidos sem a participação de um responsável."
+    },
+    {
+      "id": "jogo_com_chat_de_voz",
+      "conversation": [
+        {
+          "speaker": "Malu",
+          "text": "Um jogador que conheci hoje quer meu nome completo e o nome da minha escola pelo chat de voz."
+        },
+        {
+          "speaker": "Malu",
+          "text": "Ele disse que assim vamos virar melhores amigos."
+        }
+      ],
+      "options": [
+        {
+          "text": "“Você não precisa contar dados pessoais para fazer amizade no jogo.”",
+          "correct": true,
+          "consequence": "O jogador passa a conhecer informações pessoais que não precisa saber."
+        },
+        {
+          "text": "“Conta tudo. Se a pessoa pediu, é porque confia em você.”",
+          "correct": false,
+          "consequence": "Você pode jogar sem revelar informações que identificam você."
+        },
+        {
+          "text": "“Pergunte o endereço dela e troquem todos os dados.”",
+          "correct": false,
+          "consequence": "Trocar dados pessoais não torna o contato seguro."
+        },
+        {
+          "text": "“Se a pessoa insistir, encerre a conversa e fale com um responsável.”",
+          "correct": true,
+          "consequence": "Você encerra uma interação desconfortável e recebe apoio se necessário."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Não é necessário revelar nome completo, escola, endereço, telefone ou rotina para fazer amizades em jogos."
+    },
+    {
+      "id": "arquivo_suspeito",
+      "conversation": [
+        {
+          "speaker": "Gui",
+          "text": "Um site promete liberar uma versão paga do jogo de graça se eu instalar um arquivo."
+        },
+        {
+          "speaker": "Gui",
+          "text": "O antivírus mostrou um aviso, mas o site manda ignorar."
+        }
+      ],
+      "options": [
+        {
+          "text": "“Cancele o download e procure a loja ou o site oficial.”",
+          "correct": true,
+          "consequence": "O arquivo pode conter programa malicioso que danifica o aparelho ou rouba informações."
+        },
+        {
+          "text": "“Desative o antivírus para instalar sem problemas.”",
+          "correct": false,
+          "consequence": "Você reduz o risco de instalar um arquivo malicioso."
+        },
+        {
+          "text": "“Ignore o aviso. Todo arquivo grátis é seguro.”",
+          "correct": false,
+          "consequence": "Desativar a proteção aumenta o risco de comprometer o dispositivo."
+        },
+        {
+          "text": "“Mostre o aviso a um adulto antes de continuar.”",
+          "correct": true,
+          "consequence": "Um adulto pode ajudar a verificar a segurança do arquivo."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Não ignore alertas de segurança nem instale arquivos de origem duvidosa. Prefira lojas e sites oficiais."
+    },
+    {
+      "id": "wifi_publico",
+      "conversation": [
+        {
+          "speaker": "Bia",
+          "text": "Estou usando o Wi-Fi grátis de um lugar público."
+        },
+        {
+          "speaker": "Bia",
+          "text": "Vou entrar na minha conta bancária da família pelo celular emprestado."
+        }
+      ],
+      "options": [
+        {
+          "text": "“Não salve a senha em um aparelho emprestado. Prefira seu próprio dispositivo.”",
+          "correct": true,
+          "consequence": "Você pode deixar dados de acesso expostos, especialmente em aparelhos que não conhece."
+        },
+        {
+          "text": "“Salve a senha. Assim qualquer pessoa pode ajudar você depois.”",
+          "correct": false,
+          "consequence": "Você reduz o risco de deixar sua sessão ou senha salva em um dispositivo alheio."
+        },
+        {
+          "text": "“Use a mesma senha em todas as contas para não esquecer.”",
+          "correct": false,
+          "consequence": "A próxima pessoa pode conseguir acessar a conta."
+        },
+        {
+          "text": "“Se for necessário usar, confira o endereço oficial e saia da conta ao terminar.”",
+          "correct": true,
+          "consequence": "Você reduz alguns riscos, embora um aparelho próprio e confiável seja preferível."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Prefira seus próprios dispositivos para contas importantes. Nunca salve senhas em aparelhos emprestados e encerre a sessão ao terminar."
+    },
+    {
+      "id": "boato_com_print",
+      "conversation": [
+        {
+          "speaker": "Luca",
+          "text": "Tenho um print de uma conversa privada da Isa. Vou postar para provar que ela mentiu."
+        },
+        {
+          "speaker": "Isa",
+          "text": "Essa conversa era particular e está fora de contexto."
+        }
+      ],
+      "options": [
+        {
+          "text": "“Não publique. Vamos conversar em particular sem expor a conversa.”",
+          "correct": true,
+          "consequence": "A conversa pode se espalhar e expor dados ou detalhes privados."
+        },
+        {
+          "text": "“Posta em todos os grupos para todo mundo julgar.”",
+          "correct": false,
+          "consequence": "Você evita ampliar a exposição e dá espaço para esclarecer o conflito."
+        },
+        {
+          "text": "“Corte o nome dela, mas publique mesmo assim.”",
+          "correct": false,
+          "consequence": "Outros detalhes ainda podem identificar a pessoa e espalhar conteúdo privado."
+        },
+        {
+          "text": "“Se o problema for sério, vamos pedir ajuda a alguém de confiança.”",
+          "correct": true,
+          "consequence": "Uma pessoa de confiança pode ajudar a resolver o problema sem expor a conversa."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Capturas de tela também podem conter informações privadas. Não publique conversas para humilhar ou pressionar alguém."
+    },
+    {
+      "id": "pressao_para_enviar_foto",
+      "conversation": [
+        {
+          "speaker": "PerfilLegal",
+          "text": "Se você confia em mim, manda uma foto só para mim e não conta a ninguém."
+        },
+        {
+          "speaker": "Rafa",
+          "text": "Não quero mandar, mas a pessoa está insistindo."
+        }
+      ],
+      "options": [
+        {
+          "text": "“Você não precisa mandar foto nenhuma se não quiser. Vamos falar com um adulto de confiança.”",
+          "correct": true,
+          "consequence": "A pressão não garante que a imagem será mantida em segredo."
+        },
+        {
+          "text": "“Manda logo para a pessoa não ficar brava.”",
+          "correct": false,
+          "consequence": "Você estabelece um limite e recebe apoio sem precisar lidar com a pressão sozinho."
+        },
+        {
+          "text": "“Manda e exige uma promessa de que ninguém verá.”",
+          "correct": false,
+          "consequence": "Uma promessa não garante controle sobre a imagem depois do envio."
+        },
+        {
+          "text": "“Se continuar pressionando, bloqueie e denuncie com ajuda de um adulto.”",
+          "correct": true,
+          "consequence": "Você reduz o contato e sinaliza o comportamento inadequado à plataforma."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Você não deve nenhuma foto a ninguém. Se houver pressão, chantagem ou ameaça, não enfrente a situação sozinho: procure um adulto de confiança."
+    },
+    {
+      "id": "compartilhamento_de_documento",
+      "conversation": [
+        {
+          "speaker": "Nina",
+          "text": "Um perfil que promete seguidores pediu uma foto do meu documento para confirmar minha idade."
+        },
+        {
+          "speaker": "Nina",
+          "text": "Devo enviar?"
+        }
+      ],
+      "options": [
+        {
+          "text": "“Não envie. Vamos verificar o serviço por canais oficiais com um responsável.”",
+          "correct": true,
+          "consequence": "O documento contém dados que podem ser usados indevidamente."
+        },
+        {
+          "text": "“Manda logo. Perfil famoso sempre é confiável.”",
+          "correct": false,
+          "consequence": "Você evita entregar documentos a um perfil possivelmente falso."
+        },
+        {
+          "text": "“Use o documento de um familiar sem contar para ele.”",
+          "correct": false,
+          "consequence": "Você expõe os dados de outra pessoa sem autorização."
+        },
+        {
+          "text": "“Se parecer suspeito, denuncie o perfil à plataforma.”",
+          "correct": true,
+          "consequence": "A plataforma pode analisar o perfil e reduzir o risco para outras pessoas."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Documentos têm dados muito importantes. Nunca os envie a perfis desconhecidos ou em troca de seguidores e recompensas."
+    },
+    {
+      "id": "publicacao_no_calor_da_raiva",
+      "conversation": [
+        {
+          "speaker": "Theo",
+          "text": "Estou com muita raiva do meu colega e vou postar um insulto sobre ele."
+        },
+        {
+          "speaker": "Lia",
+          "text": "Você pode se arrepender depois."
+        }
+      ],
+      "options": [
+        {
+          "text": "“Espera um pouco e conversa com ele quando estiver mais calmo.”",
+          "correct": true,
+          "consequence": "A publicação pode ferir o colega, espalhar o conflito e permanecer em capturas de tela."
+        },
+        {
+          "text": "“Posta agora e marca todo mundo para ele passar vergonha.”",
+          "correct": false,
+          "consequence": "Você ganha tempo para pensar e pode resolver o conflito sem humilhar ninguém."
+        },
+        {
+          "text": "“Peça para seus amigos atacarem ele também.”",
+          "correct": false,
+          "consequence": "A situação pode virar assédio coletivo."
+        },
+        {
+          "text": "“Se não conseguir resolver sozinho, peça ajuda a alguém de confiança.”",
+          "correct": true,
+          "consequence": "Uma pessoa neutra pode ajudar a encontrar uma solução respeitosa."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Antes de publicar, pense no impacto para você e para os outros. Uma pausa pode evitar que um conflito vire cyberbullying."
+    },
+    {
+      "id": "conteudo_inadequado",
+      "conversation": [
+        {
+          "speaker": "Dani",
+          "text": "Um desconhecido me enviou uma imagem assustadora e pediu que eu encaminhasse para meus amigos."
+        },
+        {
+          "speaker": "Dani",
+          "text": "Fiquei desconfortável."
+        }
+      ],
+      "options": [
+        {
+          "text": "“Não encaminhe. Feche a conversa e conte a um adulto de confiança.”",
+          "correct": true,
+          "consequence": "Outras pessoas podem receber conteúdo que também as assuste ou coloque em risco."
+        },
+        {
+          "text": "“Encaminhe para todo mundo; assim não fica só com você.”",
+          "correct": false,
+          "consequence": "Você interrompe a circulação e recebe ajuda para lidar com o conteúdo."
+        },
+        {
+          "text": "“Publique a imagem para descobrir quem mais recebeu.”",
+          "correct": false,
+          "consequence": "A publicação pode ampliar a exposição ao conteúdo."
+        },
+        {
+          "text": "“Você pode bloquear e denunciar o remetente com ajuda de um adulto.”",
+          "correct": true,
+          "consequence": "Você não precisa lidar sozinho com algo que causou desconforto."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Se receber conteúdo assustador, violento ou inadequado, não o espalhe. Afaste-se e procure ajuda de um adulto de confiança."
+    },
+    {
+      "id": "tempo_de_tela_e_bem_estar",
+      "conversation": [
+        {
+          "speaker": "Pedro",
+          "text": "Estou jogando há horas, dormi pouco e amanhã tenho aula."
+        },
+        {
+          "speaker": "Pedro",
+          "text": "Mas meus amigos querem que eu continue online."
+        }
+      ],
+      "options": [
+        {
+          "text": "“Avise que vai sair para descansar. Seus amigos podem jogar com você outra hora.”",
+          "correct": true,
+          "consequence": "O cansaço pode prejudicar o sono, a atenção e o bem-estar."
+        },
+        {
+          "text": "“Fique acordado. Você não pode decepcionar o grupo.”",
+          "correct": false,
+          "consequence": "Você cuida do seu corpo e mostra que pode equilibrar jogo e outras atividades."
+        },
+        {
+          "text": "“Se quiser ser bom jogador, nunca faça pausas.”",
+          "correct": false,
+          "consequence": "Dormir menos pode afetar a saúde e a concentração."
+        },
+        {
+          "text": "“Combine horários de jogo com a família e reserve tempo para outras atividades.”",
+          "correct": true,
+          "consequence": "Uma rotina equilibrada ajuda a aproveitar a internet sem deixar outras necessidades de lado."
+        }
+      ],
+      "prompt": "O que você responde a Pedro?",
+      "feedback": "A internet pode ser divertida, mas sono, estudo, movimento e convivência também são importantes. Faça pausas e peça ajuda para organizar sua rotina."
+    },
+    {
+      "id": "publicidade_disfarcada",
+      "conversation": [
+        {
+          "speaker": "CriadorDeConteudo",
+          "text": "Este produto é o melhor do mundo! Compre agora!"
+        },
+        {
+          "speaker": "Lia",
+          "text": "Será que ele está recomendando porque gosta ou porque recebeu para divulgar?"
+        }
+      ],
+      "options": [
+        {
+          "text": "“Vamos verificar se é publicidade e pesquisar antes de decidir.”",
+          "correct": true,
+          "consequence": "A popularidade não garante que o produto seja bom ou adequado."
+        },
+        {
+          "text": "“Compra logo. Se uma pessoa famosa indicou, deve ser ótimo.”",
+          "correct": false,
+          "consequence": "Você entende melhor a intenção da mensagem e evita compras impulsivas."
+        },
+        {
+          "text": "“Use o cartão da família sem pedir para aproveitar a oferta.”",
+          "correct": false,
+          "consequence": "Você pode realizar uma compra sem autorização e expor informações financeiras."
+        },
+        {
+          "text": "“Converse com um responsável antes de comprar ou informar dados de pagamento.”",
+          "correct": true,
+          "consequence": "Você toma uma decisão mais consciente, sem depender apenas da propaganda."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Nem todo conteúdo é apenas uma opinião: pode ser publicidade. Desconfie da urgência e nunca use dados de pagamento sem autorização."
+    },
+    {
+      "id": "conta_invadiu",
+      "conversation": [
+        {
+          "speaker": "Mari",
+          "text": "Não consigo entrar na minha conta e apareceu uma mensagem dizendo que minha senha mudou."
+        },
+        {
+          "speaker": "Mari",
+          "text": "Acho que alguém entrou sem minha permissão."
+        }
+      ],
+      "options": [
+        {
+          "text": "“Conte a um responsável e use a recuperação oficial da conta.”",
+          "correct": true,
+          "consequence": "A pessoa pode continuar acessando a conta ou mudar mais configurações."
+        },
+        {
+          "text": "“Pague alguém desconhecido que promete recuperar a conta.”",
+          "correct": false,
+          "consequence": "Você pode recuperar o acesso por um caminho mais seguro."
+        },
+        {
+          "text": "“Ignore. Se alguém entrou, provavelmente não vai fazer nada.”",
+          "correct": false,
+          "consequence": "O desconhecido pode aplicar outro golpe ou roubar mais informações."
+        },
+        {
+          "text": "“Depois de recuperar, troque a senha e revise os dispositivos conectados.”",
+          "correct": true,
+          "consequence": "Você reduz a chance de novo acesso não autorizado."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Se suspeitar que uma conta foi invadida, procure o suporte oficial, peça ajuda a um adulto e proteja também o e-mail associado."
+    },
+    {
+      "id": "pedido_de_dados_de_amigo",
+      "conversation": [
+        {
+          "speaker": "Caio",
+          "text": "Um colega pediu o telefone da Júlia. Eu tenho o número dela salvo."
+        },
+        {
+          "speaker": "Caio",
+          "text": "Posso passar sem perguntar?"
+        }
+      ],
+      "options": [
+        {
+          "text": "“Pergunte à Júlia se ela autoriza compartilhar o número.”",
+          "correct": true,
+          "consequence": "Você compartilha um dado pessoal sem saber se Júlia concorda."
+        },
+        {
+          "text": "“Mande no grupo da turma para todo mundo ter.”",
+          "correct": false,
+          "consequence": "Júlia mantém o controle sobre quem recebe seu número."
+        },
+        {
+          "text": "“Passe logo. Se vocês estudam juntos, não tem problema.”",
+          "correct": false,
+          "consequence": "Muitas pessoas podem copiar ou usar o número sem autorização."
+        },
+        {
+          "text": "“Sugira que o colega peça o contato diretamente à Júlia.”",
+          "correct": true,
+          "consequence": "A própria Júlia pode decidir se quer compartilhar o número."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Dados pessoais de outras pessoas também merecem respeito. Não compartilhe telefone, endereço ou informações privadas sem autorização."
+    },
+    {
+      "id": "conta_falsa_de_colega",
+      "conversation": [
+        {
+          "speaker": "Bia",
+          "text": "Criaram um perfil com o nome e a foto do meu colega e estão pedindo dinheiro."
+        },
+        {
+          "speaker": "Bia",
+          "text": "Como sei que não é ele?"
+        }
+      ],
+      "options": [
+        {
+          "text": "“Confirme com seu colega por outro canal antes de acreditar no pedido.”",
+          "correct": true,
+          "consequence": "Você pode perder dinheiro para alguém que está fingindo ser outra pessoa."
+        },
+        {
+          "text": "“Envie dinheiro logo, pode ser uma emergência.”",
+          "correct": false,
+          "consequence": "Você ajuda a pessoa verdadeira e evita confiar apenas no perfil suspeito."
+        },
+        {
+          "text": "“Compartilhe o perfil dizendo que é verdadeiro.”",
+          "correct": false,
+          "consequence": "Você pode ajudar a fraude a alcançar mais pessoas."
+        },
+        {
+          "text": "“Avise seu colega e denuncie o perfil falso à plataforma.”",
+          "correct": true,
+          "consequence": "A plataforma pode analisar a conta por possível falsidade de identidade."
+        }
+      ],
+      "prompt": "O que você responde?",
+      "feedback": "Perfis podem ser falsificados. Confirme pedidos incomuns por outro canal e nunca envie dinheiro ou dados sem verificar."
     }
   ]
 }

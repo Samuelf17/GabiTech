@@ -9,17 +9,29 @@ const DAILY_PROGRESS = preload("res://games/quiz/scripts/quiz_daily_progress.gd"
 const BACKGROUND_TEXTURE = preload("res://shared/ui/assets/backgrounds/fundo.png")
 const NON_HOME_TITLE_SCALE: float = 1.10
 const RESPECT_BADGE_TEXTURE = preload("res://shared/progress/assets/badges/respect.png")
+const GADGET_LEVELS = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+const GADGET_TEXTURES = [
+	preload("res://shared/progress/assets/gadgets/2.png"),
+	preload("res://shared/progress/assets/gadgets/3.png"),
+	preload("res://shared/progress/assets/gadgets/4.png"),
+	preload("res://shared/progress/assets/gadgets/5.png"),
+	preload("res://shared/progress/assets/gadgets/6.png"),
+	preload("res://shared/progress/assets/gadgets/7.png"),
+	preload("res://shared/progress/assets/gadgets/8.png"),
+	preload("res://shared/progress/assets/gadgets/9.png"),
+	preload("res://shared/progress/assets/gadgets/10.png")
+]
 const NAVY = Color("#071126")
 const PANEL = Color("#0b1735")
 const PANEL_LIGHT = Color("#14254a")
 const WHITE = Color("#f3f7ff")
 const MUTED = Color("#a8b5d2")
 const CYAN = Color("#28e3dc")
-const BADGE_ICON_SCALE: float = 1.20
 const BADGES = BADGE_CATALOG.BADGES
 const LOCKED_BADGE_COLOR = Color("#778196")
 var ui: Dictionary = {}
 var badge_controls: Array = []
+var collection_controls: Array = []
 var current_viewport_size := Vector2.ZERO
 var selected_tab: String = "DISTINTIVOS"
 var typography = TYPOGRAPHY.new()
@@ -111,6 +123,27 @@ func _build_screen() -> void:
 		badge_item["id"] = badge["id"]
 		badge_item["color"] = badge["color"]
 		badge_controls.append(badge_item)
+	for gadget_index in range(GADGET_LEVELS.size()):
+		var gadget_level: int = GADGET_LEVELS[gadget_index]
+		var gadget_item := {}
+		var icon := TextureRect.new()
+		icon.name = "GadgetIcon_Level%d" % gadget_level
+		icon.texture = GADGET_TEXTURES[gadget_index]
+		icon.expand = true
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		var icon_material := ShaderMaterial.new()
+		icon_material.shader = BADGE_GRAYSCALE_SHADER
+		icon_material.set_shader_param("grayscale_amount", 1.0)
+		icon.material = icon_material
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.visible = false
+		add_child(icon)
+		gadget_item["icon"] = icon
+		gadget_item["material"] = icon_material
+		gadget_item["label"] = _new_label("NÍVEL %d" % gadget_level, LOCKED_BADGE_COLOR, "badge_level", Label.ALIGN_CENTER)
+		gadget_item["label"].visible = false
+		gadget_item["required_level"] = gadget_level
+		collection_controls.append(gadget_item)
 
 	ui["challenge_panel"] = _new_panel("DailyQuizPanel", Color("#191b4a"), Color("#383474"), 18)
 	ui["challenge_title"] = _new_label("★  QUIZ DIÁRIO", Color("#c06bff"), "challenge")
@@ -171,6 +204,7 @@ func _layout_portrait(viewport_size: Vector2, safe: float, short_side: float, na
 	var grid_top: float = tabs_y + tabs_height + height * 0.012
 	var grid_bottom: float = challenge_y - height * 0.018
 	_layout_badges(viewport_size, content_x, grid_top, content_width, grid_bottom)
+	_layout_collection(viewport_size, content_x, grid_top, content_width, grid_bottom)
 	_layout_challenge(content_x, challenge_y, content_width, challenge_height, short_side)
 	_place(ui["status"], safe, nav_top - height * 0.043, width - safe * 2.0, height * 0.03, short_side)
 
@@ -200,6 +234,7 @@ func _layout_landscape(viewport_size: Vector2, safe: float, short_side: float, n
 	var grid_top: float = height * 0.12
 	var grid_bottom: float = nav_top - height * 0.02
 	_layout_badges(viewport_size, badges_x, grid_top, badges_width, grid_bottom)
+	_layout_collection(viewport_size, badges_x, grid_top, badges_width, grid_bottom)
 	_place(ui["status"], content_x, nav_top - height * 0.043, content_width, height * 0.03, short_side)
 
 
@@ -240,7 +275,8 @@ func _layout_badges(viewport_size: Vector2, x: float, top: float, width: float, 
 	var short_side: float = min(viewport_size.x, viewport_size.y)
 	var cell_width: float = width / 3.0
 	var row_height: float = max(1.0, (bottom - top) / 2.0)
-	var icon_size: float = _previous_badge_icon_size(viewport_size) * BADGE_ICON_SCALE
+	var collection_row_height: float = max(1.0, (bottom - top) / 3.0)
+	var icon_size: float = _collection_icon_size(cell_width, collection_row_height)
 	for index in range(badge_controls.size()):
 		var row: int = int(index / 3)
 		var column: int = index % 3
@@ -248,33 +284,30 @@ func _layout_badges(viewport_size: Vector2, x: float, top: float, width: float, 
 		var cell_y: float = top + row_height * row
 		var cell: Dictionary = badge_controls[index]
 		var icon_y: float = cell_y + row_height * 0.015
-		cell["icon"].set_meta("size_before_current_increase", icon_size / BADGE_ICON_SCALE)
 		_place(cell["icon"], cell_x + (cell_width - icon_size) * 0.5, icon_y, icon_size, icon_size)
 		var name_y: float = icon_y + icon_size + row_height * 0.012
 		_place(cell["name"], cell_x + cell_width * 0.02, name_y, cell_width * 0.96, row_height * 0.18, short_side)
 		_place(cell["level"], cell_x + cell_width * 0.02, name_y + row_height * 0.19, cell_width * 0.96, row_height * 0.15, short_side)
 
 
-func _previous_badge_icon_size(viewport_size: Vector2) -> float:
-	var width: float = viewport_size.x
-	var height: float = viewport_size.y
-	var short_side: float = min(width, height)
-	var safe: float = short_side * 0.04
-	var landscape: bool = width > height
-	var nav_top: float = ui["navigation"].get_bar_top(viewport_size)
-	var hero_y: float = height * (0.105 if landscape else 0.09)
-	var hero_height: float = height * (0.19 if landscape else 0.18)
-	var level_y: float = hero_y + hero_height + height * 0.018
-	var level_height: float = height * (0.12 if landscape else 0.105)
-	var tabs_y: float = level_y + level_height + height * 0.018
-	var tabs_height: float = height * (0.075 if landscape else 0.065)
-	var grid_top: float = tabs_y + tabs_height + height * 0.014
-	var challenge_height: float = height * (0.115 if landscape else 0.105)
-	var challenge_y: float = nav_top - challenge_height - height * 0.06
-	var row_height: float = max(1.0, (challenge_y - height * 0.018 - grid_top) / 2.0)
-	var cell_width: float = (width - safe * 2.0) / 3.0
-	var previous_base_size: float = min(min(short_side * 0.105, cell_width * 0.38), row_height * 0.49)
-	return previous_base_size * 1.15
+func _layout_collection(viewport_size: Vector2, x: float, top: float, width: float, bottom: float) -> void:
+	var short_side: float = min(viewport_size.x, viewport_size.y)
+	var cell_width: float = width / 3.0
+	var row_height: float = max(1.0, (bottom - top) / 3.0)
+	for index in range(collection_controls.size()):
+		var row: int = int(index / 3)
+		var column: int = index % 3
+		var cell_x: float = x + cell_width * column
+		var cell_y: float = top + row_height * row
+		var icon_size: float = _collection_icon_size(cell_width, row_height)
+		var icon_y: float = cell_y + row_height * 0.025
+		var item: Dictionary = collection_controls[index]
+		_place(item["icon"], cell_x + (cell_width - icon_size) * 0.5, icon_y, icon_size, icon_size)
+		_place(item["label"], cell_x + cell_width * 0.03, icon_y + icon_size, cell_width * 0.94, row_height * 0.20, short_side)
+
+
+func _collection_icon_size(cell_width: float, row_height: float) -> float:
+	return min(cell_width * 0.72, row_height * 0.66)
 
 
 func _layout_challenge(x: float, y: float, width: float, height: float, short_side: float) -> void:
@@ -397,6 +430,7 @@ func _refresh_progress_ui() -> void:
 		ui["level_caption"].text = "NÍVEL %d" % level
 		ui["xp_value"].text = "%s / %s XP" % [progression_service.format_number(current_xp), progression_service.format_number(xp_required)]
 	_refresh_badges()
+	_refresh_gadgets()
 
 
 func _refresh_daily_quiz_ui() -> void:
@@ -430,14 +464,28 @@ func _refresh_badges() -> void:
 		badge["level"].add_color_override("font_color", color)
 
 
+func _refresh_gadgets() -> void:
+	var current_level: int = int(progression_service.get_state().get("level", 1)) if progression_service != null else 1
+	for gadget in collection_controls:
+		var unlocked: bool = current_level >= gadget["required_level"]
+		gadget["material"].set_shader_param("grayscale_amount", 0.0 if unlocked else 1.0)
+		gadget["label"].text = "NÍVEL %d" % gadget["required_level"]
+		gadget["label"].add_color_override("font_color", WHITE if unlocked else LOCKED_BADGE_COLOR)
+
+
 func _on_tab_pressed(tab_name: String) -> void:
-	if tab_name != "DISTINTIVOS":
-		if tab_name == "COLEÇÃO":
-			var item_count: int = progression_service.get_state()["unlocked_items"].size()
-			ui["status"].text = "%d item(ns) desbloqueado(s); nomes e artes serão cadastrados depois." % item_count
+	if not ui["tabs"].has(tab_name):
 		return
 	selected_tab = tab_name
 	ui["status"].text = ""
+	var show_badges: bool = selected_tab == "DISTINTIVOS"
+	for badge in badge_controls:
+		badge["icon"].visible = show_badges
+		badge["name"].visible = show_badges
+		badge["level"].visible = show_badges
+	for gadget in collection_controls:
+		gadget["icon"].visible = not show_badges
+		gadget["label"].visible = not show_badges
 	_apply_tab_style()
 
 

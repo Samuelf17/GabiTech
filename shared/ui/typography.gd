@@ -3,6 +3,8 @@ extends Reference
 # Base taken from the adaptive body text "Pronto para proteger a cidade digital?".
 const BASE_BODY_RATIO: float = 0.04
 const BODY_SCALE_ADJUSTMENT: float = 0.97
+const APP_FONT_PATH: String = "res://shared/ui/jersey_10.tres"
+const FALLBACK_FONT_PATH: String = "res://shared/ui/inter_regular.tres"
 const ROLE_MULTIPLIERS = {
 	"icon": 1.089040,
 	"brand": 1.347409,
@@ -68,13 +70,27 @@ func is_uniform_body_role(role: String) -> bool:
 	return not is_title_role(role) and not is_decorative_role(role)
 
 
+func is_title_control(control: Control) -> bool:
+	if control.has_meta("title_text") and bool(control.get_meta("title_text")):
+		return true
+	return control.has_meta("font_role") and is_title_role(str(control.get_meta("font_role")))
+
+
 func get_base_font(control: Control) -> Font:
+	var font: DynamicFont = load(APP_FONT_PATH) as DynamicFont
+	if font != null:
+		if font.get_fallback_count() == 0:
+			var fallback_font: DynamicFont = load(FALLBACK_FONT_PATH) as DynamicFont
+			if fallback_font != null:
+				font.add_fallback(fallback_font.font_data)
+		control.set_meta("typography_base_font", font)
+		return font
 	if control.has_meta("typography_base_font"):
 		return control.get_meta("typography_base_font")
-	var font: Font = control.get_font("font")
-	if font != null:
-		control.set_meta("typography_base_font", font)
-	return font
+	var font_from_theme: Font = control.get_font("font")
+	if font_from_theme != null:
+		control.set_meta("typography_base_font", font_from_theme)
+	return font_from_theme
 
 
 func apply_font_scale(control: Control, font_scale: float) -> Font:
