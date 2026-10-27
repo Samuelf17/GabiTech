@@ -1,0 +1,326 @@
+.
+./games
+./games/puzzle
+./games/puzzle/data
+./games/puzzle/scenes
+./games/puzzle/assets
+./games/puzzle/scripts
+./games/data_protection
+./games/data_protection/scenes
+./games/data_protection/scenes/data_protection_screen.tscn
+./games/data_protection/assets
+./games/data_protection/assets/icons
+./games/data_protection/assets/audio
+./games/data_protection/assets/olho.png
+./games/data_protection/assets/olho.png.import
+./games/data_protection/assets/planilha_icon.svg.import
+./games/data_protection/assets/planilha_icon.svg
+./games/data_protection/scripts
+./games/data_protection/scripts/maze_model.gd
+./games/data_protection/scripts/data_protection_screen.gd
+./games/quiz
+./games/quiz/data
+./games/quiz/data/perguntas_e_respostas.json
+./games/quiz/scenes
+./games/quiz/scenes/quiz_screen.tscn
+./games/quiz/assets
+./games/quiz/scripts
+./games/quiz/scripts/quiz_question_repository.gd
+./games/quiz/scripts/quiz_daily_progress.gd
+./games/quiz/scripts/quiz_screen.gd
+./games/anti_bullying
+./games/anti_bullying/data
+./games/anti_bullying/data/situacoes_respostas_dialogo.json:Zone.Identifier
+./games/anti_bullying/data/situations.json
+./games/anti_bullying/data/situacoes_seguranca_digital.json:Zone.Identifier
+./games/anti_bullying/scenes
+./games/anti_bullying/scenes/anti_bullying_screen.tscn
+./games/anti_bullying/README.md
+./games/anti_bullying/scripts
+./games/anti_bullying/scripts/situation_repository.gd
+./games/anti_bullying/scripts/anti_bullying_screen.gd
+./games/simulation
+./games/simulation/data
+./games/simulation/scenes
+./games/simulation/assets
+./games/simulation/scripts
+./data
+./data/progression
+./data/progression/default_progress.json
+./data/progression/progression_rules.json
+./data/lessons
+./data/game_catalog
+./CHANGELOG.md
+./project.sh
+./app
+./app/menus
+./app/menus/home_screen.gd
+./app/menus/profile_screen.tscn
+./app/menus/profile_screen.gd
+./app/menus/map_screen.tscn
+./app/menus/map_screen.gd
+./app/menus/home_screen.tscn
+./app/navigation
+./ideias
+./ideias/icone_app.png.import
+./ideias/hacker.svg.import
+./ideias/MusicaPacMan.mp3.import
+./ideias/perguntas_e_respostas.json
+./ideias/Toque no mapa.m4a
+./ideias/fundo.png.import
+./ideias/chip.svg.import
+./ideias/mapa.png
+./ideias/volume_up.svg.import
+./ideias/volume_off.svg
+./ideias/fundo.png
+./ideias/gadgets_icon
+./ideias/gadgets_icon/7.png:Zone.Identifier
+./ideias/gadgets_icon/4.png.import
+./ideias/gadgets_icon/6.png.import
+./ideias/gadgets_icon/2.png
+./ideias/gadgets_icon/5.png:Zone.Identifier
+./ideias/gadgets_icon/8.png
+./ideias/gadgets_icon/6.png:Zone.Identifier
+./ideias/gadgets_icon/9.png
+./ideias/gadgets_icon/10.png.import
+./ideias/gadgets_icon/9.png:Zone.Identifier
+./ideias/gadgets_icon/7.png.import
+./ideias/gadgets_icon/3.png:Zone.Identifier
+./ideias/gadgets_icon/3.png.import
+./ideias/gadgets_icon/8.png.import
+./ideias/gadgets_icon/10.png
+./ideias/gadgets_icon/5.png.import
+./ideias/gadgets_icon/7.png
+./ideias/gadgets_icon/4.png
+./ideias/gadgets_icon/2.png.import
+./ideias/gadgets_icon/6.png
+./ideias/gadgets_icon/9.png.import
+./ideias/gadgets_icon/4.png:Zone.Identifier
+./ideias/gadgets_icon/3.png
+./ideias/gadgets_icon/5.png
+./ideias/gadgets_icon/2.png:Zone.Identifier
+./ideias/gadgets_icon/8.png:Zone.Identifier
+./ideias/gadgets_icon/10.png:Zone.Identifier
+./ideias/icone_app.png
+./ideias/planilha.svg:Zone.Identifier
+./ideias/exemplo_chat.png:Zone.Identifier
+./ideias/collectable.wav.import
+./ideias/volume_up.svg:Zone.Identifier
+./ideias/tela_mapa.png.import
+./ideias/labirinto.jpeg.import
+./ideias/tela_missoes.png.import
+./ideias/olho.svg:Zone.Identifier
+./ideias/Inter.zip
+./ideias/Toque-no-mapa.wav.import
+./ideias/MusicaPacMan.mp3:Zone.Identifier
+./ideias/tela_inicial.png
+./ideias/Toque-no-mapa.wav:Zone.Identifier
+./ideias/Jersey_10.zip:Zone.Identifier
+./ideias/volume_off.svg:Zone.Identifier
+./ideias/mapa_horizontal.png.import
+./ideias/README.md
+./ideias/Jersey_10.zip
+./ideias/mapa.png.import
+./ideias/exemplo_chat.png.import
+./ideias/collectable.wav:Zone.Identifier
+./ideias/clique-3.mp3
+./ideias/clique-3.mp3.import
+./ideias/collectable.wav
+./ideias/Clique 3.mp3:Zone.Identifier
+./ideias/chip.svg
+./ideias/fundo.png:Zone.Identifier
+./ideias/tela_inicial.png.import
+./ideias/Capivarinhas
+./ideias/Capivarinhas/7.png:Zone.Identifier
+./ideias/Capivarinhas/4.png.import
+./ideias/Capivarinhas/6.png.import
+./ideias/Capivarinhas/2.png
+./ideias/Capivarinhas/5.png:Zone.Identifier
+./ideias/Capivarinhas/8.png
+./ideias/Capivarinhas/6.png:Zone.Identifier
+./ideias/Capivarinhas/9.png
+./ideias/Capivarinhas/1.png
+./ideias/Capivarinhas/1.png.import
+./ideias/Capivarinhas/10.png.import
+./ideias/Capivarinhas/9.png:Zone.Identifier
+./ideias/Capivarinhas/1.png:Zone.Identifier
+./ideias/Capivarinhas/7.png.import
+./ideias/Capivarinhas/3.png:Zone.Identifier
+./ideias/Capivarinhas/3.png.import
+./ideias/Capivarinhas/8.png.import
+./ideias/Capivarinhas/10.png
+./ideias/Capivarinhas/5.png.import
+./ideias/Capivarinhas/7.png
+./ideias/Capivarinhas/4.png
+./ideias/Capivarinhas/2.png.import
+./ideias/Capivarinhas/6.png
+./ideias/Capivarinhas/9.png.import
+./ideias/Capivarinhas/4.png:Zone.Identifier
+./ideias/Capivarinhas/3.png
+./ideias/Capivarinhas/5.png
+./ideias/Capivarinhas/2.png:Zone.Identifier
+./ideias/Capivarinhas/8.png:Zone.Identifier
+./ideias/Capivarinhas/10.png:Zone.Identifier
+./ideias/ideia-minigame1.txt
+./ideias/Distintivos
+./ideias/Distintivos/respeito.svg.import
+./ideias/Distintivos/gabi_privacidade.svg.import
+./ideias/Distintivos/comunicacao.svg:Zone.Identifier
+./ideias/Distintivos/seguranca.svg:Zone.Identifier
+./ideias/Distintivos/seguranca.svg
+./ideias/Distintivos/seguranca.svg.import
+./ideias/Distintivos/conhecimento.svg
+./ideias/Distintivos/gabi_privacidade.svg
+./ideias/Distintivos/comunicacao.svg
+./ideias/Distintivos/atencao.svg
+./ideias/Distintivos/comunicacao.svg.import
+./ideias/Distintivos/atencao.svg:Zone.Identifier
+./ideias/Distintivos/atencao.svg.import
+./ideias/Distintivos/conhecimento.svg:Zone.Identifier
+./ideias/Distintivos/conhecimento.svg.import
+./ideias/Distintivos/respeito.svg
+./ideias/Distintivos/respeito.svg:Zone.Identifier
+./ideias/Distintivos/gabi_privacidade.svg:Zone.Identifier
+./ideias/labirinto.jpeg:Zone.Identifier
+./ideias/Inter.zip:Zone.Identifier
+./ideias/planilha.svg
+./ideias/tela_mapa.png
+./ideias/tela_perfil.png
+./ideias/planilha_icon.svg:Zone.Identifier
+./ideias/mapa_horizontal.png
+./ideias/planilha_icon.svg.import
+./ideias/labirinto.jpeg
+./ideias/tela_missoes.png
+./ideias/MusicaPacMan.mp3
+./ideias/hacker.svg
+./ideias/olho.svg.import
+./ideias/chip_neon_colecionavel.svg:Zone.Identifier
+./ideias/clique-3.mp3:Zone.Identifier
+./ideias/Clique 3.mp3
+./ideias/planilha_icon.svg
+./ideias/hacker.svg:Zone.Identifier
+./ideias/tela_perfil.png.import
+./ideias/perguntas_e_respostas.json:Zone.Identifier
+./ideias/Toque no mapa.m4a:Zone.Identifier
+./ideias/volume_off.svg.import
+./ideias/planilha.svg.import
+./ideias/exemplo_chat.png
+./ideias/olho.svg
+./ideias/volume_up.svg
+./ideias/Toque-no-mapa.wav
+./ideias/Clique 3.mp3.import
+./shared
+./shared/audio
+./shared/audio/assets
+./shared/audio/assets/map_tap.wav.import
+./shared/audio/assets/map_tap.wav
+./shared/audio/assets/click_3.mp3.import
+./shared/audio/assets/click_3.mp3
+./shared/audio/ui_click_audio_service.gd
+./shared/progress
+./shared/progress/assets
+./shared/progress/assets/gadgets
+./shared/progress/assets/badges
+./shared/progress/level_up_notification_service.gd
+./shared/progress/progression_service.gd
+./shared/progress/badge_catalog.gd
+./shared/mascot
+./shared/mascot/levels
+./shared/mascot/levels/4.png.import
+./shared/mascot/levels/6.png.import
+./shared/mascot/levels/2.png
+./shared/mascot/levels/8.png
+./shared/mascot/levels/9.png
+./shared/mascot/levels/1.png
+./shared/mascot/levels/1.png.import
+./shared/mascot/levels/10.png.import
+./shared/mascot/levels/7.png.import
+./shared/mascot/levels/3.png.import
+./shared/mascot/levels/8.png.import
+./shared/mascot/levels/10.png
+./shared/mascot/levels/5.png.import
+./shared/mascot/levels/7.png
+./shared/mascot/levels/4.png
+./shared/mascot/levels/2.png.import
+./shared/mascot/levels/6.png
+./shared/mascot/levels/9.png.import
+./shared/mascot/levels/3.png
+./shared/mascot/levels/5.png
+./shared/ui
+./shared/ui/level_up_popup.gd
+./shared/ui/badge_unlock_popup.gd
+./shared/ui/typography.gd
+./shared/ui/assets
+./shared/ui/assets/icons
+./shared/ui/assets/fonts
+./shared/ui/assets/backgrounds
+./shared/ui/assets/shaders
+./shared/ui/bottom_navigation.tscn
+./shared/ui/jersey_10.tres
+./shared/ui/bottom_navigation.gd
+./shared/map
+./shared/map/assets
+./shared/map/assets/mapa.png
+./shared/map/assets/mapa_horizontal.png.import
+./shared/map/assets/mapa.png.import
+./shared/map/assets/mapa_horizontal.png
+./shared/accessibility
+./shared/navigation
+./shared/navigation/navigation_history.gd
+./default_env.tres
+./icon.png.import
+./README.md
+./project.godot
+./PROJECT_CONTEXT.md
+./export_presets.cfg
+./icon.png
+./tests
+./tests/test_navigation_history.gd
+./tests/typography_test_utils.gd
+./tests/test_level_up_notification.gd
+./tests/test_ui_click_audio.gd
+./tests/test_bottom_navigation.gd
+./tests/test_home_screen.gd
+./tests/test_progression.gd
+./tests/test_map_screen.gd
+./tests/test_anti_bullying_screen.gd
+./tests/test_security_district.gd
+./tests/test_profile_screen.gd
+./tests/test_typography.gd
+./tests/run_all_tests.sh
+./tests/test_data_protection_game.gd
+./tests/test_quiz_screen.gd
+./AGENTS.md:Zone.Identifier
+./AGENTS.md
+./estrutura.txt
+./build
+./build/Guardiões da Cidade Digital_v9.apk
+./build/Guardiões da Cidade Digital_v5.apk.idsig
+./build/Guardiões da Cidade Digital_v18.apk
+./build/Guardiões da Cidade Digital_v9.apk.idsig
+./build/Guardiões da Cidade Digital_v8.apk
+./build/Guardiões da Cidade Digital_v3.apk.idsig
+./build/Guardiões da Cidade Digital_v5.apk
+./build/Guardiões da Cidade Digital_v15.apk
+./build/Guardiões da Cidade Digital_v16.apk.idsig
+./build/Guardiões da Cidade Digital_v4.apk.idsig
+./build/Guardiões da Cidade Digital_v11.apk.idsig
+./build/Guardiões da Cidade Digital_v10.apk
+./build/Guardiões da Cidade Digital_v15.apk.idsig
+./build/Guardiões da Cidade Digital_v7.apk
+./build/Guardiões da Cidade Digital_v14.apk.idsig
+./build/Guardiões da Cidade Digital_v3.apk
+./build/Guardiões da Cidade Digital_v13.apk.idsig
+./build/Guardiões da Cidade Digital_v7.apk.idsig
+./build/Guardiões da Cidade Digital_v10.apk.idsig
+./build/Guardiões da Cidade Digital_v16.apk
+./build/Guardiões da Cidade Digital_v14.apk
+./build/Guardiões da Cidade Digital_v12.apk
+./build/Guardiões da Cidade Digital_v8.apk.idsig
+./build/Guardiões da Cidade Digital_v6.apk.idsig
+./build/Guardiões da Cidade Digital_v12.apk.idsig
+./build/Guardiões da Cidade Digital_v13.apk
+./build/Guardiões da Cidade Digital_v6.apk
+./build/Guardiões da Cidade Digital_v4.apk
+./build/Guardiões da Cidade Digital_v18.apk.idsig
+./build/Guardiões da Cidade Digital_v11.apk
