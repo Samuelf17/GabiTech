@@ -4,7 +4,8 @@ const DIRECTIONS = [Vector2.UP, Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT]
 
 var width: int = 21
 var height: int = 15
-var cells: Array = []
+var cells: PoolByteArray = PoolByteArray()
+var _working_cells: Array = []
 var rng := RandomNumberGenerator.new()
 
 
@@ -16,12 +17,8 @@ func _init(seed_value: int = 197903, maze_width: int = 21, maze_height: int = 15
 
 
 func _generate() -> void:
-	cells.clear()
-	for y in range(height):
-		var row: Array = []
-		for x in range(width):
-			row.append(false)
-		cells.append(row)
+	_working_cells.resize(width * height)
+	_working_cells.fill(0)
 
 	var start := Vector2(1, 1)
 	_set_open(start)
@@ -53,12 +50,19 @@ func _generate() -> void:
 			var vertical_pair: bool = is_open(cell + Vector2.UP) and is_open(cell + Vector2.DOWN)
 			if horizontal_pair or vertical_pair:
 				_set_open(cell)
+	cells = PoolByteArray(_working_cells)
+	_working_cells.clear()
 
 
 func is_open(cell: Vector2) -> bool:
 	var x: int = int(cell.x)
 	var y: int = int(cell.y)
-	return x >= 0 and x < width and y >= 0 and y < height and bool(cells[y][x])
+	if x < 0 or x >= width or y < 0 or y >= height:
+		return false
+	var index: int = y * width + x
+	if not _working_cells.empty():
+		return int(_working_cells[index]) != 0
+	return int(cells[index]) != 0
 
 
 func get_open_cells() -> Array:
@@ -80,7 +84,7 @@ func get_legal_directions(cell: Vector2) -> Array:
 
 func _set_open(cell: Vector2) -> void:
 	if _is_inside(cell):
-		cells[int(cell.y)][int(cell.x)] = true
+		_working_cells[int(cell.y) * width + int(cell.x)] = 1
 
 
 func _is_inside(cell: Vector2) -> bool:

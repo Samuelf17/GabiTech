@@ -2,13 +2,17 @@ extends Control
 
 const BOTTOM_NAVIGATION = preload("res://shared/ui/bottom_navigation.tscn")
 const TYPOGRAPHY = preload("res://shared/ui/typography.gd")
+const DISTRICT_TAP_STREAM = preload("res://shared/audio/assets/map_tap.wav")
 const NON_HOME_TITLE_SCALE: float = 1.10
+const GAME_LAUNCH_DELAY_SECONDS: float = 0.5
 const PORTRAIT_MAP_BACKGROUND_PATH = "res://shared/map/assets/mapa.png"
 const LANDSCAPE_MAP_BACKGROUND_PATH = "res://shared/map/assets/mapa_horizontal.png"
 const NAVY = Color("#071126")
 const PANEL = Color("#0b1735")
 const WHITE = Color("#f3f7ff")
 const CYAN = Color("#55f4e9")
+const UNAVAILABLE_DISTRICT_COLOR = Color("#858585")
+const UNAVAILABLE_TEXT_COLOR = Color("#c2c8d2")
 const DISTRICT_ICON_PATHS = {
 	"privacy": "res://shared/ui/assets/icons/lock_icon.svg",
 	"communication": "res://shared/ui/assets/icons/chat_icon.svg",
@@ -28,6 +32,7 @@ var selected_district: int = -1
 var current_viewport_size := Vector2.ZERO
 var active_background_path: String = ""
 var typography = TYPOGRAPHY.new()
+var district_tap_player: AudioStreamPlayer
 
 
 func _ready() -> void:
@@ -37,6 +42,11 @@ func _ready() -> void:
 
 
 func _build_screen() -> void:
+	district_tap_player = AudioStreamPlayer.new()
+	district_tap_player.name = "DistrictTapPlayer"
+	district_tap_player.stream = DISTRICT_TAP_STREAM
+	add_child(district_tap_player)
+
 	var background := TextureRect.new()
 	background.name = "CityMapBackground"
 	background.expand = true
@@ -72,15 +82,22 @@ func _build_screen() -> void:
 	ui["status"] = _new_label("", CYAN, "status", Label.ALIGN_CENTER)
 
 	for district in DISTRICTS:
-		var title := _new_label(district["name"], WHITE, "district", Label.ALIGN_CENTER)
+		var available: bool = district.has("scene")
+		var district_color: Color = _district_display_color(district)
+		var title_color: Color = WHITE if available else UNAVAILABLE_TEXT_COLOR
+		var title := _new_label(district["name"], title_color, "district", Label.ALIGN_CENTER)
 		ui[district["id"] + "_title"] = title
+		if not available:
+			var coming_soon := _new_label("Em Breve", UNAVAILABLE_TEXT_COLOR, "district", Label.ALIGN_CENTER)
+			coming_soon.name = "ComingSoon_" + district["id"]
+			ui[district["id"] + "_coming_soon"] = coming_soon
 		if DISTRICT_ICON_PATHS.has(district["id"]):
 			var district_icon := TextureRect.new()
 			district_icon.name = "DistrictIcon_" + district["id"]
 			district_icon.texture = load(DISTRICT_ICON_PATHS[district["id"]])
 			district_icon.expand = true
 			district_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			district_icon.modulate = district["color"]
+			district_icon.modulate = district_color
 			district_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			add_child(district_icon)
 			ui[district["id"] + "_icon"] = district_icon
@@ -100,7 +117,7 @@ func _draw_districts() -> void:
 	var regions: Array = _district_layout(current_viewport_size, landscape)
 	for index in range(regions.size()):
 		var region: Dictionary = regions[index]
-		var color: Color = DISTRICTS[index]["color"]
+		var color: Color = _district_display_color(DISTRICTS[index])
 		var points := PoolVector2Array()
 		for point in region["points"]:
 			points.append(Vector2(point.x * layer.rect_size.x, point.y * layer.rect_size.y))
@@ -110,6 +127,10 @@ func _draw_districts() -> void:
 		var outline := PoolVector2Array(points)
 		outline.append(points[0])
 		layer.draw_polyline(outline, color.lightened(0.2), 3.0 if index == selected_district else 2.0, true)
+
+
+func _district_display_color(district: Dictionary) -> Color:
+	return district["color"] if district.has("scene") else UNAVAILABLE_DISTRICT_COLOR
 
 
 func _district_layout(viewport_size: Vector2, landscape: bool) -> Array:
@@ -179,6 +200,16 @@ func _layout_screen(viewport_size: Vector2) -> void:
 		if ui.has(icon_key):
 			var icon_size: float = min(min(width, height) * 0.07, size.y * 0.20)
 			_place(ui[icon_key], center.x * width - icon_size * 0.5, center.y * height - size.y * 0.35, icon_size, icon_size)
+		var coming_soon_key: String = DISTRICTS[index]["id"] + "_coming_soon"
+		if ui.has(coming_soon_key):
+			_place(
+				ui[coming_soon_key],
+				center.x * width - size.x * 0.375,
+				center.y * height + size.y * 0.10,
+				size.x * 0.75,
+				size.y * 0.13,
+				font_basis
+			)
 	ui["areas"].rect_size = viewport_size
 	ui["areas"].update()
 
@@ -297,11 +328,9 @@ func _on_area_input(event: InputEvent) -> void:
 	elif event is InputEventKey and event.pressed:
 		var key: int = (event as InputEventKey).scancode
 		if key == KEY_LEFT or key == KEY_UP:
-			selected_district = posmod(selected_district - 1, DISTRICTS.size())
-			ui["areas"].update()
+			_select_district(posmod(selected_district - 1, DISTRICTS.size()))
 		elif key == KEY_RIGHT or key == KEY_DOWN:
-			selected_district = posmod(selected_district + 1, DISTRICTS.size())
-			ui["areas"].update()
+			_select_district(posmod(selected_district + 1, DISTRICTS.size()))
 		elif (key == KEY_ENTER or key == KEY_KP_ENTER or key == KEY_SPACE) and selected_district >= 0:
 			_activate_district(selected_district)
 		ui["areas"].accept_event()
@@ -311,8 +340,9 @@ func _select_district(index: int) -> void:
 	if index < 0 or index >= DISTRICTS.size():
 		return
 	selected_district = index
+	district_tap_player.play()
 	ui["areas"].update()
-	ui["status"].text = DISTRICTS[index]["name"].replace("\n", " ") + " selecionado."
+	ui["status"].text = "Em Breve" if not DISTRICTS[index].has("scene") else DISTRICTS[index]["name"].replace("\n", " ") + " selecionado."
 
 
 func _activate_district(index: int) -> void:
@@ -321,7 +351,7 @@ func _activate_district(index: int) -> void:
 	_select_district(index)
 	var district: Dictionary = DISTRICTS[index]
 	if district.has("scene"):
-		get_node("/root/NavigationHistory").call("navigate_to", district["scene"])
+		get_node("/root/NavigationHistory").call("navigate_to", district["scene"], "fade", GAME_LAUNCH_DELAY_SECONDS)
 
 
 

@@ -228,6 +228,7 @@ func _test_screen_flow() -> void:
 		screen._dismiss_explanation()
 		if screen.daily_progress.can_answer():
 			screen._on_next_prompt_yes()
+		_check(screen.badge_popup == null, "badge unlock does not interrupt an unfinished daily quiz")
 	_check(screen.ui["next_prompt"].visible, "last answer opens a confirmation prompt before completion")
 	_check(not screen.ui["completion_title"].visible, "completion screen waits for confirmation after the last answer")
 	_check(screen.ui["next_prompt_title"].text.find("todas as perguntas") >= 0, "last-answer prompt explains that all questions were answered")
@@ -236,6 +237,7 @@ func _test_screen_flow() -> void:
 	_check(screen.ui["next_prompt_yes"].rect_size.x * screen.ui["next_prompt_yes"].rect_scale.x > screen.ui["next_prompt_no"].rect_size.x * screen.ui["next_prompt_no"].rect_scale.x * 1.9, "last-answer Continue button spans the former two-button area")
 	screen._on_next_prompt_yes()
 	_check(screen.ui["completion_title"].visible, "fifth answer shows the daily completion message")
+	_check(screen.badge_popup != null and screen.badge_popup.visible, "queued badge unlock appears over the quiz completion screen")
 	_check(screen.ui["background"].visible, "quiz completion screen retains its solid background")
 	_check(screen.ui["background"] is ColorRect, "quiz completion remains image-free")
 	_check(screen.ui["completion_message"].text.find("Volte amanhã") >= 0, "completion message points to tomorrow")

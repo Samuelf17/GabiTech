@@ -8,6 +8,7 @@ const TYPOGRAPHY_TEST_UTILS = preload("res://tests/typography_test_utils.gd")
 const PORTRAIT_MAP_BACKGROUND_PATH = "res://shared/map/assets/mapa.png"
 const LANDSCAPE_MAP_BACKGROUND_PATH = "res://shared/map/assets/mapa_horizontal.png"
 const QUIZ_SCENE_PATH = "res://games/quiz/scenes/quiz_screen.tscn"
+const HOME_SCENE_PATH = "res://app/menus/home_screen.tscn"
 
 var failures: Array = []
 
@@ -23,10 +24,21 @@ func _run_tests() -> void:
 	for viewport_size in [Vector2(720, 1280), Vector2(1280, 720), Vector2(960, 540), Vector2(360, 800), Vector2(320, 568)]:
 		_test_layout(screen, viewport_size)
 	_test_district_selection(screen)
-	_test_navigation(screen)
+	yield(_test_navigation(screen), "completed")
 	yield(self, "idle_frame")
 	var launched_scene: Node = get_current_scene()
 	_check(launched_scene != null and launched_scene.filename == "res://games/anti_bullying/scenes/anti_bullying_screen.tscn", "activating Respect opens the anti-bullying minigame")
+	var navigation = get_root().get_node("NavigationHistory")
+	launched_scene._show_completion()
+	_check(launched_scene.ui["return_to_map"].visible, "anti-bullying result shows the map return button")
+	launched_scene.ui["return_to_map"].emit_signal("pressed")
+	yield(create_timer(0.5), "timeout")
+	_check(get_current_scene() != null and get_current_scene().filename == "res://app/menus/map_screen.tscn", "anti-bullying result button returns to the map")
+	navigation.call("navigate_to", HOME_SCENE_PATH)
+	yield(self, "idle_frame")
+	_check(navigation.last_transition_type == "fade", "normal screen navigation selects the fade transition")
+	yield(create_timer(0.45), "timeout")
+	_check(not navigation.transition_in_progress and get_current_scene().filename == HOME_SCENE_PATH, "fade transition completes after changing screens")
 	if failures.empty():
 		print("Map screen tests passed")
 		quit(0)
@@ -81,6 +93,15 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		_check(screen.ui[district["id"] + "_title"].visible, "%s title is visible at %s" % [district["id"], viewport_size])
 		_check(not screen.ui.has(district["id"] + "_progress"), "%s has no mission-count label at %s" % [district["id"], viewport_size])
 		_check(typography.has_role(screen.ui[district["id"] + "_title"].get_meta("font_role")), "%s title uses shared typography" % district["id"])
+		if not district.has("scene"):
+			var coming_soon: Control = screen.ui[district["id"] + "_coming_soon"]
+			_check(coming_soon.visible and coming_soon.text == "Em Breve", "%s shows its coming-soon message at %s" % [district["id"], viewport_size])
+			_check(_fits_viewport(coming_soon, viewport_size), "%s coming-soon message fits at %s" % [district["id"], viewport_size])
+			var gray_color: Color = screen._district_display_color(district)
+			_check(is_equal_approx(gray_color.r, gray_color.g) and is_equal_approx(gray_color.g, gray_color.b), "%s district artwork is desaturated" % district["id"])
+			_check(screen.ui[district["id"] + "_title"].get_color("font_color") == MAP_SCREEN_SCRIPT.UNAVAILABLE_TEXT_COLOR, "%s title is muted while unavailable" % district["id"])
+		else:
+			_check(not screen.ui.has(district["id"] + "_coming_soon"), "%s has no coming-soon message" % district["id"])
 	var title: Control = screen.ui["screen_title"]
 	screen._place(title, 0.0, 0.0, 10000.0, 10000.0, 720.0)
 	_check(abs(title.get_font("font").get_height() - typography.get_target_height(title.get_meta("font_role"), 720.0) * 1.10) <= 1.0, "map screen title is enlarged by ten percent")
@@ -88,6 +109,8 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		var icon: TextureRect = screen.ui[district_id + "_icon"]
 		_check(icon.texture != null and icon.visible, "%s district icon loads and is visible at %s" % [district_id, viewport_size])
 		_check(_fits_viewport(icon, viewport_size), "%s district icon stays inside the viewport at %s" % [district_id, viewport_size])
+		if district_id == "privacy" or district_id == "communication":
+			_check(icon.modulate == MAP_SCREEN_SCRIPT.UNAVAILABLE_DISTRICT_COLOR, "%s icon is desaturated" % district_id)
 	var regions: Array = screen._district_layout(viewport_size, viewport_size.x > viewport_size.y)
 	for index in range(regions.size()):
 		var polygon: Array = regions[index]["points"]
@@ -107,6 +130,7 @@ func _test_district_selection(screen) -> void:
 	_check(large_portrait[0]["size"].x > compact_portrait[0]["size"].x, "portrait district width scales with viewport width")
 	_check(large_portrait[0]["size"].y > compact_portrait[0]["size"].y, "portrait district height scales with viewport height")
 	_check(is_equal_approx(large_portrait[0]["size"].y, min(1280.0 * 0.19, 720.0 * 0.42) * 1.10), "portrait district height is 10% larger than the previous scale")
+	_check(screen.district_tap_player.stream.resource_path == "res://shared/audio/assets/map_tap.wav", "map selection uses the copied WAV audio asset")
 	var large_landscape: Array = screen._district_layout(Vector2(1280, 720), true)
 	var compact_landscape: Array = screen._district_layout(Vector2(960, 540), true)
 	_check(is_equal_approx(large_landscape[3]["center"].x, 0.20), "Knowledge district moves toward the left edge in landscape")
@@ -123,13 +147,38 @@ func _test_district_selection(screen) -> void:
 			_check(screen._district_at_point(center) == index, "district %s is independently interactive at %s" % [MAP_SCREEN_SCRIPT.DISTRICTS[index]["id"], viewport_size])
 			screen._select_district(index)
 			_check(screen.selected_district == index, "district selection state updates")
+			_check(screen.district_tap_player.is_playing(), "selecting %s plays the district tap sound" % MAP_SCREEN_SCRIPT.DISTRICTS[index]["id"])
+	for unavailable_id in ["privacy", "communication", "knowledge"]:
+		var unavailable_index: int = -1
+		for index in range(MAP_SCREEN_SCRIPT.DISTRICTS.size()):
+			if MAP_SCREEN_SCRIPT.DISTRICTS[index]["id"] == unavailable_id:
+				unavailable_index = index
+				break
+		screen._activate_district(unavailable_index)
+		_check(screen.ui["status"].text == "Em Breve", "%s activation shows the coming-soon status" % unavailable_id)
 
 
-func _test_navigation(screen) -> void:
+func _test_navigation(screen):
 	_check(ResourceLoader.exists(QUIZ_SCENE_PATH), "Missions destination scene exists")
 	_check(ResourceLoader.exists(MAP_SCREEN_SCRIPT.DISTRICTS[2].get("scene", "")), "Security district destination scene exists")
 	_check(ResourceLoader.exists(MAP_SCREEN_SCRIPT.DISTRICTS[4].get("scene", "")), "Respect district destination scene exists")
 	screen._activate_district(4)
+	yield(self, "idle_frame")
+	var navigation = get_root().get_node("NavigationHistory")
+	_check(navigation.last_transition_type == "fade", "opening a district minigame selects the fade transition")
+	_check(navigation.transition_in_progress, "fade transition remains active while the new game enters")
+	_check(not navigation.transition_overlay.visible, "map stays visible during the half-second launch delay")
+	yield(create_timer(0.55), "timeout")
+	_check(navigation.transition_overlay.visible, "fade transition begins after the map launch delay")
+	yield(create_timer(0.65), "timeout")
+	_check(not navigation.transition_in_progress, "fade transition finishes after entering the game")
+	_check(not navigation.transition_overlay.visible and navigation.transition_overlay.mouse_filter == Control.MOUSE_FILTER_IGNORE, "transition overlay is hidden and ignores game input")
+	var incoming_scene: Control = get_current_scene() as Control
+	_check(is_equal_approx(incoming_scene.rect_scale.x, 1.0) and is_equal_approx(incoming_scene.modulate.a, 1.0), "game scene keeps its normal size and opacity after fade")
+	_check(incoming_scene.phase == "intro", "anti-bullying intro is ready for user input after scene transition")
+	incoming_scene._on_intro_close_pressed()
+	_check(incoming_scene.phase == "choosing" and not incoming_scene.ui["intro_backdrop"].visible, "anti-bullying game accepts tutorial close input after map launch")
+	_check(incoming_scene.answer_buttons[0].visible, "anti-bullying choices become interactive after closing the tutorial")
 
 
 func _fits_viewport(control: Control, viewport_size: Vector2) -> bool:

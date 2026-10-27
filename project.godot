@@ -19,6 +19,7 @@ config/icon="res://icon.png"
 NavigationHistory="*res://shared/navigation/navigation_history.gd"
 Progression="*res://shared/progress/progression_service.gd"
 LevelUpNotifications="*res://shared/progress/level_up_notification_service.gd"
+UIClickAudio="*res://shared/audio/ui_click_audio_service.gd"
 
 [display]
 

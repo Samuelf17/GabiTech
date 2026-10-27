@@ -158,7 +158,7 @@ func _test_progress_values(screen) -> void:
 	progression.add_experience(1500)
 	_check(screen.ui["level_number"].text == "2", "home level display updates after a level-up signal")
 	_check(screen.ui["mascot"].texture.resource_path == "res://shared/mascot/levels/2.png", "home mascot changes to the level two artwork after leveling up")
-	_check(screen.ui["progress_value"].text == "0 / 2.000 XP", "home XP display updates after a level-up signal")
+	_check(screen.ui["progress_value"].text == "0 / 500 XP", "home XP display updates to the next level's XP threshold")
 	_check(abs(progression.get_progress_ratio()) < 0.0001, "level-up resets the XP progress ratio")
 	progression.storage_path = original_path
 	progression.load_progress()

@@ -5,18 +5,6 @@ const TYPOGRAPHY = preload("res://shared/ui/typography.gd")
 const BACKGROUND_TEXTURE = preload("res://shared/ui/assets/backgrounds/fundo.png")
 const MASCOT_BOTTOM_MARGIN_RATIO: float = 0.28
 const PROGRESS_BOTTOM_GAP_RATIO: float = 0.04
-const MASCOT_LEVEL_TEXTURES = [
-	preload("res://shared/mascot/levels/1.png"),
-	preload("res://shared/mascot/levels/2.png"),
-	preload("res://shared/mascot/levels/3.png"),
-	preload("res://shared/mascot/levels/4.png"),
-	preload("res://shared/mascot/levels/5.png"),
-	preload("res://shared/mascot/levels/6.png"),
-	preload("res://shared/mascot/levels/7.png"),
-	preload("res://shared/mascot/levels/8.png"),
-	preload("res://shared/mascot/levels/9.png"),
-	preload("res://shared/mascot/levels/10.png")
-]
 const NAVY = Color("#071126")
 const PANEL = Color("#101d3c")
 const PANEL_LIGHT = Color("#17284c")
@@ -53,15 +41,15 @@ func _build_screen() -> void:
 	add_child(background)
 	ui["background"] = background
 
-	ui["menu"] = _new_label("☰", WHITE, "icon", Label.ALIGN_CENTER)
-	ui["notification"] = _new_label("♧", WHITE, "icon", Label.ALIGN_CENTER)
-	ui["logo_icon"] = _new_label("✦", CYAN, "brand", Label.ALIGN_CENTER)
+	ui["menu"] = _new_label("|||", WHITE, "icon", Label.ALIGN_CENTER)
+	ui["notification"] = _new_label("!", WHITE, "icon", Label.ALIGN_CENTER)
+	ui["logo_icon"] = _new_label("*", CYAN, "brand", Label.ALIGN_CENTER)
 	ui["brand_top"] = _new_label("GUARDIÕES", WHITE, "brand_title")
 	ui["brand_bottom"] = _new_label("DA CIDADE DIGITAL", CYAN, "brand_secondary")
 
 	var mascot := TextureRect.new()
 	mascot.name = "MascotSprite"
-	mascot.texture = MASCOT_LEVEL_TEXTURES[0]
+	mascot.texture = load("res://shared/mascot/levels/1.png")
 	mascot.expand = true
 	mascot.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	mascot.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -326,10 +314,10 @@ func _refresh_progress_ui() -> void:
 
 
 func _refresh_mascot_for_level(level: int) -> void:
-	var mascot_level: int = clamp(level, 1, MASCOT_LEVEL_TEXTURES.size())
+	var mascot_level: int = clamp(level, 1, 10)
 	if mascot_level == current_mascot_level:
 		return
-	var mascot_texture: Texture = MASCOT_LEVEL_TEXTURES[mascot_level - 1]
+	var mascot_texture: Texture = load("res://shared/mascot/levels/%d.png" % mascot_level) as Texture
 	if mascot_texture == null:
 		push_error("Não foi possível carregar a capivara do nível %d." % mascot_level)
 		return

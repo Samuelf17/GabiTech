@@ -25,6 +25,7 @@ var timer: Timer
 var tween: Tween
 var displayed: bool = false
 var unlock_pulse_scale: float = 1.18
+var body_text_multiplier: float = 1.0
 
 
 func _ready() -> void:
@@ -211,6 +212,8 @@ func _place_label(label: Label, font_basis: float, role: String, is_title: bool)
 	var scale: float = typography.get_target_height(role, font_basis) / font.get_height()
 	if is_title:
 		scale *= TITLE_SCALE
+	else:
+		scale *= body_text_multiplier
 	typography.apply_font_scale(label, scale)
 
 

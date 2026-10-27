@@ -43,6 +43,9 @@ var round_xp_applied: int = 0
 
 
 func _ready() -> void:
+	var level_notifications = get_node_or_null("/root/LevelUpNotifications")
+	if level_notifications != null:
+		level_notifications.call("begin_activity", self)
 	_build_screen()
 	get_viewport().connect("size_changed", self, "_on_viewport_size_changed")
 	if repository.load_situations():
@@ -109,9 +112,9 @@ func _build_screen() -> void:
 	ui["chat_avatar"].mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(ui["chat_avatar"])
 	ui["chat_title"] = _new_label("Chat da turma", WHITE, "chat_title", Label.ALIGN_LEFT)
-	ui["status"] = _new_label("● online", GREEN, "small", Label.ALIGN_LEFT)
+	ui["status"] = _new_label("• online", GREEN, "small", Label.ALIGN_LEFT)
 	ui["status"].set_meta("font_scale_multiplier", 1.20 * 1.15)
-	ui["more"] = _new_label("⋮", WHITE, "chat_title", Label.ALIGN_CENTER)
+	ui["more"] = _new_label("...", WHITE, "chat_title", Label.ALIGN_CENTER)
 	ui["progress"] = _new_label("", MUTED, "small", Label.ALIGN_CENTER)
 	ui["instruction"] = _new_label("Escolha como agir nesta conversa", WHITE, "small", Label.ALIGN_LEFT)
 	ui["instruction"].set_meta("font_scale_multiplier", 1.15)
@@ -224,7 +227,7 @@ func _show_situation() -> void:
 	phase = "choosing"
 	var situation: Dictionary = selected_situations[situation_index]
 	ui["progress"].text = "SITUAÇÃO %d DE %d" % [situation_index + 1, selected_situations.size()]
-	ui["status"].text = "● online"
+	ui["status"].text = "• online"
 	ui["instruction"].visible = true
 	ui["completion_overlay"].visible = false
 	ui["end_mascot"].visible = false
@@ -301,7 +304,7 @@ func _show_completion() -> void:
 		else:
 			round_xp_applied = max(0, round_xp_earned - round_xp_lost)
 	ui["progress"].text = "MISSÃO CONCLUÍDA"
-	ui["status"].text = "● conversa encerrada"
+	ui["status"].text = "• conversa encerrada"
 	for key in ["status_bar", "header", "back", "chat_avatar", "chat_title", "status", "more", "progress", "instruction", "composer", "composer_text", "send_button"]:
 		ui[key].visible = false
 	for bubble in incoming_bubbles:
@@ -319,6 +322,9 @@ func _show_completion() -> void:
 	ui["return_to_map"].visible = true
 	ui["composer_text"].text = "Missão concluída"
 	_apply_phase_layout()
+	var level_notifications = get_node_or_null("/root/LevelUpNotifications")
+	if level_notifications != null:
+		level_notifications.call("mark_completion_visible", self)
 	_show_next_pending_badge_notification()
 
 
@@ -348,6 +354,9 @@ func _on_restart_pressed() -> void:
 
 
 func _start_round() -> void:
+	var level_notifications = get_node_or_null("/root/LevelUpNotifications")
+	if level_notifications != null:
+		level_notifications.call("begin_activity", self)
 	situation_index = 0
 	correct_choices = 0
 	round_xp_earned = 0
@@ -362,6 +371,8 @@ func _start_round() -> void:
 
 
 func _show_next_pending_badge_notification() -> void:
+	if phase != "finished":
+		return
 	var progression = get_node_or_null("/root/Progression")
 	if progression == null or badge_popup != null:
 		return
@@ -401,7 +412,7 @@ func _build_speaker_colors() -> void:
 
 
 func _on_map_pressed() -> void:
-	get_node("/root/NavigationHistory").call("navigate_to", MAP_SCENE_PATH)
+	get_node("/root/NavigationHistory").call("return_to", MAP_SCENE_PATH)
 
 
 func _apply_phase_layout() -> void:
@@ -601,7 +612,12 @@ func _stylebox(fill: Color, border: Color, radius: int, border_width: int) -> St
 
 
 func _on_back_pressed() -> void:
-	get_node("/root/NavigationHistory").call("go_back")
+	get_node("/root/NavigationHistory").call("return_to", MAP_SCENE_PATH)
+
+
+func handle_back_request() -> bool:
+	get_node("/root/NavigationHistory").call("return_to", MAP_SCENE_PATH)
+	return true
 
 
 func _on_viewport_size_changed() -> void:

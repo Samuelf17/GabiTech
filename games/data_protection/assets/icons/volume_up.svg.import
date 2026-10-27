@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/hacker_ideias.png-9d440009bc7267cd03a94f4ce88ec094.stex"
+path="res://.import/volume_up.svg-c4176b851502d6de2e3f04dd2d162782.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://games/data_protection/assets/hacker_ideias.png"
-dest_files=[ "res://.import/hacker_ideias.png-9d440009bc7267cd03a94f4ce88ec094.stex" ]
+source_file="res://games/data_protection/assets/icons/volume_up.svg"
+dest_files=[ "res://.import/volume_up.svg-c4176b851502d6de2e3f04dd2d162782.stex" ]
 
 [params]
 

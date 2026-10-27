@@ -7,20 +7,9 @@ const BADGE_GRAYSCALE_SHADER = preload("res://shared/ui/assets/shaders/badge_gra
 const QUESTION_REPOSITORY = preload("res://games/quiz/scripts/quiz_question_repository.gd")
 const DAILY_PROGRESS = preload("res://games/quiz/scripts/quiz_daily_progress.gd")
 const BACKGROUND_TEXTURE = preload("res://shared/ui/assets/backgrounds/fundo.png")
+const QUIZ_SCENE_PATH: String = "res://games/quiz/scenes/quiz_screen.tscn"
 const NON_HOME_TITLE_SCALE: float = 1.10
-const RESPECT_BADGE_TEXTURE = preload("res://shared/progress/assets/badges/respect.png")
 const GADGET_LEVELS = [2, 3, 4, 5, 6, 7, 8, 9, 10]
-const GADGET_TEXTURES = [
-	preload("res://shared/progress/assets/gadgets/2.png"),
-	preload("res://shared/progress/assets/gadgets/3.png"),
-	preload("res://shared/progress/assets/gadgets/4.png"),
-	preload("res://shared/progress/assets/gadgets/5.png"),
-	preload("res://shared/progress/assets/gadgets/6.png"),
-	preload("res://shared/progress/assets/gadgets/7.png"),
-	preload("res://shared/progress/assets/gadgets/8.png"),
-	preload("res://shared/progress/assets/gadgets/9.png"),
-	preload("res://shared/progress/assets/gadgets/10.png")
-]
 const NAVY = Color("#071126")
 const PANEL = Color("#0b1735")
 const PANEL_LIGHT = Color("#14254a")
@@ -36,6 +25,7 @@ var current_viewport_size := Vector2.ZERO
 var selected_tab: String = "DISTINTIVOS"
 var typography = TYPOGRAPHY.new()
 var progression_service: Node
+var profile_mascot_level: int = 0
 var daily_progress = DAILY_PROGRESS.new()
 var daily_progress_storage_path: String = DAILY_PROGRESS.SAVE_PATH
 
@@ -65,15 +55,13 @@ func _build_screen() -> void:
 
 	ui["header"] = _new_label("RECOMPENSAS", WHITE, "title", Label.ALIGN_CENTER)
 	ui["hero_panel"] = _new_panel("GuardianPointsPanel", PANEL, Color("#12375c"), 20)
-	var hero_shield := TextureRect.new()
-	hero_shield.name = "ProfileAvatarRespectBadge"
-	hero_shield.texture = RESPECT_BADGE_TEXTURE
-	hero_shield.expand = true
-	hero_shield.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	hero_shield.modulate = Color.white
-	hero_shield.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(hero_shield)
-	ui["hero_shield"] = hero_shield
+	var hero_mascot := TextureRect.new()
+	hero_mascot.name = "ProfileAvatarCapybara"
+	hero_mascot.expand = true
+	hero_mascot.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	hero_mascot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(hero_mascot)
+	ui["hero_mascot"] = hero_mascot
 	ui["user_name"] = _new_label("Gabivara", WHITE, "body")
 	ui["points_label"] = _new_label("EXPERIÊNCIA TOTAL", MUTED, "points_label")
 	ui["points"] = _new_label("0", WHITE, "points")
@@ -87,7 +75,7 @@ func _build_screen() -> void:
 
 	ui["tabs_panel"] = _new_panel("BadgeTabs", PANEL, Color("#202e54"), 14)
 	ui["tabs"] = {}
-	for tab_name in ["DISTINTIVOS", "COLEÇÃO"]:
+	for tab_name in ["DISTINTIVOS", "EQUIPAMENTO"]:
 		var tab := Button.new()
 		tab.name = "Tab_" + tab_name.to_lower()
 		tab.text = tab_name
@@ -128,7 +116,6 @@ func _build_screen() -> void:
 		var gadget_item := {}
 		var icon := TextureRect.new()
 		icon.name = "GadgetIcon_Level%d" % gadget_level
-		icon.texture = GADGET_TEXTURES[gadget_index]
 		icon.expand = true
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		var icon_material := ShaderMaterial.new()
@@ -146,9 +133,14 @@ func _build_screen() -> void:
 		collection_controls.append(gadget_item)
 
 	ui["challenge_panel"] = _new_panel("DailyQuizPanel", Color("#191b4a"), Color("#383474"), 18)
-	ui["challenge_title"] = _new_label("★  QUIZ DIÁRIO", Color("#c06bff"), "challenge")
+	ui["challenge_title"] = _new_label("QUIZ DIÁRIO", Color("#c06bff"), "challenge")
 	ui["challenge_text"] = _new_label("Perguntas respondidas hoje", WHITE, "challenge_body")
 	ui["challenge_count"] = _new_label("0 / 5", WHITE, "reward_progress", Label.ALIGN_CENTER)
+	for key in ["challenge_title", "challenge_text", "challenge_count"]:
+		ui[key].mouse_filter = Control.MOUSE_FILTER_STOP
+		ui[key].focus_mode = Control.FOCUS_ALL
+		ui[key].mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		ui[key].connect("gui_input", self, "_on_daily_quiz_gui_input", [ui[key]])
 	ui["challenge_track"] = _new_panel("DailyQuizTrack", Color("#30265b"), Color("#30265b"), 10)
 	ui["challenge_fill"] = _new_panel("DailyQuizFill", Color("#a951ed"), Color("#a951ed"), 10)
 
@@ -241,7 +233,7 @@ func _layout_landscape(viewport_size: Vector2, safe: float, short_side: float, n
 func _layout_hero(x: float, y: float, width: float, height: float, short_side: float) -> void:
 	_place(ui["hero_panel"], x, y, width, height)
 	var icon_size: float = min(height * 0.82, short_side * 0.22)
-	_place(ui["hero_shield"], x + width * 0.06, y + (height - icon_size) * 0.5, icon_size, icon_size)
+	_place(ui["hero_mascot"], x + width * 0.06, y + (height - icon_size) * 0.5, icon_size, icon_size)
 	var points_x: float = x + width * 0.38
 	var points_width: float = width * 0.57
 	_place(ui["user_name"], points_x, y + height * 0.035, points_width, height * 0.22, short_side)
@@ -267,7 +259,7 @@ func _layout_tabs(x: float, y: float, width: float, height: float, short_side: f
 	_place(ui["tabs_panel"], x, y, width, height)
 	var tab_width: float = (width - short_side * 0.024) / float(ui["tabs"].size())
 	for tab_name in ui["tabs"]:
-		var tab_index: int = ["DISTINTIVOS", "COLEÇÃO"].find(tab_name)
+		var tab_index: int = ["DISTINTIVOS", "EQUIPAMENTO"].find(tab_name)
 		_place(ui["tabs"][tab_name], x + short_side * 0.012 + tab_width * tab_index, y + height * 0.08, tab_width, height * 0.84, short_side)
 
 
@@ -429,6 +421,7 @@ func _refresh_progress_ui() -> void:
 		ui["support"].text = "Itens desbloqueados: %d" % item_count
 		ui["level_caption"].text = "NÍVEL %d" % level
 		ui["xp_value"].text = "%s / %s XP" % [progression_service.format_number(current_xp), progression_service.format_number(xp_required)]
+		_refresh_profile_mascot(level)
 	_refresh_badges()
 	_refresh_gadgets()
 
@@ -448,6 +441,24 @@ func _refresh_daily_quiz_ui() -> void:
 	var answered_count: int = daily_progress.get_answered_count()
 	ui["challenge_count"].text = "%d / %d" % [answered_count, DAILY_PROGRESS.DAILY_LIMIT]
 	ui["challenge_text"].text = "Parabéns! Você completou o quiz de hoje!" if answered_count >= DAILY_PROGRESS.DAILY_LIMIT else "Perguntas respondidas hoje"
+	var progress_ratio: float = float(answered_count) / float(DAILY_PROGRESS.DAILY_LIMIT)
+	var track_size: Vector2 = ui["challenge_track"].rect_size
+	ui["challenge_fill"].rect_size = Vector2(track_size.x * progress_ratio, track_size.y)
+
+
+func _on_daily_quiz_gui_input(event: InputEvent, source: Control) -> void:
+	var open_quiz: bool = false
+	if event is InputEventMouseButton:
+		var mouse_event: InputEventMouseButton = event as InputEventMouseButton
+		open_quiz = mouse_event.button_index == BUTTON_LEFT and not mouse_event.pressed
+	elif event is InputEventScreenTouch:
+		open_quiz = not (event as InputEventScreenTouch).pressed
+	elif event is InputEventKey:
+		var key_event: InputEventKey = event as InputEventKey
+		open_quiz = key_event.pressed and not key_event.echo and key_event.scancode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]
+	if open_quiz:
+		source.accept_event()
+		get_node("/root/NavigationHistory").call("navigate_to", QUIZ_SCENE_PATH)
 	if current_viewport_size.x > 0.0:
 		_layout_screen(current_viewport_size)
 
@@ -473,12 +484,31 @@ func _refresh_gadgets() -> void:
 		gadget["label"].add_color_override("font_color", WHITE if unlocked else LOCKED_BADGE_COLOR)
 
 
+func _refresh_profile_mascot(level: int) -> void:
+	var mascot_level: int = clamp(level, 1, 10)
+	if mascot_level == profile_mascot_level:
+		return
+	var texture: Texture = load("res://shared/mascot/levels/%d.png" % mascot_level) as Texture
+	if texture == null:
+		push_error("Não foi possível carregar a capivara de perfil do nível %d." % mascot_level)
+		return
+	ui["hero_mascot"].texture = texture
+	profile_mascot_level = mascot_level
+
+
 func _on_tab_pressed(tab_name: String) -> void:
 	if not ui["tabs"].has(tab_name):
 		return
 	selected_tab = tab_name
 	ui["status"].text = ""
 	var show_badges: bool = selected_tab == "DISTINTIVOS"
+	for gadget_index in range(collection_controls.size()):
+		var gadget: Dictionary = collection_controls[gadget_index]
+		if show_badges:
+			gadget["icon"].texture = null
+		else:
+			var gadget_level: int = int(gadget["required_level"])
+			gadget["icon"].texture = load("res://shared/progress/assets/gadgets/%d.png" % gadget_level)
 	for badge in badge_controls:
 		badge["icon"].visible = show_badges
 		badge["name"].visible = show_badges

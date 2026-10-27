@@ -2,7 +2,6 @@ extends SceneTree
 
 const TYPOGRAPHY_SCRIPT = preload("res://shared/ui/typography.gd")
 const EXPECTED_APP_FONT_PATH = "res://shared/ui/jersey_10.tres"
-const EXPECTED_INTER_DATA_PATH = "res://shared/ui/assets/fonts/Inter_18pt-Regular.ttf"
 const EXPECTED_JERSEY_DATA_PATH = "res://shared/ui/assets/fonts/Jersey10-Regular.ttf"
 
 var failures: Array = []
@@ -38,9 +37,7 @@ func _run_tests() -> void:
 	_check(typography.get_base_font(sample_label) is DynamicFont, "body text uses a dynamic font")
 	var body_font: DynamicFont = typography.get_base_font(sample_label) as DynamicFont
 	_check(body_font.font_data.font_path == EXPECTED_JERSEY_DATA_PATH, "body text uses the shared Jersey 10 face")
-	_check(body_font.get_fallback_count() > 0, "Inter remains available for glyphs missing from Jersey 10")
-	if body_font.get_fallback_count() > 0:
-		_check(body_font.get_fallback(0).font_path == EXPECTED_INTER_DATA_PATH, "fallback face points to Inter")
+	_check(body_font.get_fallback_count() == 0, "Jersey 10 has no external fallback font")
 	var marked_title: Label = Label.new()
 	marked_title.set_meta("font_role", "body")
 	marked_title.set_meta("title_text", true)

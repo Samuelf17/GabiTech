@@ -1,4 +1,16 @@
 {
 	"experience_per_level": 2000,
+	"experience_per_level_by_current_level": {
+		"1": 2000,
+		"2": 500,
+		"3": 500,
+		"4": 2000,
+		"5": 2000,
+		"6": 2000,
+		"7": 2000,
+		"8": 5000,
+		"9": 5000,
+		"10": 5000
+	},
 	"reward_id_prefix": "level_reward_"
 }

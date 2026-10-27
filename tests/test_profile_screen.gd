@@ -5,7 +5,6 @@ const PROFILE_SCREEN_SCRIPT = preload("res://app/menus/profile_screen.gd")
 const BOTTOM_NAVIGATION_SCRIPT = preload("res://shared/ui/bottom_navigation.gd")
 const TYPOGRAPHY_SCRIPT = preload("res://shared/ui/typography.gd")
 const TYPOGRAPHY_TEST_UTILS = preload("res://tests/typography_test_utils.gd")
-const RESPECT_BADGE_TEXTURE = preload("res://shared/progress/assets/badges/respect.png")
 const QUIZ_SCENE_PATH = "res://games/quiz/scenes/quiz_screen.tscn"
 const DAILY_PROGRESS_SCRIPT = preload("res://games/quiz/scripts/quiz_daily_progress.gd")
 const QUESTION_REPOSITORY_SCRIPT = preload("res://games/quiz/scripts/quiz_question_repository.gd")
@@ -36,6 +35,9 @@ func _run_tests() -> void:
 	_test_tabs(screen)
 	_remove_progress_test_file("user://screen_progress_test.json")
 	_remove_progress_test_file(DAILY_TEST_PATH)
+	_test_daily_quiz_click(screen)
+	yield(create_timer(0.5), "timeout")
+	_check(get_current_scene() != null and get_current_scene().filename == QUIZ_SCENE_PATH, "clicking the daily quiz label opens the quiz scene")
 	if failures.empty():
 		print("Profile screen tests passed")
 		quit(0)
@@ -67,13 +69,14 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		_check(navigation.labels[item_id].text == BOTTOM_NAVIGATION_SCRIPT.ITEM_LABELS[index], "%s label is present at %s" % [item_id, viewport_size])
 		_check(navigation.icons[item_id].texture != null, "%s icon loads at %s" % [item_id, viewport_size])
 		_check(_fits_viewport(navigation.buttons[item_id], viewport_size), "%s navigation control fits at %s" % [item_id, viewport_size])
-	for key in ["header", "hero_panel", "hero_shield", "user_name", "points_label", "points", "support", "level_panel", "level_caption", "xp_value", "xp_track", "tabs_panel", "challenge_panel", "challenge_title", "challenge_text", "challenge_count", "challenge_track", "status"]:
+	for key in ["header", "hero_panel", "hero_mascot", "user_name", "points_label", "points", "support", "level_panel", "level_caption", "xp_value", "xp_track", "tabs_panel", "challenge_panel", "challenge_title", "challenge_text", "challenge_count", "challenge_track", "status"]:
 		_check(_fits_viewport(screen.ui[key], viewport_size), "%s stays inside the viewport at %s" % [key, viewport_size])
 	_check(screen.ui.has("challenge_panel"), "daily quiz progress section is present")
-	_check(screen.ui["tabs"].size() == 2, "profile keeps only Distintivos and Coleção tabs")
+	_check(screen.ui["tabs"].size() == 2, "profile keeps only Distintivos and Equipamento tabs")
+	_check(screen.ui["tabs"].has("EQUIPAMENTO") and screen.ui["tabs"]["EQUIPAMENTO"].text == "EQUIPAMENTO", "the gadget tab is labeled Equipamento")
 	_check(not screen.ui["tabs"].has("CONQUISTAS"), "Conquistas tab is removed")
-	_check(screen.ui["hero_shield"].texture == RESPECT_BADGE_TEXTURE, "profile avatar uses the Respect badge artwork")
-	_check(screen.ui["hero_shield"].modulate == Color.white, "profile avatar keeps the badge artwork in color")
+	_check(screen.ui["hero_mascot"].texture.resource_path == "res://shared/mascot/levels/1.png", "profile avatar uses the level-one capybara artwork")
+	_check(screen.ui["hero_mascot"].modulate == Color.white, "profile avatar keeps the capybara artwork in color")
 	_check(screen.ui["user_name"].text == "Gabivara" and screen.ui["user_name"].visible, "profile displays the Gabivara name")
 	_check(screen.ui["user_name"].get_global_rect().end.y <= screen.ui["points_label"].get_global_rect().position.y, "profile name stays above the experience summary")
 	var typography = TYPOGRAPHY_SCRIPT.new()
@@ -87,12 +90,10 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 	_check(screen.collection_controls.size() == 9, "collection displays the nine gadgets for levels two through ten")
 	for gadget in screen.collection_controls:
 		var gadget_level: int = gadget["required_level"]
-		_check(gadget["icon"].texture != null, "level %d gadget image is loaded" % gadget_level)
-		_check(gadget["icon"].texture.resource_path == "res://shared/progress/assets/gadgets/%d.png" % gadget_level, "level %d gadget comes from its copied runtime asset" % gadget_level)
+		_check(gadget["icon"].texture == null, "level %d gadget is not loaded before its tab is opened" % gadget_level)
 		_check(gadget["label"].text == "NÍVEL %d" % gadget_level, "level %d gadget shows its unlock level" % gadget_level)
 		_check(is_equal_approx(gadget["material"].get_shader_param("grayscale_amount"), 1.0), "level %d gadget is grayscale while locked" % gadget_level)
 		_check(not gadget["icon"].visible, "collection items stay hidden on the Distintivos tab")
-		_check(gadget["icon"].texture.get_width() > 0 and gadget["icon"].texture.get_height() > 0, "level %d gadget art is loaded" % gadget_level)
 		_check(_fits_viewport(gadget["icon"], viewport_size), "level %d gadget icon fits the viewport at %s" % [gadget_level, viewport_size])
 		_check(_fits_viewport(gadget["label"], viewport_size), "level %d gadget label fits the viewport at %s" % [gadget_level, viewport_size])
 		_check(is_equal_approx(gadget["icon"].rect_size.x, screen.collection_controls[0]["icon"].rect_size.x), "all gadget icons share the same size at %s" % viewport_size)
@@ -112,7 +113,7 @@ func _test_layout(screen, viewport_size: Vector2) -> void:
 		_check(is_equal_approx(typography.get_role_ratio(badge["name"].get_meta("font_role")), typography.get_role_ratio("body")), "%s badge name uses the shared body size" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(is_equal_approx(typography.get_role_ratio(badge["level"].get_meta("font_role")), typography.get_role_ratio("body")), "%s badge level uses the shared body size" % PROFILE_SCREEN_SCRIPT.BADGES[index]["name"])
 		_check(_fits_viewport(badge["name"], viewport_size), "%s badge name stays inside the viewport at %s" % [PROFILE_SCREEN_SCRIPT.BADGES[index]["name"], viewport_size])
-	for tab_name in ["DISTINTIVOS", "COLEÇÃO"]:
+	for tab_name in ["DISTINTIVOS", "EQUIPAMENTO"]:
 		_check(screen.ui["tabs"][tab_name].focus_mode == Control.FOCUS_ALL, "%s tab supports focus navigation" % tab_name)
 		_check(typography.has_role(screen.ui["tabs"][tab_name].get_meta("font_role")), "%s tab uses shared typography" % tab_name)
 		_check(_fits_viewport(screen.ui["tabs"][tab_name], viewport_size), "%s tab stays inside the viewport at %s" % [tab_name, viewport_size])
@@ -132,20 +133,26 @@ func _test_badge_unlock_display(screen) -> void:
 
 
 func _test_tabs(screen) -> void:
-	screen._on_tab_pressed("COLEÇÃO")
-	_check(screen.selected_tab == "COLEÇÃO", "collection tab becomes active")
+	screen._on_tab_pressed("EQUIPAMENTO")
+	_check(screen.selected_tab == "EQUIPAMENTO", "equipment tab becomes active")
 	_check(screen.collection_controls[0]["icon"].visible, "collection items appear after selecting the collection tab")
+	for gadget in screen.collection_controls:
+		var gadget_level: int = gadget["required_level"]
+		_check(gadget["icon"].texture != null, "level %d gadget loads on demand when the collection opens" % gadget_level)
+		_check(gadget["icon"].texture.resource_path == "res://shared/progress/assets/gadgets/%d.png" % gadget_level, "level %d gadget comes from its copied runtime asset" % gadget_level)
 	_check(not screen.badge_controls[0]["icon"].visible, "badges are hidden while viewing the collection")
 	_check(screen.ui["status"].text.empty(), "collection tab leaves the status label clear")
-	_check(progression.add_experience(6000), "profile test advances to level four")
+	_check(progression.add_experience(6000), "profile test advances through the configured level thresholds")
+	_check(screen.ui["hero_mascot"].texture.resource_path == "res://shared/mascot/levels/5.png", "profile avatar updates to the capybara for the new level")
 	for gadget in screen.collection_controls:
 		var required_level: int = gadget["required_level"]
-		var expected_grayscale: float = 0.0 if required_level <= 4 else 1.0
+		var expected_grayscale: float = 0.0 if required_level <= 5 else 1.0
 		_check(is_equal_approx(gadget["material"].get_shader_param("grayscale_amount"), expected_grayscale), "level %d gadget color follows the profile level" % required_level)
 	screen._on_tab_pressed("DISTINTIVOS")
 	_check(screen.ui["status"].text.empty(), "badge tab clears temporary feedback")
 	_check(screen.selected_tab == "DISTINTIVOS", "badge tab remains selected")
 	_check(screen.badge_controls[0]["icon"].visible and not screen.collection_controls[0]["icon"].visible, "switching tabs restores badges and hides gadgets")
+	_check(screen.collection_controls[0]["icon"].texture == null, "gadget textures are released when the collection tab closes")
 	_check(ResourceLoader.exists(QUIZ_SCENE_PATH), "Missions destination scene exists")
 
 
@@ -163,7 +170,7 @@ func _seed_daily_quiz_progress(answer_count: int) -> void:
 
 
 func _test_daily_quiz_progress(screen) -> void:
-	_check(screen.ui["challenge_title"].text == "★  QUIZ DIÁRIO", "profile reward section is relabeled for the daily quiz")
+	_check(screen.ui["challenge_title"].text == "QUIZ DIÁRIO", "profile reward section is relabeled for the daily quiz")
 	_check(screen.ui["challenge_count"].text == "2 / 5", "profile shows the number of quiz questions answered today")
 	_check(screen.ui["challenge_text"].text == "Perguntas respondidas hoje", "profile describes the daily answer count")
 	_check(is_equal_approx(screen.ui["challenge_fill"].rect_size.x / screen.ui["challenge_track"].rect_size.x, 0.4), "daily quiz progress bar matches two of five answers")
@@ -175,6 +182,18 @@ func _test_daily_quiz_progress(screen) -> void:
 	_check(screen.ui["challenge_count"].text == "5 / 5", "profile shows all five daily answers")
 	_check(screen.ui["challenge_text"].text == "Parabéns! Você completou o quiz de hoje!", "profile congratulates the user after finishing today's quiz")
 	_check(is_equal_approx(screen.ui["challenge_fill"].rect_size.x / screen.ui["challenge_track"].rect_size.x, 1.0), "daily quiz progress bar reaches full after five answers")
+
+
+func _test_daily_quiz_click(screen) -> void:
+	for key in ["challenge_title", "challenge_text", "challenge_count"]:
+		var label: Label = screen.ui[key]
+		_check(label.mouse_filter == Control.MOUSE_FILTER_STOP, "%s accepts pointer input" % key)
+		_check(label.focus_mode == Control.FOCUS_ALL, "%s supports keyboard and controller focus" % key)
+		_check(label.is_connected("gui_input", screen, "_on_daily_quiz_gui_input"), "%s opens the quiz on activation" % key)
+	var click := InputEventMouseButton.new()
+	click.button_index = BUTTON_LEFT
+	click.pressed = false
+	screen.ui["challenge_title"].emit_signal("gui_input", click)
 
 
 func _test_progress_values(screen) -> void:

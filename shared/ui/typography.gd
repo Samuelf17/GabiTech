@@ -4,7 +4,6 @@ extends Reference
 const BASE_BODY_RATIO: float = 0.04
 const BODY_SCALE_ADJUSTMENT: float = 0.97
 const APP_FONT_PATH: String = "res://shared/ui/jersey_10.tres"
-const FALLBACK_FONT_PATH: String = "res://shared/ui/inter_regular.tres"
 const ROLE_MULTIPLIERS = {
 	"icon": 1.089040,
 	"brand": 1.347409,
@@ -79,10 +78,6 @@ func is_title_control(control: Control) -> bool:
 func get_base_font(control: Control) -> Font:
 	var font: DynamicFont = load(APP_FONT_PATH) as DynamicFont
 	if font != null:
-		if font.get_fallback_count() == 0:
-			var fallback_font: DynamicFont = load(FALLBACK_FONT_PATH) as DynamicFont
-			if fallback_font != null:
-				font.add_fallback(fallback_font.font_data)
 		control.set_meta("typography_base_font", font)
 		return font
 	if control.has_meta("typography_base_font"):

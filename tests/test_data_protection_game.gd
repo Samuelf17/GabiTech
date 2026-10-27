@@ -23,6 +23,7 @@ func _run_tests() -> void:
 	get_root().add_child(screen)
 	yield(self, "idle_frame")
 	_test_game_setup(screen)
+	_test_audio_controls(screen)
 	_test_input(screen)
 	_test_layouts(screen)
 	_test_turn_response(screen)
@@ -41,6 +42,7 @@ func _run_tests() -> void:
 func _test_maze_model() -> void:
 	var model = MAZE_MODEL.new(1229)
 	_check(model.width == 21 and model.height == 15, "landscape maze uses a horizontal grid")
+	_check(model.cells is PoolByteArray and model.cells.size() == model.width * model.height, "maze cells use a flat byte array")
 	var open_cells: Array = model.get_open_cells()
 	_check(open_cells.size() >= 100, "generated maze contains a playable set of corridors")
 	_check(model.is_open(Vector2(1, 1)), "player spawn is open")
@@ -67,10 +69,14 @@ func _test_maze_model() -> void:
 
 
 func _test_game_setup(screen) -> void:
+	_check(screen.music_player != null and screen.music_player.is_playing(), "maze background music starts when the game opens")
+	_check(screen.music_player.stream is AudioStreamMP3 and screen.music_player.stream.loop, "maze background music loops")
+	_check(is_equal_approx(screen.music_player.volume_db, screen.MUSIC_VOLUME_DB), "maze background music starts at fifty percent volume")
 	_check(screen.phase == "ready", "game waits for the player's first move")
+	_check(not screen.ui.has("data_layer") and screen.ui["board"].get_node_or_null("PlayerCapybara") != null, "collectibles share the maze canvas so its redraw refreshes them")
 	_check(screen.intro_popup and screen.ui["modal_backdrop"].visible, "intro story appears over a dimmed screen")
-	_check(screen.ui["end_title"].text == "Ajude a Gabivara!", "intro popup introduces the story")
-	_check(screen.ui["end_message"].text == "Ajude a capivara a coletar todos os arquivos enquanto foge dos spywares! Cuidado com os olhos pixelizados: eles estão à espreita para roubar seus dados. Colete tudo e escape sem ser capturado!", "intro popup shows the requested story text")
+	_check(screen.ui["end_title"].text == "Proteja seus arquivos!", "intro popup introduces the story")
+	_check(screen.ui["end_message"].text == "Ajude a Gabivara a coletar todos os arquivos enquanto foge dos spywares! Cuidado com os olhos pixelizados: eles estão à espreita para roubar seus dados. Colete tudo e escape sem ser capturado!", "intro popup shows the current story text")
 	_check(screen.ui["intro_close"].visible, "intro popup provides a close tutorial button")
 	_check(screen.hackers.size() == 3, "three hackers spawn in the maze")
 	_check(screen.maze.height > screen.maze.width, "portrait screen starts with a vertical maze")
@@ -87,9 +93,9 @@ func _test_game_setup(screen) -> void:
 	_check(not old_asset.file_exists("res://games/data_protection/assets/data_item.png"), "previous collectible image was removed from the project")
 	_check(screen.HACKER_TEXTURE != null and screen.HACKER_TEXTURE.get_size() == Vector2(256, 171), "eye image is imported at a lightweight size")
 	_check(screen.HACKER_TEXTURE.resource_path == "res://games/data_protection/assets/olho.png", "hackers use the eye image from ideias for this visual test")
-	var preserved_hacker := File.new()
-	_check(preserved_hacker.file_exists("res://games/data_protection/assets/hacker.png"), "previous hacker PNG remains in the project")
-	_check(preserved_hacker.file_exists("res://games/data_protection/assets/hacker_ideias.png"), "new hacker PNG remains in the project")
+	var removed_hacker := File.new()
+	_check(not removed_hacker.file_exists("res://games/data_protection/assets/hacker.png"), "unused previous hacker PNG is absent from the project")
+	_check(not removed_hacker.file_exists("res://games/data_protection/assets/hacker_ideias.png"), "unused new hacker PNG is absent from the project")
 	_check(screen.hackers[0]["node"].texture == screen.HACKER_TEXTURE, "hacker actor displays the raster texture")
 	var progression = get_root().get_node("Progression")
 	var level: int = clamp(int(progression.get_state().get("level", 1)), 1, 10)
@@ -104,6 +110,21 @@ func _test_game_setup(screen) -> void:
 	screen._process(0.5)
 	_check(screen.hackers[0]["cell"] == first_hacker_position, "hackers stay still after closing the tutorial")
 	_test_hacker_random_walking(screen)
+
+
+func _test_audio_controls(screen) -> void:
+	var volume_button: TextureButton = screen.ui["volume"]
+	_check(volume_button.texture_normal.resource_path == "res://games/data_protection/assets/icons/volume_up.svg", "volume button starts with the volume icon")
+	_check(volume_button.focus_mode == Control.FOCUS_ALL, "volume button supports keyboard and controller focus")
+	volume_button.emit_signal("pressed")
+	_check(screen.audio_muted, "volume button turns mute on")
+	_check(is_equal_approx(screen.music_player.volume_db, screen.MUTED_VOLUME_DB), "mute button silences the music")
+	_check(is_equal_approx(screen.data_collect_player.volume_db, screen.MUTED_VOLUME_DB), "mute button silences sound effects too")
+	_check(volume_button.texture_normal.resource_path == "res://games/data_protection/assets/icons/volume_off.svg", "mute button changes to the muted icon")
+	volume_button.emit_signal("pressed")
+	_check(not screen.audio_muted, "volume button turns mute off")
+	_check(is_equal_approx(screen.music_player.volume_db, screen.MUSIC_VOLUME_DB), "unmuting restores music to fifty percent volume")
+	_check(is_equal_approx(screen.data_collect_player.volume_db, 0.0), "unmuting restores sound effect volume")
 
 
 func _test_hacker_random_walking(screen) -> void:
@@ -205,7 +226,16 @@ func _test_layouts(screen) -> void:
 		else:
 			_check(screen.maze.width > screen.maze.height, "landscape viewport switches to a horizontal grid")
 			_check(screen.ui["board"].rect_size.x > screen.ui["board"].rect_size.y, "landscape maze is wider than it is tall")
+			var title_center_x: float = screen.ui["title"].rect_position.x + screen.ui["title"].rect_size.x * 0.5
+			var subtitle_center_x: float = screen.ui["subtitle"].rect_position.x + screen.ui["subtitle"].rect_size.x * 0.5
+			_check(abs(title_center_x - viewport_size.x * 0.5) <= 1.0, "landscape game title is centered in the viewport")
+			_check(abs(subtitle_center_x - viewport_size.x * 0.5) <= 1.0, "landscape subtitle is centered in the viewport")
 		_check(_fits_viewport(screen.ui["title"], viewport_size), "game title fits at %s" % viewport_size)
+		_check(_fits_viewport(screen.ui["volume"], viewport_size), "volume button fits at %s" % viewport_size)
+		var back_rect: Rect2 = screen.ui["back"].get_rect()
+		var volume_rect: Rect2 = screen.ui["volume"].get_rect()
+		_check(abs(back_rect.position.y + back_rect.size.y * 0.5 - volume_rect.position.y - volume_rect.size.y * 0.5) <= 1.0, "volume button aligns vertically with Back at %s" % viewport_size)
+		_check(volume_rect.position.x >= screen.ui["title"].rect_position.x + screen.ui["title"].rect_size.x, "volume button does not overlap the game title at %s" % viewport_size)
 		_check(_fits_viewport(screen.ui["score"], viewport_size), "data counter fits at %s" % viewport_size)
 		_check(_fits_viewport(screen.ui["lives"], viewport_size), "life counter fits at %s" % viewport_size)
 		_check(_fits_viewport(screen.ui["end_panel"], viewport_size), "intro and result panel fit at %s" % viewport_size)
@@ -216,6 +246,12 @@ func _test_layouts(screen) -> void:
 		_check(_fits_viewport(screen.player["node"], viewport_size), "capybara fits at %s" % viewport_size)
 		for hacker in screen.hackers:
 			_check(_fits_viewport(hacker["node"], viewport_size), "hacker fits at %s" % viewport_size)
+		var body_font: Font = screen.ui["subtitle"].get_font("font")
+		var expected_body_height: float = screen.typography.get_target_height("body", min(viewport_size.x, viewport_size.y)) * screen.BODY_TEXT_SCALE
+		_check(abs(body_font.get_height() - expected_body_height) <= 1.5, "non-title text is enlarged by fifteen percent at %s" % viewport_size)
+		var title_font: Font = screen.ui["title"].get_font("font")
+		var expected_title_height: float = screen.typography.get_target_height("heading", min(viewport_size.x, viewport_size.y))
+		_check(abs(title_font.get_height() - expected_title_height) <= 1.5, "game title retains its previous size at %s" % viewport_size)
 
 
 func _test_collectible_and_life(screen) -> void:
@@ -228,8 +264,9 @@ func _test_collectible_and_life(screen) -> void:
 	_check(not screen.data_items.has("%d,%d" % [int(data_cell.x), int(data_cell.y)]), "collected data disappears from the maze")
 	_check(screen.collected_count == 1, "collecting data increments the total")
 	_check(screen.ui["score"].text == "DADOS 1 / %d" % screen.total_data_count, "data counter updates after collection")
-	_check(progression.get_total_experience() == xp_before_collection + 5, "each collected data adds five XP")
-	_check(progression.get_badge_level("security") == 1, "the 300th protected data unlocks Security")
+	_check(screen.data_collect_player.is_playing(), "collecting a data item plays its sound effect")
+	_check(progression.get_total_experience() == xp_before_collection, "collected data XP remains buffered until a checkpoint")
+	_check(progression.pending_protected_data_count == 1, "one collected data item is held for the next save batch")
 	_check(screen.badge_popup == null, "Security popup waits until the result screen")
 	screen.player["cell"] = Vector2(5, 5)
 	screen.player["offset"] = 0.0
@@ -243,6 +280,8 @@ func _test_collectible_and_life(screen) -> void:
 
 
 func _test_turn_response(screen) -> void:
+	var progression = get_root().get_node("Progression")
+	var saved_pending_data: int = progression.pending_protected_data_count
 	var found_turn: bool = false
 	for cell in screen.maze.get_open_cells():
 		for direction in screen.maze.get_legal_directions(cell):
@@ -273,6 +312,7 @@ func _test_turn_response(screen) -> void:
 		if found_turn:
 			break
 	_check(found_turn, "maze has an intersection to validate early turning")
+	progression.pending_protected_data_count = saved_pending_data
 	for cell in screen.maze.get_open_cells():
 		var legal: Array = screen.maze.get_legal_directions(cell)
 		if legal.empty():
@@ -294,7 +334,7 @@ func _test_restart_cleanup(screen) -> void:
 	var progression = get_root().get_node("Progression")
 	var xp_before_loss: int = progression.get_total_experience()
 	screen._finish_round(false)
-	_check(progression.get_total_experience() == xp_before_loss, "loss grants no data-protection completion bonus")
+	_check(progression.get_total_experience() == xp_before_loss + 5, "loss flushes buffered collectible XP but grants no completion bonus")
 	_check(screen.ui["end_title"].text.find("sem vidas") >= 0, "loss result explains that Gabivara ran out of lives")
 	_check(screen.ui["end_message"].text.find("%d de %d dados" % [screen.collected_count, screen.total_data_count]) >= 0, "loss result reports how many data items were protected")
 	_check(screen.ui["end_message"].text.find("evitar golpes") >= 0, "loss result explains why personal data needs protection")
@@ -303,6 +343,7 @@ func _test_restart_cleanup(screen) -> void:
 	_check(screen.ui["end_xp_total"].visible and screen.ui["end_xp_total"].text == "Total de XP ganho: +5", "loss result places total XP in its own label")
 	_test_xp_result_spacing(screen)
 	_check(screen.badge_popup != null and screen.badge_popup.visible, "Security unlock popup appears over the result screen")
+	_check(is_equal_approx(screen.badge_popup.body_text_multiplier, screen.BODY_TEXT_SCALE), "badge popup body text uses the data-protection font increase")
 	var previous_seed: int = screen.current_maze_seed
 	var old_hacker_nodes: Array = []
 	for hacker in screen.hackers:

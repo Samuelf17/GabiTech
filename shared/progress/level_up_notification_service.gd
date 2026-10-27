@@ -6,6 +6,8 @@ var progression: Node
 var last_seen_level: int = 1
 var pending_level_changes: Array = []
 var active_popup: CanvasLayer
+var active_activity_scene: Node
+var completion_scene: Node
 
 
 func _ready() -> void:
@@ -29,8 +31,22 @@ func _on_progress_changed(current_state: Dictionary) -> void:
 	call_deferred("_show_next_level_change")
 
 
+func begin_activity(scene: Node) -> void:
+	active_activity_scene = scene
+	completion_scene = null
+
+
+func mark_completion_visible(scene: Node) -> void:
+	if scene == null or scene != active_activity_scene:
+		return
+	completion_scene = scene
+	call_deferred("_show_next_level_change")
+
+
 func _show_next_level_change() -> void:
 	if active_popup != null or pending_level_changes.empty() or progression == null:
+		return
+	if not _is_active_completion_visible():
 		return
 	if not progression.call("get_pending_badge_notifications").empty():
 		return
@@ -42,6 +58,12 @@ func _show_next_level_change() -> void:
 		active_popup.queue_free()
 		active_popup = null
 		call_deferred("_show_next_level_change")
+
+
+func _is_active_completion_visible() -> bool:
+	if completion_scene == null or not is_instance_valid(completion_scene):
+		return false
+	return get_tree().current_scene == completion_scene
 
 
 func _on_level_popup_dismissed() -> void:

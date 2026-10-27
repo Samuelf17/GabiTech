@@ -1,7 +1,0 @@
-[gd_resource type="DynamicFont" load_steps=2 format=2]
-
-[ext_resource path="res://shared/ui/assets/fonts/Inter_18pt-Regular.ttf" type="DynamicFontData" id=1]
-
-[resource]
-size = 16
-font_data = ExtResource( 1 )

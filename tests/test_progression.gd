@@ -20,7 +20,10 @@ func _run_tests() -> void:
 	get_root().add_child(progression)
 	yield(self, "idle_frame")
 
-	_check(progression.experience_per_level == 2000, "progression rules use 2000 XP per level")
+	_check(progression.experience_per_level == 2000, "level one requires 2000 XP to advance")
+	_check(progression._get_experience_threshold(2) == 500 and progression._get_experience_threshold(3) == 500, "levels two and three require 500 XP to advance")
+	_check(progression._get_experience_threshold(4) == 2000 and progression._get_experience_threshold(7) == 2000, "levels four through seven require 2000 XP to advance")
+	_check(progression._get_experience_threshold(8) == 5000 and progression._get_experience_threshold(10) == 5000, "levels eight through ten require 5000 XP to advance")
 	_check(progression.state["level"] == 1 and progression.state["experience"] == 0, "missing save starts at level 1 with 0 XP")
 	_check(not progression.add_experience(0), "zero XP is rejected")
 	_check(not progression.add_experience(-10), "negative XP is rejected")
@@ -31,27 +34,28 @@ func _run_tests() -> void:
 	_check(progression.state["level"] == 2 and progression.state["experience"] == 0, "exact threshold advances the level without losing XP")
 	_check(progression.state["unlocked_items"] == ["level_reward_2"], "level 2 grants its future-configurable reward ID")
 	_check(progression.add_experience(4500), "multiple level advances can be processed")
-	_check(progression.state["level"] == 4 and progression.state["experience"] == 500, "overflow XP carries across multiple levels")
-	_check(progression.state["unlocked_items"] == ["level_reward_2", "level_reward_3", "level_reward_4"], "each crossed level grants one item ID")
+	_check(progression.state["level"] == 5 and progression.state["experience"] == 1500, "overflow XP carries across levels with different XP costs")
+	_check(progression.state["unlocked_items"] == ["level_reward_2", "level_reward_3", "level_reward_4", "level_reward_5"], "each crossed level grants one item ID")
 	_check(progression.get_total_experience() == 6500, "total XP is derived from level and current XP")
-	_check(abs(progression.get_progress_ratio() - 0.25) < 0.0001, "XP progress ratio reflects current level progress")
+	_check(abs(progression.get_progress_ratio() - 0.75) < 0.0001, "XP progress ratio reflects the current level's XP threshold")
 	_check(progression.format_number(2000) == "2.000", "XP values use localized thousands separators")
 	_check(emitted_states.size() == 4, "each persisted XP update emits a progress change")
 	var copied_state: Dictionary = progression.get_state()
 	copied_state["level"] = 99
-	_check(progression.state["level"] == 4, "get_state returns a defensive copy")
+	_check(progression.state["level"] == 5, "get_state returns a defensive copy")
 
 	var reloaded = Node.new()
 	reloaded.set_script(PROGRESSION_SCRIPT)
 	reloaded.set("storage_path", TEST_STORAGE_PATH)
 	get_root().add_child(reloaded)
 	yield(self, "idle_frame")
-	_check(reloaded.state["level"] == 4 and reloaded.state["experience"] == 500, "saved level and XP load from JSON")
-	_check(reloaded.state["unlocked_items"].size() == 3, "unlocked item IDs load from JSON")
+	_check(reloaded.state["level"] == 5 and reloaded.state["experience"] == 1500, "saved level and XP load from JSON")
+	_check(reloaded.state["unlocked_items"].size() == 4, "unlocked item IDs load from JSON")
 	_check(_saved_json_is_valid(), "runtime save is valid JSON")
 	_test_quiz_rewards(progression, reloaded)
 	_test_other_game_rewards(progression)
 	_test_invalid_saved_data(progression)
+	_test_atomic_backup_recovery(progression)
 	_test_failed_save(progression)
 
 	_remove_test_file()
@@ -114,6 +118,16 @@ func _test_quiz_rewards(progression: Node, reloaded: Node) -> void:
 	var normalized_legacy: Dictionary = progression._normalize_state(legacy_state)
 	_check(normalized_legacy["badge_levels"]["knowledge"] == 1, "legacy progress is normalized to the new cumulative level threshold")
 	_check(normalized_legacy["pending_badge_notifications"].empty(), "legacy notifications above the normalized badge level are discarded")
+	var old_xp_state: Dictionary = {
+		"schema_version": 2,
+		"level": 4,
+		"experience": 500,
+		"unlocked_items": ["level_reward_2", "level_reward_3", "level_reward_4"]
+	}
+	var migrated_xp_state: Dictionary = progression._normalize_state(old_xp_state)
+	_check(migrated_xp_state["schema_version"] == 3, "old XP progress upgrades to the current save schema")
+	_check(migrated_xp_state["level"] == 5 and migrated_xp_state["experience"] == 1500, "migration preserves earned XP while applying new level thresholds")
+	_check(migrated_xp_state["unlocked_items"].has("level_reward_5"), "XP migration includes level rewards reached by the preserved balance")
 
 
 func _test_other_game_rewards(progression: Node) -> void:
@@ -143,15 +157,40 @@ func _test_other_game_rewards(progression: Node) -> void:
 	var before_data: int = progression.get_total_experience()
 	progression.state["protected_data_count"] = 299
 	_check(progression.record_protected_data(), "collecting data records persistent progress")
-	_check(progression.get_total_experience() == before_data + 5, "each collected data adds five XP")
+	_check(progression.get_total_experience() == before_data, "data XP waits until a checkpoint")
+	_check(progression.pending_protected_data_count == 1, "one data item stays in the in-memory save batch")
+	_check(progression.complete_data_protection_round("data:test:loss", false), "data-protection loss is recorded")
+	_check(progression.get_total_experience() == before_data + 5, "round completion flushes data XP without a loss bonus")
 	_check(progression.get_badge_level("security") == 1, "the 300th collected data unlocks Security level one")
 	_check(progression.get_pending_badge_notifications().back()["badge_id"] == "security", "Security unlock queues the shared badge notification")
-	_check(progression.complete_data_protection_round("data:test:loss", false), "data-protection loss is recorded")
-	_check(progression.get_total_experience() == before_data + 5, "losing the data-protection game grants no completion bonus")
 	_check(progression.complete_data_protection_round("data:test:win", true), "data-protection win is recorded")
 	_check(progression.get_total_experience() == before_data + 205, "winning data-protection grants a 200 XP bonus")
 	_check(progression.complete_data_protection_round("data:test:win", true), "data-protection completion can be retried safely")
 	_check(progression.get_total_experience() == before_data + 205, "replaying completion does not duplicate its bonus")
+	var saved_data_count: int = progression.state["protected_data_count"]
+	var xp_before_batch: int = progression.get_total_experience()
+	for _index in range(progression.PROTECTED_DATA_SAVE_BATCH - 1):
+		_check(progression.record_protected_data(), "collectible joins the pending data batch")
+	_check(progression.state["protected_data_count"] == saved_data_count, "incomplete save batches do not rewrite the protected-data total")
+	_check(progression.flush_pending_protected_data(), "pending data flushes explicitly at lifecycle boundaries")
+	_check(progression.state["protected_data_count"] == saved_data_count + progression.PROTECTED_DATA_SAVE_BATCH - 1, "one checkpoint commits every item in the batch")
+	_check(progression.get_total_experience() == xp_before_batch + (progression.PROTECTED_DATA_SAVE_BATCH - 1) * 5, "batch checkpoint applies five XP for each collected item")
+	saved_data_count = progression.state["protected_data_count"]
+	xp_before_batch = progression.get_total_experience()
+	for _index in range(progression.PROTECTED_DATA_SAVE_BATCH):
+		_check(progression.record_protected_data(), "data collection can fill the automatic checkpoint")
+	_check(progression.pending_protected_data_count == 0, "the configured batch size triggers a checkpoint automatically")
+	_check(progression.state["protected_data_count"] == saved_data_count + progression.PROTECTED_DATA_SAVE_BATCH, "automatic checkpoint commits every collected data item")
+	_check(progression.get_total_experience() == xp_before_batch + progression.PROTECTED_DATA_SAVE_BATCH * 5, "automatic checkpoint grants five XP per item")
+	_check(progression.record_protected_data(), "one more item waits after the automatic checkpoint")
+	progression._notification(MainLoop.NOTIFICATION_APP_PAUSED)
+	_check(progression.pending_protected_data_count == 0, "application pause flushes pending collected data")
+	_check(progression.state["protected_data_count"] == saved_data_count + progression.PROTECTED_DATA_SAVE_BATCH + 1, "application pause preserves the last buffered data item")
+	var now: int = OS.get_unix_time()
+	var retained_ids: Dictionary = progression._normalize_processed_ids({"recent": now, "expired": now - progression.PROCESSED_ID_RETENTION_SECONDS - 1})
+	_check(retained_ids.has("recent") and not retained_ids.has("expired"), "processed-ID compaction removes records older than one year")
+	var migrated_ids: Dictionary = progression._normalize_processed_ids(["2026-02-01:2", "anti:test:one"])
+	_check(migrated_ids.has("2026-02-01:2") and migrated_ids.has("anti:test:one"), "legacy arrays migrate to indexed processed-ID maps")
 
 
 func _saved_json_is_valid() -> bool:
@@ -164,10 +203,11 @@ func _saved_json_is_valid() -> bool:
 
 
 func _remove_test_file() -> void:
-	var file := File.new()
-	if file.file_exists(TEST_STORAGE_PATH):
+	for suffix in ["", ".tmp", ".bak"]:
+		var path: String = TEST_STORAGE_PATH + suffix
 		var directory := Directory.new()
-		directory.remove(TEST_STORAGE_PATH)
+		if directory.file_exists(path):
+			directory.remove(path)
 
 
 func _test_invalid_saved_data(progression: Node) -> void:
@@ -192,6 +232,22 @@ func _test_failed_save(progression: Node) -> void:
 	_check(not progression.add_experience(100), "failed storage write rejects XP update")
 	_check(progression.get_total_experience() == previous_total, "failed write does not mutate in-memory progress")
 	progression.set("storage_path", previous_path)
+
+
+func _test_atomic_backup_recovery(progression: Node) -> void:
+	_check(progression._save_state(progression.state), "progress is saved via the temporary-file replacement path")
+	var backup_path: String = TEST_STORAGE_PATH + ".bak"
+	var file := File.new()
+	_check(file.open(TEST_STORAGE_PATH, File.READ) == OK, "saved progress opens before backup recovery test")
+	var saved_contents: String = file.get_as_text()
+	file.close()
+	_check(file.open(backup_path, File.WRITE) == OK, "test creates a backup copy of progress")
+	file.store_string(saved_contents)
+	file.close()
+	Directory.new().remove(TEST_STORAGE_PATH)
+	progression._recover_progress_backup()
+	_check(file.file_exists(TEST_STORAGE_PATH), "missing primary save is recovered from its backup")
+	_check(_saved_json_is_valid(), "recovered progress backup remains valid JSON")
 
 
 func _file_text(path: String) -> String:

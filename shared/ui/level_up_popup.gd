@@ -3,18 +3,6 @@ extends CanvasLayer
 signal dismissed
 
 const TYPOGRAPHY = preload("res://shared/ui/typography.gd")
-const MASCOT_TEXTURES = [
-	preload("res://shared/mascot/levels/1.png"),
-	preload("res://shared/mascot/levels/2.png"),
-	preload("res://shared/mascot/levels/3.png"),
-	preload("res://shared/mascot/levels/4.png"),
-	preload("res://shared/mascot/levels/5.png"),
-	preload("res://shared/mascot/levels/6.png"),
-	preload("res://shared/mascot/levels/7.png"),
-	preload("res://shared/mascot/levels/8.png"),
-	preload("res://shared/mascot/levels/9.png"),
-	preload("res://shared/mascot/levels/10.png")
-]
 const DISPLAY_SECONDS: float = 5.0
 const SPIN_COUNT: int = 8
 const QUARTER_TURN_SECONDS: float = 0.05
@@ -140,8 +128,8 @@ func _new_mascot(node_name: String) -> TextureRect:
 
 
 func _mascot_for_level(level: int) -> Texture:
-	var texture_index: int = clamp(level, 1, MASCOT_TEXTURES.size()) - 1
-	return MASCOT_TEXTURES[texture_index]
+	var mascot_level: int = clamp(level, 1, 10)
+	return load("res://shared/mascot/levels/%d.png" % mascot_level) as Texture
 
 
 func burst_radius_for_viewport() -> float:

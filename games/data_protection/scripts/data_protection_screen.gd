@@ -5,7 +5,14 @@ const MAZE_MODEL = preload("res://games/data_protection/scripts/maze_model.gd")
 const DATA_TEXTURE = preload("res://games/data_protection/assets/planilha_icon.svg")
 const HACKER_TEXTURE = preload("res://games/data_protection/assets/olho.png")
 const BADGE_UNLOCK_POPUP = preload("res://shared/ui/badge_unlock_popup.gd")
+const MAZE_MUSIC_STREAM = preload("res://games/data_protection/assets/audio/maze_music.mp3")
+const DATA_COLLECT_STREAM = preload("res://games/data_protection/assets/audio/collectable.wav")
+const VOLUME_ICON = preload("res://games/data_protection/assets/icons/volume_up.svg")
+const MUTED_ICON = preload("res://games/data_protection/assets/icons/volume_off.svg")
 const MAP_SCENE_PATH = "res://app/menus/map_screen.tscn"
+const MUSIC_VOLUME_DB: float = -6.02
+const MUTED_VOLUME_DB: float = -80.0
+const BODY_TEXT_SCALE: float = 1.15
 const PLAYER_SPEED_TILES_PER_SECOND: float = 4.5
 const HACKER_SPEED_TILES_PER_SECOND: float = 3.0
 const INITIAL_LIVES: int = 3
@@ -46,12 +53,18 @@ var respawn_grace: float = 0.0
 var current_landscape: bool = false
 var intro_popup: bool = false
 var badge_popup: CanvasLayer
+var music_player: AudioStreamPlayer
+var data_collect_player: AudioStreamPlayer
+var audio_muted: bool = false
 var round_id: String = ""
 var round_xp_from_data: int = 0
 var round_xp_completion_bonus: int = 0
 
 
 func _ready() -> void:
+	var level_notifications = get_node_or_null("/root/LevelUpNotifications")
+	if level_notifications != null:
+		level_notifications.call("begin_activity", self)
 	_build_screen()
 	get_viewport().connect("size_changed", self, "_on_viewport_size_changed")
 	current_viewport_size = get_viewport_rect().size
@@ -62,6 +75,7 @@ func _ready() -> void:
 
 
 func _build_screen() -> void:
+	_setup_audio_players()
 	var background := ColorRect.new()
 	background.name = "NeonMazeBackground"
 	background.color = BACKGROUND_COLOR
@@ -70,9 +84,20 @@ func _build_screen() -> void:
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(background)
 	ui["background"] = background
-
 	ui["back"] = _new_button("VOLTAR", "button")
 	ui["back"].connect("pressed", self, "_on_map_pressed")
+	ui["volume"] = TextureButton.new()
+	ui["volume"].name = "VolumeMuteButton"
+	ui["volume"].texture_normal = VOLUME_ICON
+	ui["volume"].texture_pressed = VOLUME_ICON
+	ui["volume"].texture_hover = VOLUME_ICON
+	ui["volume"].texture_focused = VOLUME_ICON
+	ui["volume"].expand = true
+	ui["volume"].stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+	ui["volume"].focus_mode = Control.FOCUS_ALL
+	ui["volume"].hint_tooltip = "Silenciar música e efeitos sonoros"
+	ui["volume"].connect("pressed", self, "_on_volume_pressed")
+	add_child(ui["volume"])
 	ui["title"] = _new_label("DEFESA DOS DADOS", WHITE, "heading", Label.ALIGN_CENTER)
 	ui["subtitle"] = _new_label("Fuja dos hackers e recupere todos os dados", MUTED, "body", Label.ALIGN_CENTER)
 	ui["score"] = _new_label("DADOS 0 / 0", CYAN, "body", Label.ALIGN_LEFT)
@@ -113,8 +138,36 @@ func _build_screen() -> void:
 	ui["board"].grab_focus()
 	ui["background"].raise()
 	ui["board"].raise()
-	for key in ["back", "title", "subtitle", "score", "lives", "modal_backdrop", "end_panel", "end_title", "end_message", "end_xp_total", "intro_close", "restart", "map"]:
+	for key in ["back", "volume", "title", "subtitle", "score", "lives", "modal_backdrop", "end_panel", "end_title", "end_message", "end_xp_total", "intro_close", "restart", "map"]:
 		ui[key].raise()
+
+
+func _setup_audio_players() -> void:
+	music_player = AudioStreamPlayer.new()
+	music_player.name = "MazeMusicPlayer"
+	music_player.volume_db = MUSIC_VOLUME_DB
+	var looped_music = MAZE_MUSIC_STREAM.duplicate()
+	if looped_music is AudioStreamMP3:
+		looped_music.loop = true
+	music_player.stream = looped_music
+	add_child(music_player)
+	music_player.play()
+	data_collect_player = AudioStreamPlayer.new()
+	data_collect_player.name = "DataCollectPlayer"
+	data_collect_player.stream = DATA_COLLECT_STREAM
+	add_child(data_collect_player)
+
+
+func _on_volume_pressed() -> void:
+	audio_muted = not audio_muted
+	var volume_db: float = MUTED_VOLUME_DB if audio_muted else 0.0
+	data_collect_player.volume_db = volume_db
+	music_player.volume_db = MUTED_VOLUME_DB if audio_muted else MUSIC_VOLUME_DB
+	ui["volume"].texture_normal = MUTED_ICON if audio_muted else VOLUME_ICON
+	ui["volume"].texture_pressed = ui["volume"].texture_normal
+	ui["volume"].texture_hover = ui["volume"].texture_normal
+	ui["volume"].texture_focused = ui["volume"].texture_normal
+	ui["volume"].hint_tooltip = "Ativar música e efeitos sonoros" if audio_muted else "Silenciar música e efeitos sonoros"
 
 
 func _new_label(text: String, color: Color, role: String, alignment: int) -> Label:
@@ -164,6 +217,9 @@ func _stylebox(fill: Color, border: Color, radius: int, border_width: int) -> St
 
 
 func _reset_round(show_intro: bool = false) -> void:
+	var level_notifications = get_node_or_null("/root/LevelUpNotifications")
+	if level_notifications != null:
+		level_notifications.call("begin_activity", self)
 	phase = "ready"
 	round_id = _new_round_id()
 	round_xp_from_data = 0
@@ -345,7 +401,28 @@ func _choose_hacker_direction(cell: Vector2, current_direction: Vector2) -> Vect
 			options.append(direction)
 	if options.empty():
 		options = legal
-	return options[randi() % options.size()]
+	var option_count: int = 0
+	for direction in MAZE_MODEL.DIRECTIONS:
+		if _can_move(cell, direction) and direction != -current_direction:
+			option_count += 1
+	var has_non_reverse: bool = option_count > 0
+	if option_count == 0:
+		for direction in MAZE_MODEL.DIRECTIONS:
+			if _can_move(cell, direction):
+				option_count += 1
+	if option_count == 0:
+		return Vector2.ZERO
+	var allow_reverse: bool = not has_non_reverse
+	var selected_index: int = randi() % option_count
+	for direction in MAZE_MODEL.DIRECTIONS:
+		if not _can_move(cell, direction):
+			continue
+		if direction == -current_direction and not allow_reverse:
+			continue
+		if selected_index == 0:
+			return direction
+		selected_index -= 1
+	return Vector2.ZERO
 
 
 func _can_move(cell: Vector2, direction: Vector2) -> bool:
@@ -357,6 +434,8 @@ func _collect_data(cell: Vector2) -> void:
 	if not data_items.has(key):
 		return
 	data_items.erase(key)
+	if data_collect_player != null:
+		data_collect_player.play()
 	collected_count += 1
 	var progression = get_node_or_null("/root/Progression")
 	if progression != null:
@@ -417,10 +496,15 @@ func _finish_round(won: bool) -> void:
 	for key in ["end_title", "end_message", "end_xp_total", "restart", "map"]:
 		ui[key].visible = true
 	_layout_screen(current_viewport_size)
+	var level_notifications = get_node_or_null("/root/LevelUpNotifications")
+	if level_notifications != null:
+		level_notifications.call("mark_completion_visible", self)
 	_show_next_pending_badge_notification()
 
 
 func _show_next_pending_badge_notification() -> void:
+	if phase != "finished":
+		return
 	var progression = get_node_or_null("/root/Progression")
 	if progression == null or badge_popup != null:
 		return
@@ -428,6 +512,7 @@ func _show_next_pending_badge_notification() -> void:
 	if notifications.empty():
 		return
 	badge_popup = BADGE_UNLOCK_POPUP.new()
+	badge_popup.body_text_multiplier = BODY_TEXT_SCALE
 	badge_popup.connect("dismissed", self, "_on_badge_popup_dismissed")
 	add_child(badge_popup)
 	if not badge_popup.present(notifications[0]):
@@ -470,10 +555,7 @@ func _draw_board() -> void:
 					continue
 				var edge_start: Vector2 = _wall_edge_start(cell, direction)
 				var edge_end: Vector2 = _wall_edge_end(cell, direction)
-				var glow := WALL_NEON
-				glow.a = 0.22
-				ui["board"].draw_line(edge_start, edge_end, glow, max(4.0, tile_size * 0.20), true)
-				ui["board"].draw_line(edge_start, edge_end, WALL_NEON, max(2.0, tile_size * 0.055), true)
+				ui["board"].draw_line(edge_start, edge_end, WALL_NEON, max(2.0, tile_size * 0.065), false)
 	for key in data_items:
 		var cell: Vector2 = data_items[key]
 		var data_size: float = tile_size * 0.55
@@ -513,8 +595,14 @@ func _layout_screen(viewport_size: Vector2) -> void:
 	var short_side: float = min(width, height)
 	_place(ui["background"], 0.0, 0.0, width, height)
 	_place(ui["back"], width * 0.035, height * 0.035, width * (0.20 if not landscape else 0.13), height * 0.055, short_side)
-	_place(ui["title"], width * 0.21, height * 0.025, width * 0.74, height * 0.06, short_side)
-	_place(ui["subtitle"], width * 0.08, height * 0.09, width * 0.84, height * 0.04, short_side)
+	var volume_size: float = short_side * 0.08
+	var volume_y: float = height * 0.035 + (height * 0.055 - volume_size) * 0.5
+	_place(ui["volume"], width * 0.91, volume_y, volume_size, volume_size)
+	var title_width: float = width * (0.62 if not landscape else 0.64)
+	var title_x: float = (width - title_width) * 0.5 if landscape else width * 0.245
+	_place(ui["title"], title_x, height * 0.025, title_width, height * 0.06, short_side)
+	var subtitle_width: float = width * 0.84
+	_place(ui["subtitle"], (width - subtitle_width) * 0.5, height * 0.09, subtitle_width, height * 0.05, short_side)
 	_place(ui["score"], width * 0.08, height * 0.145, width * 0.50, height * 0.045, short_side)
 	_place(ui["lives"], width * 0.60, height * 0.145, width * 0.32, height * 0.045, short_side)
 	var board_area := Rect2(width * 0.05, height * 0.20, width * 0.90, height * 0.76)
@@ -583,6 +671,8 @@ func _place(control: Control, x: float, y: float, width: float, height: float, f
 		var role: String = control.get_meta("font_role")
 		if font != null and typography.has_role(role):
 			var scale: float = typography.get_target_height(role, font_basis) / font.get_height()
+			if not typography.is_title_role(role) and not typography.is_decorative_role(role):
+				scale *= BODY_TEXT_SCALE
 			if control is Label or control is Button:
 				scale = min(scale, _fit_font_to_control(control, font, width, height, scale))
 			typography.apply_font_scale(control, scale)
@@ -700,17 +790,21 @@ func _on_intro_close_pressed() -> void:
 
 func _on_map_pressed() -> void:
 	_reset_before_leaving()
-	get_node("/root/NavigationHistory").call("navigate_to", MAP_SCENE_PATH)
+	get_node("/root/NavigationHistory").call("return_to", MAP_SCENE_PATH)
 
 
 func _reset_before_leaving() -> void:
+	var progression = get_node_or_null("/root/Progression")
+	if progression != null and not progression.call("flush_pending_protected_data"):
+		push_error("Não foi possível gravar os dados coletados antes de sair da Defesa dos Dados.")
 	_reset_round()
 	_layout_screen(current_viewport_size)
 
 
 func handle_back_request() -> bool:
 	_reset_before_leaving()
-	return false
+	get_node("/root/NavigationHistory").call("return_to", MAP_SCENE_PATH)
+	return true
 
 
 func _on_viewport_size_changed() -> void:

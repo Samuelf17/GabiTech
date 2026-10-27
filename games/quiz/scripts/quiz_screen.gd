@@ -40,6 +40,9 @@ var badge_popup: CanvasLayer
 
 
 func _ready() -> void:
+	var level_notifications = get_node_or_null("/root/LevelUpNotifications")
+	if level_notifications != null:
+		level_notifications.call("begin_activity", self)
 	progression_service = get_node_or_null("/root/Progression")
 	_build_screen()
 	get_viewport().connect("size_changed", self, "_on_viewport_size_changed")
@@ -56,7 +59,6 @@ func _ready() -> void:
 		_show_next_question()
 	else:
 		_show_daily_completion()
-	call_deferred("_show_next_pending_badge_notification")
 
 
 func _build_screen() -> void:
@@ -419,7 +421,6 @@ func _on_confirm_pressed() -> void:
 		ui["explanation_close"].grab_focus()
 	else:
 		_show_next_prompt()
-		_show_next_pending_badge_notification()
 
 
 func _on_explanation_overlay_input(event: InputEvent) -> void:
@@ -466,7 +467,6 @@ func _show_next_prompt() -> void:
 	ui["next_prompt"].visible = true
 	_layout_screen(current_viewport_size)
 	ui["next_prompt_yes"].grab_focus()
-	_show_next_pending_badge_notification()
 
 
 func _set_answer_feedback_style(button: Button, color: Color) -> void:
@@ -513,6 +513,9 @@ func _show_daily_completion() -> void:
 	for index in range(DAILY_LIMIT):
 		ui["progress_segments"][index].add_stylebox_override("panel", _stylebox(CYAN, CYAN, 12, 0))
 	ui["navigation"].buttons["missions"].grab_focus()
+	var level_notifications = get_node_or_null("/root/LevelUpNotifications")
+	if level_notifications != null:
+		level_notifications.call("mark_completion_visible", self)
 	_show_next_pending_badge_notification()
 
 
@@ -539,6 +542,8 @@ func _finalize_quiz_session() -> bool:
 
 
 func _show_next_pending_badge_notification() -> void:
+	if not ui.has("completion_title") or not ui["completion_title"].visible:
+		return
 	if progression_service == null or badge_popup != null:
 		return
 	var notifications: Array = progression_service.get_pending_badge_notifications()

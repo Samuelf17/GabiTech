@@ -18,12 +18,19 @@ func _run_tests() -> void:
 	progression.load_progress()
 	notifier.pending_level_changes.clear()
 	notifier.last_seen_level = int(progression.state["level"])
+	var completion_scene := Control.new()
+	get_root().add_child(completion_scene)
+	current_scene = completion_scene
+	notifier.begin_activity(completion_scene)
 
 	var xp_to_next_level: int = progression.experience_per_level - int(progression.state["experience"])
 	_check(progression.add_experience(xp_to_next_level), "earning enough XP saves the new level")
 	yield(self, "idle_frame")
 	yield(self, "idle_frame")
 	_check(progression.state["level"] == 2, "the progression service reaches level 2")
+	_check(notifier.active_popup == null and notifier.pending_level_changes.size() == 1, "level-up popup waits until the activity completion screen")
+	notifier.mark_completion_visible(completion_scene)
+	yield(self, "idle_frame")
 	_check(notifier.active_popup != null, "a level increase opens the shared popup")
 	if notifier.active_popup != null:
 		yield(_test_popup(notifier.active_popup), "completed")
@@ -45,6 +52,8 @@ func _run_tests() -> void:
 			notifier.active_popup._on_dismiss_timer_timeout()
 
 	progression.storage_path = previous_storage_path
+	current_scene = null
+	completion_scene.queue_free()
 	_remove_test_file()
 	if failures.empty():
 		print("Level-up notification tests passed")

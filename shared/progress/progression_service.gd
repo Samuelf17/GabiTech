@@ -5,6 +5,19 @@ signal progress_changed(state)
 const RULES_PATH = "res://data/progression/progression_rules.json"
 const DEFAULT_PROGRESS_PATH = "res://data/progression/default_progress.json"
 const DEFAULT_EXPERIENCE_PER_LEVEL = 2000
+const CURRENT_SCHEMA_VERSION: int = 3
+const DEFAULT_EXPERIENCE_THRESHOLDS: Dictionary = {
+	"1": 2000,
+	"2": 500,
+	"3": 500,
+	"4": 2000,
+	"5": 2000,
+	"6": 2000,
+	"7": 2000,
+	"8": 5000,
+	"9": 5000,
+	"10": 5000
+}
 const DEFAULT_REWARD_ID_PREFIX = "level_reward_"
 const QUIZ_XP_PER_CORRECT_ANSWER: int = 60
 const KNOWLEDGE_BADGE_ID: String = "knowledge"
@@ -13,9 +26,13 @@ const RESPECT_BADGE_ID: String = "respect"
 const RESPECT_CORRECT_ANSWERS_FOR_FIRST_LEVEL: int = 4
 const SECURITY_BADGE_ID: String = "security"
 const SECURITY_DATA_FOR_FIRST_LEVEL: int = 300
+const PROTECTED_DATA_SAVE_BATCH: int = 10
+const PROCESSED_ID_RETENTION_SECONDS: int = 31536000
+const PROGRESS_BACKUP_SUFFIX: String = ".bak"
+const PROGRESS_TEMP_SUFFIX: String = ".tmp"
 const BADGE_IDS = ["privacy", "security", "communication", "knowledge", "respect", "attention"]
 const DEFAULT_STATE = {
-	"schema_version": 1,
+	"schema_version": CURRENT_SCHEMA_VERSION,
 	"level": 1,
 	"experience": 0,
 	"unlocked_items": [],
@@ -30,17 +47,19 @@ const DEFAULT_STATE = {
 	"quiz_correct_answers": 0,
 	"anti_bullying_correct_answers": 0,
 	"protected_data_count": 0,
-	"processed_quiz_answer_ids": [],
-	"processed_quiz_sessions": [],
-	"processed_anti_bullying_sessions": [],
-	"processed_data_protection_sessions": [],
+	"processed_quiz_answer_ids": {},
+	"processed_quiz_sessions": {},
+	"processed_anti_bullying_sessions": {},
+	"processed_data_protection_sessions": {},
 	"pending_badge_notifications": []
 }
 
 var storage_path: String = "user://progress.json"
 var experience_per_level: int = DEFAULT_EXPERIENCE_PER_LEVEL
+var experience_thresholds: Dictionary = DEFAULT_EXPERIENCE_THRESHOLDS.duplicate(true)
 var reward_id_prefix: String = DEFAULT_REWARD_ID_PREFIX
 var state: Dictionary = {}
+var pending_protected_data_count: int = 0
 
 
 func _ready() -> void:
@@ -55,7 +74,13 @@ func get_state() -> Dictionary:
 func get_total_experience() -> int:
 	if state.empty():
 		return 0
-	return (int(state["level"]) - 1) * experience_per_level + int(state["experience"])
+	var total_experience: int = int(state["experience"])
+	var current_level: int = int(state["level"])
+	for level in range(1, min(current_level, 11)):
+		total_experience += _get_experience_threshold(level)
+	if current_level > 11:
+		total_experience += (current_level - 11) * _get_experience_threshold(10)
+	return total_experience
 
 
 func get_progress_ratio() -> float:
@@ -95,7 +120,7 @@ func record_quiz_correct_answer(answer_id: String) -> bool:
 	if state["processed_quiz_answer_ids"].has(answer_id):
 		return true
 	var updated: Dictionary = state.duplicate(true)
-	updated["processed_quiz_answer_ids"].append(answer_id)
+	_mark_processed_id(updated["processed_quiz_answer_ids"], answer_id)
 	updated["quiz_correct_answers"] = int(updated["quiz_correct_answers"]) + 1
 	var old_level: int = int(updated["badge_levels"][KNOWLEDGE_BADGE_ID])
 	var new_level: int = _get_knowledge_level_for_correct_answers(int(updated["quiz_correct_answers"]))
@@ -132,7 +157,7 @@ func complete_quiz_session(session_id: String, correct_answer_count: int) -> boo
 	var updated: Dictionary = state.duplicate(true)
 	if correct_answer_count > 0:
 		updated = _advance_state(updated, correct_answer_count * QUIZ_XP_PER_CORRECT_ANSWER)
-	updated["processed_quiz_sessions"].append(session_id)
+	_mark_processed_id(updated["processed_quiz_sessions"], session_id)
 	if not _save_state(updated):
 		return false
 	state = updated
@@ -155,7 +180,7 @@ func complete_anti_bullying_round(round_id: String, correct_answer_count: int, t
 	var xp_delta: int = correct_answer_count * 100 - (total_situations - correct_answer_count) * 20
 	if xp_delta > 0:
 		updated = _advance_state(updated, xp_delta)
-	updated["processed_anti_bullying_sessions"].append(round_id)
+	_mark_processed_id(updated["processed_anti_bullying_sessions"], round_id)
 	if not _save_state(updated):
 		return false
 	state = updated
@@ -166,18 +191,36 @@ func complete_anti_bullying_round(round_id: String, correct_answer_count: int, t
 func record_protected_data() -> bool:
 	if state.empty():
 		return false
+	pending_protected_data_count += 1
+	if pending_protected_data_count >= PROTECTED_DATA_SAVE_BATCH:
+		flush_pending_protected_data()
+	return true
+
+
+func flush_pending_protected_data() -> bool:
+	if pending_protected_data_count <= 0:
+		return true
+	if state.empty():
+		return false
 	var updated: Dictionary = state.duplicate(true)
-	var protected_data_count: int = int(updated["protected_data_count"]) + 1
-	var old_level: int = int(updated["badge_levels"][SECURITY_BADGE_ID])
-	updated["protected_data_count"] = protected_data_count
-	var new_level: int = _get_progressive_badge_level(protected_data_count, SECURITY_DATA_FOR_FIRST_LEVEL, 200)
-	_queue_badge_level_notifications(updated, SECURITY_BADGE_ID, old_level, new_level)
-	updated = _advance_state(updated, 5)
+	updated = _apply_protected_data_to_state(updated, pending_protected_data_count)
 	if not _save_state(updated):
 		return false
+	pending_protected_data_count = 0
 	state = updated
 	emit_signal("progress_changed", get_state())
 	return true
+
+
+func _apply_protected_data_to_state(updated: Dictionary, amount: int) -> Dictionary:
+	if amount <= 0:
+		return updated
+	var old_level: int = int(updated["badge_levels"][SECURITY_BADGE_ID])
+	var protected_data_count: int = int(updated["protected_data_count"]) + amount
+	updated["protected_data_count"] = protected_data_count
+	var new_level: int = _get_progressive_badge_level(protected_data_count, SECURITY_DATA_FOR_FIRST_LEVEL, 200)
+	_queue_badge_level_notifications(updated, SECURITY_BADGE_ID, old_level, new_level)
+	return _advance_state(updated, amount * 5)
 
 
 func complete_data_protection_round(round_id: String, won: bool) -> bool:
@@ -186,11 +229,13 @@ func complete_data_protection_round(round_id: String, won: bool) -> bool:
 	if state["processed_data_protection_sessions"].has(round_id):
 		return true
 	var updated: Dictionary = state.duplicate(true)
+	updated = _apply_protected_data_to_state(updated, pending_protected_data_count)
 	if won:
 		updated = _advance_state(updated, 200)
-	updated["processed_data_protection_sessions"].append(round_id)
+	_mark_processed_id(updated["processed_data_protection_sessions"], round_id)
 	if not _save_state(updated):
 		return false
+	pending_protected_data_count = 0
 	state = updated
 	emit_signal("progress_changed", get_state())
 	return true
@@ -232,10 +277,19 @@ func acknowledge_badge_notification(event_id: String) -> bool:
 	return true
 
 
+func _notification(what: int) -> void:
+	if what == MainLoop.NOTIFICATION_APP_PAUSED or what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
+		if not flush_pending_protected_data():
+			push_error("Não foi possível salvar os dados coletados antes de pausar ou fechar o aplicativo.")
+
+
 func load_progress() -> bool:
+	_recover_progress_backup()
+	pending_protected_data_count = 0
 	var file := File.new()
 	if not file.file_exists(storage_path):
 		state = _load_default_state()
+		_update_experience_per_level()
 		if not _save_state(state):
 			return false
 		emit_signal("progress_changed", get_state())
@@ -245,6 +299,7 @@ func load_progress() -> bool:
 	if open_error != OK:
 		push_error("Não foi possível abrir o progresso do usuário: %s" % storage_path)
 		state = _load_default_state()
+		_update_experience_per_level()
 		return false
 	var content: String = file.get_as_text()
 	file.close()
@@ -252,14 +307,19 @@ func load_progress() -> bool:
 	if parsed.error != OK or not parsed.result is Dictionary:
 		push_error("O JSON de progresso é inválido na linha %d: %s" % [parsed.error_line, parsed.error_string])
 		state = _load_default_state()
+		_update_experience_per_level()
 		return false
 
 	var normalized: Dictionary = _normalize_state(parsed.result)
 	if normalized.empty():
 		push_error("O JSON de progresso contém dados inválidos; os dados do usuário foram preservados.")
 		state = _load_default_state()
+		_update_experience_per_level()
 		return false
 	state = normalized
+	_update_experience_per_level()
+	if int(parsed.result.get("schema_version", 1)) < CURRENT_SCHEMA_VERSION and not _save_state(state):
+		push_error("Não foi possível atualizar o formato do progresso salvo; os dados continuam carregados.")
 	emit_signal("progress_changed", get_state())
 	return true
 
@@ -271,6 +331,7 @@ func add_experience(amount: int) -> bool:
 	if not _save_state(updated):
 		return false
 	state = updated
+	_update_experience_per_level()
 	emit_signal("progress_changed", get_state())
 	return true
 
@@ -280,8 +341,8 @@ func _advance_state(current_state: Dictionary, amount: int) -> Dictionary:
 	var current_level: int = int(updated["level"])
 	var remaining_experience: int = int(updated["experience"]) + amount
 	var unlocked_items: Array = updated["unlocked_items"]
-	while remaining_experience >= experience_per_level:
-		remaining_experience -= experience_per_level
+	while remaining_experience >= _get_experience_threshold(current_level):
+		remaining_experience -= _get_experience_threshold(current_level)
 		current_level += 1
 		var reward_id: String = "%s%d" % [reward_id_prefix, current_level]
 		if not unlocked_items.has(reward_id):
@@ -310,15 +371,29 @@ func _normalize_state(data: Dictionary) -> Dictionary:
 		return {}
 	var level: int = int(level_value)
 	var experience: int = int(experience_value)
-	if int(schema_version) != 1 or level < 1 or experience < 0 or experience >= experience_per_level:
+	if int(schema_version) < 1 or int(schema_version) > CURRENT_SCHEMA_VERSION or level < 1 or experience < 0:
 		return {}
+	var migration_experience_limit: int = experience_per_level if int(schema_version) < CURRENT_SCHEMA_VERSION else _get_experience_threshold(level)
+	if experience >= migration_experience_limit:
+		return {}
+	if int(schema_version) < CURRENT_SCHEMA_VERSION:
+		var legacy_total_experience: int = (level - 1) * experience_per_level + experience
+		level = 1
+		experience = legacy_total_experience
+		while experience >= _get_experience_threshold(level):
+			experience -= _get_experience_threshold(level)
+			level += 1
 	if not item_values is Array:
 		return {}
 	if int(quiz_correct_answers_value) < 0 or int(anti_bullying_correct_answers_value) < 0 or int(protected_data_count_value) < 0 or not badge_level_values is Dictionary:
 		return {}
-	if not processed_answer_values is Array or not processed_session_values is Array or not processed_anti_bullying_values is Array or not processed_data_protection_values is Array or not pending_notification_values is Array:
+	if (not processed_answer_values is Array and not processed_answer_values is Dictionary) or (not processed_session_values is Array and not processed_session_values is Dictionary) or (not processed_anti_bullying_values is Array and not processed_anti_bullying_values is Dictionary) or (not processed_data_protection_values is Array and not processed_data_protection_values is Dictionary) or not pending_notification_values is Array:
 		return {}
-	if not _is_valid_string_array(processed_answer_values) or not _is_valid_string_array(processed_session_values) or not _is_valid_string_array(processed_anti_bullying_values) or not _is_valid_string_array(processed_data_protection_values):
+	var clean_answer_ids: Dictionary = _normalize_processed_ids(processed_answer_values)
+	var clean_session_ids: Dictionary = _normalize_processed_ids(processed_session_values)
+	var clean_anti_bullying_ids: Dictionary = _normalize_processed_ids(processed_anti_bullying_values)
+	var clean_data_protection_ids: Dictionary = _normalize_processed_ids(processed_data_protection_values)
+	if (clean_answer_ids.empty() and not processed_answer_values.empty()) or (clean_session_ids.empty() and not processed_session_values.empty()) or (clean_anti_bullying_ids.empty() and not processed_anti_bullying_values.empty()) or (clean_data_protection_ids.empty() and not processed_data_protection_values.empty()):
 		return {}
 	var clean_items: Array = []
 	for item_id in item_values:
@@ -326,8 +401,10 @@ func _normalize_state(data: Dictionary) -> Dictionary:
 			return {}
 		if not clean_items.has(item_id):
 			clean_items.append(item_id)
-	var clean_answer_ids: Array = _normalize_string_array(processed_answer_values)
-	var clean_session_ids: Array = _normalize_string_array(processed_session_values)
+	for reached_level in range(2, level + 1):
+		var reward_id: String = "%s%d" % [reward_id_prefix, reached_level]
+		if not clean_items.has(reward_id):
+			clean_items.append(reward_id)
 	var clean_badge_levels: Dictionary = {}
 	for badge_id in BADGE_IDS:
 		var badge_level_value = badge_level_values.get(badge_id, 0)
@@ -360,7 +437,7 @@ func _normalize_state(data: Dictionary) -> Dictionary:
 			"kind": notification_kind
 		})
 	return {
-		"schema_version": 1,
+		"schema_version": CURRENT_SCHEMA_VERSION,
 		"level": level,
 		"experience": experience,
 		"unlocked_items": clean_items,
@@ -370,25 +447,59 @@ func _normalize_state(data: Dictionary) -> Dictionary:
 		"protected_data_count": int(protected_data_count_value),
 		"processed_quiz_answer_ids": clean_answer_ids,
 		"processed_quiz_sessions": clean_session_ids,
-		"processed_anti_bullying_sessions": _normalize_string_array(processed_anti_bullying_values),
-		"processed_data_protection_sessions": _normalize_string_array(processed_data_protection_values),
+		"processed_anti_bullying_sessions": clean_anti_bullying_ids,
+		"processed_data_protection_sessions": clean_data_protection_ids,
 		"pending_badge_notifications": clean_notifications
 	}
 
 
-func _is_valid_string_array(values: Array) -> bool:
-	for value in values:
-		if not value is String or value.empty():
-			return false
-	return true
+func _normalize_processed_ids(values) -> Dictionary:
+	var indexed: Dictionary = {}
+	var now: int = OS.get_unix_time()
+	if values is Array:
+		for value in values:
+			if not value is String or value.empty():
+				return {}
+			indexed[value] = _processed_id_timestamp(value, now)
+	elif values is Dictionary:
+		for key in values:
+			var timestamp = values[key]
+			if not key is String or key.empty() or not _is_number(timestamp) or int(timestamp) < 0:
+				return {}
+			indexed[key] = int(timestamp)
+	else:
+		return {}
+	_prune_processed_ids(indexed, now)
+	return indexed
 
 
-func _normalize_string_array(values: Array) -> Array:
-	var normalized: Array = []
-	for value in values:
-		if not normalized.has(value):
-			normalized.append(value)
-	return normalized
+func _mark_processed_id(indexed: Dictionary, identifier: String) -> void:
+	var now: int = OS.get_unix_time()
+	indexed[identifier] = _processed_id_timestamp(identifier, now)
+	if indexed.size() % 64 == 0:
+		_prune_processed_ids(indexed, now)
+
+
+func _prune_processed_ids(indexed: Dictionary, now: int) -> void:
+	for key in indexed.keys():
+		var timestamp: int = int(indexed[key])
+		if timestamp <= now and now - timestamp > PROCESSED_ID_RETENTION_SECONDS:
+			indexed.erase(key)
+
+
+func _processed_id_timestamp(identifier: String, fallback: int) -> int:
+	var parts: PoolStringArray = identifier.split(":")
+	var date_id: String = parts[0] if parts.size() >= 2 else identifier
+	if date_id.begins_with("20"):
+		var date_parts: PoolStringArray = date_id.split("-")
+		if date_parts.size() == 3 and date_parts[0].is_valid_integer() and date_parts[1].is_valid_integer() and date_parts[2].is_valid_integer():
+			return OS.get_unix_time_from_datetime({
+				"year": int(date_parts[0]), "month": int(date_parts[1]), "day": int(date_parts[2]),
+				"hour": 0, "minute": 0, "second": 0
+			})
+	if parts.size() >= 3 and parts[1].is_valid_integer():
+		return int(parts[1])
+	return fallback
 
 
 func _load_default_state() -> Dictionary:
@@ -412,18 +523,53 @@ func _is_number(value) -> bool:
 
 
 func _save_state(value: Dictionary) -> bool:
+	var temporary_path: String = storage_path + PROGRESS_TEMP_SUFFIX
+	var backup_path: String = storage_path + PROGRESS_BACKUP_SUFFIX
 	var file := File.new()
-	var open_error: int = file.open(storage_path, File.WRITE)
+	var open_error: int = file.open(temporary_path, File.WRITE)
 	if open_error != OK:
-		push_error("Não foi possível salvar o progresso do usuário: %s" % storage_path)
+		push_error("Não foi possível abrir o arquivo temporário de progresso: %s" % temporary_path)
 		return false
 	file.store_string(JSON.print(value, "\t"))
+	file.flush()
 	var write_error: int = file.get_error()
 	file.close()
 	if write_error != OK:
-		push_error("Falha ao gravar o JSON de progresso: %s" % storage_path)
+		push_error("Falha ao gravar o JSON temporário de progresso: %s" % temporary_path)
+		_remove_file_if_exists(temporary_path)
 		return false
+	var directory := Directory.new()
+	if directory.file_exists(storage_path):
+		_remove_file_if_exists(backup_path)
+		var backup_error: int = directory.rename(storage_path, backup_path)
+		if backup_error != OK:
+			push_error("Não foi possível preservar o progresso anterior antes da substituição.")
+			_remove_file_if_exists(temporary_path)
+			return false
+	var replace_error: int = directory.rename(temporary_path, storage_path)
+	if replace_error != OK:
+		if directory.file_exists(backup_path):
+			directory.rename(backup_path, storage_path)
+		push_error("Não foi possível substituir o arquivo de progresso salvo.")
+		_remove_file_if_exists(temporary_path)
+		return false
+	_remove_file_if_exists(backup_path)
 	return true
+
+
+func _recover_progress_backup() -> void:
+	var directory := Directory.new()
+	var backup_path: String = storage_path + PROGRESS_BACKUP_SUFFIX
+	if directory.file_exists(storage_path) or not directory.file_exists(backup_path):
+		return
+	if directory.rename(backup_path, storage_path) != OK:
+		push_error("Não foi possível restaurar o backup do progresso do usuário.")
+
+
+func _remove_file_if_exists(path: String) -> void:
+	var directory := Directory.new()
+	if directory.file_exists(path):
+		directory.remove(path)
 
 
 func _load_rules() -> void:
@@ -438,12 +584,38 @@ func _load_rules() -> void:
 		push_error("As regras de progressão são inválidas; usando os valores padrão.")
 		return
 	var xp_value = parsed.result.get("experience_per_level", DEFAULT_EXPERIENCE_PER_LEVEL)
+	var thresholds_value = parsed.result.get("experience_per_level_by_current_level", DEFAULT_EXPERIENCE_THRESHOLDS)
 	var prefix_value = parsed.result.get("reward_id_prefix", DEFAULT_REWARD_ID_PREFIX)
 	if _is_number(xp_value) and int(xp_value) > 0:
 		experience_per_level = int(xp_value)
+		if thresholds_value is Dictionary and _is_valid_experience_thresholds(thresholds_value):
+			experience_thresholds = thresholds_value.duplicate(true)
+		else:
+			push_error("Limiares de XP inválidos; usando os valores padrão por nível.")
+			experience_thresholds = DEFAULT_EXPERIENCE_THRESHOLDS.duplicate(true)
 	else:
 		push_error("XP por nível inválido; usando %d." % DEFAULT_EXPERIENCE_PER_LEVEL)
 	if prefix_value is String and not prefix_value.empty():
 		reward_id_prefix = prefix_value
 	else:
 		push_error("Prefixo de recompensas inválido; usando o padrão.")
+
+
+func _get_experience_threshold(level: int) -> int:
+	var level_key: String = str(max(1, level))
+	if experience_thresholds.has(level_key):
+		return int(experience_thresholds[level_key])
+	return int(experience_thresholds.get("10", experience_per_level))
+
+
+func _update_experience_per_level() -> void:
+	if not state.empty():
+		experience_per_level = _get_experience_threshold(int(state["level"]))
+
+
+func _is_valid_experience_thresholds(values: Dictionary) -> bool:
+	for level in range(1, 11):
+		var level_key: String = str(level)
+		if not values.has(level_key) or not _is_number(values[level_key]) or int(values[level_key]) <= 0:
+			return false
+	return true
