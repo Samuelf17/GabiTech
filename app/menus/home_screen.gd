@@ -41,11 +41,10 @@ func _build_screen() -> void:
 	add_child(background)
 	ui["background"] = background
 
-	ui["menu"] = _new_label("|||", WHITE, "icon", Label.ALIGN_CENTER)
-	ui["notification"] = _new_label("!", WHITE, "icon", Label.ALIGN_CENTER)
 	ui["logo_icon"] = _new_label("*", CYAN, "brand", Label.ALIGN_CENTER)
-	ui["brand_top"] = _new_label("GUARDIÕES", WHITE, "brand_title")
-	ui["brand_bottom"] = _new_label("DA CIDADE DIGITAL", CYAN, "brand_secondary")
+	ui["brand_top"] = _new_label("GabiTech", WHITE, "brand_title")
+	ui["brand_bottom"] = _new_label("", CYAN, "brand_secondary")
+	ui["brand_bottom"].visible = false
 
 	var mascot := TextureRect.new()
 	mascot.name = "MascotSprite"
@@ -88,19 +87,16 @@ func _layout_screen(viewport_size: Vector2) -> void:
 	var width: float = viewport_size.x
 	var height: float = viewport_size.y
 	var safe_x: float = max(24.0, min(width, height) * 0.035)
-	var safe_y: float = max(18.0, min(width, height) * 0.025)
 	var font_basis: float = min(width, height)
 	var landscape: bool = width > height
 
 	if landscape:
-		_layout_landscape(width, height, safe_x, safe_y, font_basis)
+		_layout_landscape(width, height, safe_x, font_basis)
 	else:
-		_layout_portrait(width, height, safe_x, safe_y, font_basis)
+		_layout_portrait(width, height, safe_x, font_basis)
 
 
-func _layout_portrait(width: float, height: float, safe_x: float, safe_y: float, font_basis: float) -> void:
-	_place(ui["menu"], safe_x, safe_y, 60, 58, font_basis)
-	_place(ui["notification"], width - safe_x - 60, safe_y, 60, 58, font_basis)
+func _layout_portrait(width: float, height: float, safe_x: float, font_basis: float) -> void:
 	_place(ui["logo_icon"], safe_x, height * 0.085, 76, 82, font_basis)
 	_place(ui["brand_top"], safe_x + 82, height * 0.08, width - safe_x * 2 - 82, 76, font_basis)
 	_place(ui["brand_bottom"], safe_x + 84, height * 0.137, width - safe_x * 2 - 84, 62, font_basis)
@@ -123,9 +119,7 @@ func _layout_portrait(width: float, height: float, safe_x: float, safe_y: float,
 	_place_status_above_navigation(safe_x, width - safe_x * 2.0, width, height, font_basis)
 
 
-func _layout_landscape(width: float, height: float, safe_x: float, safe_y: float, font_basis: float) -> void:
-	_place(ui["menu"], safe_x, safe_y, 60, 58, font_basis)
-	_place(ui["notification"], width - safe_x - 60, safe_y, 60, 58, font_basis)
+func _layout_landscape(width: float, height: float, safe_x: float, font_basis: float) -> void:
 	_place(ui["logo_icon"], safe_x, height * 0.065, 76, 82, font_basis)
 	_place(ui["brand_top"], safe_x + 82, height * 0.04, width * 0.34, 76, font_basis)
 	_place(ui["brand_bottom"], safe_x + 84, height * 0.145, width * 0.40, 62, font_basis)

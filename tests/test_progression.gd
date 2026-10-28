@@ -20,23 +20,23 @@ func _run_tests() -> void:
 	get_root().add_child(progression)
 	yield(self, "idle_frame")
 
-	_check(progression.experience_per_level == 2000, "level one requires 2000 XP to advance")
+	_check(progression.experience_per_level == 500 and progression._get_experience_threshold(1) == 500, "level one requires 500 XP to advance")
 	_check(progression._get_experience_threshold(2) == 500 and progression._get_experience_threshold(3) == 500, "levels two and three require 500 XP to advance")
 	_check(progression._get_experience_threshold(4) == 2000 and progression._get_experience_threshold(7) == 2000, "levels four through seven require 2000 XP to advance")
 	_check(progression._get_experience_threshold(8) == 5000 and progression._get_experience_threshold(10) == 5000, "levels eight through ten require 5000 XP to advance")
 	_check(progression.state["level"] == 1 and progression.state["experience"] == 0, "missing save starts at level 1 with 0 XP")
 	_check(not progression.add_experience(0), "zero XP is rejected")
 	_check(not progression.add_experience(-10), "negative XP is rejected")
-	_check(progression.add_experience(750), "positive XP can be applied by the progression API")
-	_check(progression.state["level"] == 1 and progression.state["experience"] == 750, "partial XP does not advance the level")
+	_check(progression.add_experience(250), "positive XP can be applied by the progression API")
+	_check(progression.state["level"] == 1 and progression.state["experience"] == 250, "partial XP does not advance the level")
 	_check(progression.state["unlocked_items"].empty(), "partial XP does not grant a level item")
-	_check(progression.add_experience(1250), "XP reaches the next level")
+	_check(progression.add_experience(250), "XP reaches the next level")
 	_check(progression.state["level"] == 2 and progression.state["experience"] == 0, "exact threshold advances the level without losing XP")
 	_check(progression.state["unlocked_items"] == ["level_reward_2"], "level 2 grants its future-configurable reward ID")
 	_check(progression.add_experience(4500), "multiple level advances can be processed")
 	_check(progression.state["level"] == 5 and progression.state["experience"] == 1500, "overflow XP carries across levels with different XP costs")
 	_check(progression.state["unlocked_items"] == ["level_reward_2", "level_reward_3", "level_reward_4", "level_reward_5"], "each crossed level grants one item ID")
-	_check(progression.get_total_experience() == 6500, "total XP is derived from level and current XP")
+	_check(progression.get_total_experience() == 5000, "total XP is derived from level and current XP")
 	_check(abs(progression.get_progress_ratio() - 0.75) < 0.0001, "XP progress ratio reflects the current level's XP threshold")
 	_check(progression.format_number(2000) == "2.000", "XP values use localized thousands separators")
 	_check(emitted_states.size() == 4, "each persisted XP update emits a progress change")
@@ -80,9 +80,9 @@ func _test_quiz_rewards(progression: Node, reloaded: Node) -> void:
 	_check(progression.record_quiz_correct_answer("2026-02-01:2"), "replayed answer event is accepted idempotently")
 	_check(progression.state["quiz_correct_answers"] == 3, "replayed correct answer is not counted twice")
 	_check(progression.complete_quiz_session("2026-02-01", 3), "finished quiz session grants its XP")
-	_check(progression.get_total_experience() == 6680, "each correct answer grants 60 XP after session completion")
+	_check(progression.get_total_experience() == 5180, "each correct answer grants 60 XP after session completion")
 	_check(progression.complete_quiz_session("2026-02-01", 3), "finished quiz session can be retried safely")
-	_check(progression.get_total_experience() == 6680, "retrying a finished session does not grant duplicate XP")
+	_check(progression.get_total_experience() == 5180, "retrying a finished session does not grant duplicate XP")
 	for index in range(3, 6):
 		_check(progression.record_quiz_correct_answer("2026-02-02:%d" % index), "additional correct answer is persisted")
 	_check(progression.get_badge_level("knowledge") == 1, "three more answers bring the total to six without raising knowledge to level two")
@@ -125,9 +125,19 @@ func _test_quiz_rewards(progression: Node, reloaded: Node) -> void:
 		"unlocked_items": ["level_reward_2", "level_reward_3", "level_reward_4"]
 	}
 	var migrated_xp_state: Dictionary = progression._normalize_state(old_xp_state)
-	_check(migrated_xp_state["schema_version"] == 3, "old XP progress upgrades to the current save schema")
-	_check(migrated_xp_state["level"] == 5 and migrated_xp_state["experience"] == 1500, "migration preserves earned XP while applying new level thresholds")
-	_check(migrated_xp_state["unlocked_items"].has("level_reward_5"), "XP migration includes level rewards reached by the preserved balance")
+	_check(migrated_xp_state["schema_version"] == 4, "old XP progress upgrades to the current save schema")
+	_check(migrated_xp_state["level"] == 6 and migrated_xp_state["experience"] == 1000, "migration preserves earned XP while applying new level thresholds")
+	_check(migrated_xp_state["unlocked_items"].has("level_reward_6"), "XP migration includes level rewards reached by the preserved balance")
+	var schema_three_state: Dictionary = {
+		"schema_version": 3,
+		"level": 1,
+		"experience": 750,
+		"unlocked_items": []
+	}
+	var migrated_schema_three: Dictionary = progression._normalize_state(schema_three_state)
+	_check(migrated_schema_three["schema_version"] == 4, "schema three saves upgrade to schema four")
+	_check(migrated_schema_three["level"] == 2 and migrated_schema_three["experience"] == 250, "schema three XP is preserved when the level-one threshold drops to 500")
+	_check(migrated_schema_three["unlocked_items"].has("level_reward_2"), "schema three XP migration unlocks the crossed level reward")
 
 
 func _test_other_game_rewards(progression: Node) -> void:

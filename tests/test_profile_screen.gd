@@ -142,7 +142,7 @@ func _test_tabs(screen) -> void:
 		_check(gadget["icon"].texture.resource_path == "res://shared/progress/assets/gadgets/%d.png" % gadget_level, "level %d gadget comes from its copied runtime asset" % gadget_level)
 	_check(not screen.badge_controls[0]["icon"].visible, "badges are hidden while viewing the collection")
 	_check(screen.ui["status"].text.empty(), "collection tab leaves the status label clear")
-	_check(progression.add_experience(6000), "profile test advances through the configured level thresholds")
+	_check(progression.add_experience(5000), "profile test advances through the configured level thresholds")
 	_check(screen.ui["hero_mascot"].texture.resource_path == "res://shared/mascot/levels/5.png", "profile avatar updates to the capybara for the new level")
 	for gadget in screen.collection_controls:
 		var required_level: int = gadget["required_level"]
@@ -209,9 +209,9 @@ func _test_progress_values(screen) -> void:
 	_remove_progress_test_file(test_path)
 	progression.storage_path = test_path
 	progression.load_progress()
-	progression.add_experience(2000)
+	progression.add_experience(500)
 	_check(screen.ui["level_caption"].text == "NÍVEL 2", "profile level updates after a level-up signal")
-	_check(screen.ui["points"].text == "2.000", "profile total experience updates after a level-up signal")
+	_check(screen.ui["points"].text == "500", "profile total experience updates after a level-up signal")
 	_check(screen.ui["support"].text == "Itens desbloqueados: 1", "profile reward count updates after a level-up signal")
 	progression.storage_path = original_path
 	progression.load_progress()

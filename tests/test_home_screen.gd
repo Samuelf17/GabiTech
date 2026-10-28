@@ -21,6 +21,7 @@ func _run_tests() -> void:
 	var screen = HOME_SCREEN.instance()
 	get_root().add_child(screen)
 	yield(self, "idle_frame")
+	_test_app_brand_and_header(screen)
 
 	_test_layout(screen, Vector2(720, 1280), "portrait")
 	_test_layout(screen, Vector2(1280, 720), "landscape")
@@ -42,6 +43,19 @@ func _run_tests() -> void:
 		for failure in failures:
 			push_error(failure)
 		quit(1)
+
+
+func _test_app_brand_and_header(screen) -> void:
+	_check(ProjectSettings.get_setting("application/config/name") == "GabiTech", "project display name is GabiTech")
+	_check(screen.ui["brand_top"].text == "GabiTech", "home screen displays the GabiTech brand")
+	_check(screen.ui["brand_bottom"].text.empty() and not screen.ui["brand_bottom"].visible, "previous city slogan is hidden")
+	_check(not screen.ui.has("menu") and not screen.ui.has("notification"), "home header has no hamburger or exclamation labels")
+	var export_config := ConfigFile.new()
+	var load_result: int = export_config.load("res://export_presets.cfg")
+	_check(load_result == OK, "Android export preset can be loaded")
+	if load_result == OK:
+		_check(export_config.get_value("preset.0.options", "package/unique_name") == "org.godotengine.guardiesdacidadedigital", "Android package identifier stays stable for app updates")
+		_check(export_config.get_value("preset.0.options", "package/name") == "GabiTech", "Android launcher label is GabiTech")
 
 
 func _test_layout(screen, viewport_size: Vector2, layout_name: String) -> void:
@@ -153,9 +167,9 @@ func _test_progress_values(screen) -> void:
 	_remove_progress_test_file(test_path)
 	progression.storage_path = test_path
 	progression.load_progress()
-	progression.add_experience(500)
-	_check(screen.ui["progress_value"].text == "500 / 2.000 XP", "home XP value updates after a partial XP change")
-	progression.add_experience(1500)
+	progression.add_experience(250)
+	_check(screen.ui["progress_value"].text == "250 / 500 XP", "home XP value updates after a partial XP change")
+	progression.add_experience(250)
 	_check(screen.ui["level_number"].text == "2", "home level display updates after a level-up signal")
 	_check(screen.ui["mascot"].texture.resource_path == "res://shared/mascot/levels/2.png", "home mascot changes to the level two artwork after leveling up")
 	_check(screen.ui["progress_value"].text == "0 / 500 XP", "home XP display updates to the next level's XP threshold")
@@ -212,7 +226,7 @@ func _test_landscape_progress_alignment(screen) -> void:
 func _test_text_fits_controls(screen) -> void:
 	for viewport_size in [Vector2(720, 1280), Vector2(1280, 720), Vector2(960, 540), Vector2(360, 800), Vector2(320, 568)]:
 		screen._layout_screen(viewport_size)
-		for key in ["menu", "notification", "logo_icon", "brand_top", "brand_bottom", "greeting_title", "greeting_text", "level_caption", "level_number", "progress_title", "progress_value", "progress_hint", "status"]:
+		for key in ["logo_icon", "brand_top", "brand_bottom", "greeting_title", "greeting_text", "level_caption", "level_number", "progress_title", "progress_value", "progress_hint", "status"]:
 			var control: Control = screen.ui[key]
 			_check(control.has_meta("font_role"), "%s uses an adaptive font role at %s" % [key, viewport_size])
 			_check(screen.typography.has_role(control.get_meta("font_role")), "%s uses the shared typography scale at %s" % [key, viewport_size])

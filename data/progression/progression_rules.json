@@ -1,7 +1,7 @@
 {
 	"experience_per_level": 2000,
 	"experience_per_level_by_current_level": {
-		"1": 2000,
+		"1": 500,
 		"2": 500,
 		"3": 500,
 		"4": 2000,

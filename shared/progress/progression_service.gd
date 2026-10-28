@@ -5,8 +5,20 @@ signal progress_changed(state)
 const RULES_PATH = "res://data/progression/progression_rules.json"
 const DEFAULT_PROGRESS_PATH = "res://data/progression/default_progress.json"
 const DEFAULT_EXPERIENCE_PER_LEVEL = 2000
-const CURRENT_SCHEMA_VERSION: int = 3
+const CURRENT_SCHEMA_VERSION: int = 4
 const DEFAULT_EXPERIENCE_THRESHOLDS: Dictionary = {
+	"1": 500,
+	"2": 500,
+	"3": 500,
+	"4": 2000,
+	"5": 2000,
+	"6": 2000,
+	"7": 2000,
+	"8": 5000,
+	"9": 5000,
+	"10": 5000
+}
+const SCHEMA_3_EXPERIENCE_THRESHOLDS: Dictionary = {
 	"1": 2000,
 	"2": 500,
 	"3": 500,
@@ -377,7 +389,12 @@ func _normalize_state(data: Dictionary) -> Dictionary:
 	if experience >= migration_experience_limit:
 		return {}
 	if int(schema_version) < CURRENT_SCHEMA_VERSION:
-		var legacy_total_experience: int = (level - 1) * experience_per_level + experience
+		var legacy_total_experience: int = experience
+		if int(schema_version) == 3:
+			for previous_level in range(1, level):
+				legacy_total_experience += int(SCHEMA_3_EXPERIENCE_THRESHOLDS.get(str(previous_level), experience_per_level))
+		else:
+			legacy_total_experience += (level - 1) * experience_per_level
 		level = 1
 		experience = legacy_total_experience
 		while experience >= _get_experience_threshold(level):
