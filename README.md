@@ -4,7 +4,7 @@ GabiTech é um aplicativo educativo para crianças e adolescentes que ensina con
 
 ## Download do APK
 
-[Baixar GabiTech para Android (APK)](https://github.com/Samuelf17/app-jogos/releases/latest)
+[Baixar GabiTech para Android (APK)](https://github.com/Samuelf17/GabiTech/releases/latest)
 
 ## O que você encontra no app
 
