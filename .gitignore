@@ -11,6 +11,9 @@ project.sh
 export.cfg
 **/*:Zone.Identifier
 
+#Arquivos
+estrutura.txt
+
 #Cache e metadados gerados pelo editor
 .mono/
 data_*/
