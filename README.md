@@ -1,6 +1,6 @@
-# HackatOhm
+# GabiTech
 
-HackatOhm é um aplicativo educativo para crianças e adolescentes que ensina conceitos de segurança digital por meio de quizzes e minijogos. Os desafios abordam temas como proteção de dados, privacidade e convivência respeitosa na internet.
+GabiTech é um aplicativo educativo para crianças e adolescentes que ensina conceitos de segurança digital por meio de quizzes e minijogos. Os desafios abordam temas como proteção de dados, privacidade e convivência respeitosa na internet.
 
 ## Download do APK
 
